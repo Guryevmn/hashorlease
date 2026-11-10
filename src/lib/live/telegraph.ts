@@ -13,6 +13,8 @@ const LEDGER = join(process.cwd(), "data", "ledger.jsonl");
 /** Замок оплаты на диске: приложение и агент — разные процессы, платят строго по очереди. */
 const PAY_LOCK = join(process.cwd(), "data", ".payment.lock");
 const PAY_TIMEOUT_MS = 90_000;
+/** Не больше 30 запросов за минуту на все процессы: у devnode лимит 60 новых вопросов в минуту на клиента (429). */
+const MAX_ASKS_PER_MINUTE = 30;
 
 export interface LedgerRow {
   at: string;
@@ -34,6 +36,12 @@ export interface LedgerRow {
 export class SpendLimitError extends Error {
   constructor(limit: number) {
     super(`Daily limit $${limit.toFixed(2)} reached`);
+  }
+}
+
+export class RateLimitError extends Error {
+  constructor() {
+    super(`More than ${MAX_ASKS_PER_MINUTE} Telegraph requests in the last minute — try again shortly`);
   }
 }
 
@@ -62,6 +70,14 @@ export function spentTodayUsd(now = new Date()): number {
   return readLedger()
     .filter((r) => r.at.startsWith(day))
     .reduce((s, r) => s + (r.cost_usd ?? 0), 0);
+}
+
+/** Запросы к Telegraph за последнюю минуту по журналу — и оплаченные, и с ошибкой (402, 504): devnode их тоже видел. */
+export function asksLastMinute(now = Date.now()): number {
+  return readLedger().filter((r) => {
+    const t = Date.parse(r.at);
+    return now - t < 60_000 && t <= now;
+  }).length;
 }
 
 /** Запросы в полёте: их стоимость уже считается потраченной, чтобы параллельные вызовы не пробили лимит. */
@@ -114,7 +130,7 @@ async function acquirePayLock(): Promise<() => void> {
 }
 
 /**
- * Платный запрос. Бросает SpendLimitError, если дневной лимит исчерпан.
+ * Платный запрос. Бросает SpendLimitError, если дневной лимит исчерпан, и RateLimitError — после 30 запросов за минуту.
  * Лимит жёсткий: проверка и оплата идут под замком на диске (один платёж за раз на все процессы),
  * а платёж без ответа записывается в журнал как потраченный.
  */
@@ -124,12 +140,14 @@ export async function ask(
 ): Promise<AskResult> {
   const limit = dailyLimitUsd();
   if (spentTodayUsd() + reservedUsd + REQUEST_COST_USD > limit + 1e-9) throw new SpendLimitError(limit);
+  if (asksLastMinute() >= MAX_ASKS_PER_MINUTE) throw new RateLimitError();
   reservedUsd += REQUEST_COST_USD;
   let release: (() => void) | null = null;
   try {
     release = await acquirePayLock();
     // Под замком — ещё раз: пока ждали, мог заплатить другой процесс.
     if (spentTodayUsd() + REQUEST_COST_USD > limit + 1e-9) throw new SpendLimitError(limit);
+    if (asksLastMinute() >= MAX_ASKS_PER_MINUTE) throw new RateLimitError();
     return await doAsk(payload, purpose);
   } finally {
     release?.();

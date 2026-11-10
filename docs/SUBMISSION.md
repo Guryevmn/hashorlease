@@ -62,7 +62,7 @@ Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo
 - The agent calls the Telegraph Engine (`POST /engine/v1/ask` on the devnode) and pays per request with **x402** in test USDC on **Ethereum Sepolia**. No human approves the payment: this is a machine-to-machine purchase.
 - Each paid answer returns a provider name, a `signal_hash` and a settlement transaction. All three go into an append-only ledger and onto the screen next to the number they back.
 - **What is bought today:** the BTC/USD price (`CRYPTO_PRICE_USD`), $0.01 per request. The hourly agent buys at most once per UTC hour for all sites (about $0.24/day); an open app reuses the same purchase for 30 minutes.
-- **What we tried to buy and could not use:** `MINING_HASHPRICE_VERIFY_GENERAL` and `GRID_POWER_PRICE_GENERAL` for ERCOT hubs. On the devnode (2026-11-09) the payments settled and receipts came back, but the value fields were `null` / `missing`. The raw answers are kept in the repo. So mining income is computed by us (144 blocks × average reward × Telegraph BTC price ÷ network hashrate from mempool.space), and power prices come from Energy-Charts. When those Intents return numbers, they plug into the same receipt model.
+- **What we tried to buy and could not use:** `MINING_HASHPRICE_VERIFY_GENERAL` and `GRID_POWER_PRICE_GENERAL` for ERCOT hubs. On the devnode (2026-11-09) the payments settled and receipts came back, but the value fields were `null` / `missing`: our requests used the documented canonical form (`intent` + required `params`), and the auto-router sent them to miners that do not compute these values (mempool.space pool statistics for hashprice; a CAISO-only grid endpoint for ERCOT hubs). The raw answers are kept in the repo. So mining income is computed by us (144 blocks × average reward × Telegraph BTC price ÷ network hashrate from mempool.space), and power prices come from Energy-Charts. When those Intents return numbers, they plug into the same receipt model.
 - **Spend safety around the purchase:** a daily limit checked before every payment and again under a file lock shared by the app and the agent (one payment at a time); a hard cap of $0.02 per payment; only the test USDC asset is allowed; a payment that left without an answer is booked as spent; the app cannot raise its own limit.
 
 **Technical overview.**
@@ -111,7 +111,7 @@ Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo
 - Example agent purchase: Sepolia tx `0x1c3bc795d2cf6d7eb66949a98ebf173d2f59545b7023597f5d363a48829a76df` (2026-11-09 19:57 UTC), one-command check in `docs/JUDGE.md` §4.
 - Agent runs and decisions with receipts: `docs/evidence/agent-runs.jsonl`, `docs/evidence/agent-decisions.jsonl` (copies of `data/agent/live/`).
 - Raw answers of the mission Intents that returned empty values: `docs/evidence/first-hashprice.json`, `docs/evidence/second-queries.json`.
-- Tests: `npm test` (77 tests: decision logic, agent cycle, bot messages, site storage, spend limit).
+- Tests: `npm test` (79 tests: decision logic, agent cycle, bot messages, site storage, spend limit, request rate).
 - Screenshots: `docs/shots/sites.png`, `docs/shots/site-detail-receipt.png`.
 
 **Карта доказательств (для нас, в форму не идёт):**

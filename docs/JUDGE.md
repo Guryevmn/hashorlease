@@ -46,7 +46,7 @@ The Usage screen then shows an "Hourly agent" card with the last run. Without `-
 Checks:
 
 ```
-npm test            # 77 tests: decision logic, agent cycle, bot messages, site storage, spend limit
+npm test            # 79 tests: decision logic, agent cycle, bot messages, site storage, spend limit, request rate
 npm run typecheck
 npm run build
 ```
@@ -110,7 +110,7 @@ That transaction is the agent's own purchase from 2026-11-09 19:57 UTC: `status 
 
 ### What is in the ledger
 
-127 requests, all on 2026-11-09: **94 paid ($0.94)** and 33 unpaid with no settlement (1 × `400`, 18 × `402 payment required`, 14 × `504`). By origin: 8 manual probes 05:27–05:36 UTC (7 paid); 1 first live check at 05:39; **a burst of 107 requests 05:39:58–05:41:31** (75 paid and all 32 of the 402/504) — our first live build under parallel headless-browser screenshots, when concurrent page loads each started their own BTC-price purchase because that version had no shared in-flight request and its limit check did not count payments in flight, so spend went past the $0.50 limit set then; fixed at 05:41 (one shared snapshot, in-flight reservation), the file lock came later; then 11 single purchases (8 by the app during development, 3 by the hourly agent at 19:57, 20:04 and 20:19). Three more paid probes ran before the ledger existed and are in `docs/evidence/first-hashprice.json` and `docs/evidence/second-queries.json`. Agent runs and decisions of that day: `docs/evidence/agent-runs.jsonl`, `docs/evidence/agent-decisions.jsonl`.
+127 requests, all on 2026-11-09: **94 paid ($0.94)** and 33 unpaid with no settlement (1 × `400`, 18 × `402 payment required`, 14 × `504`). By origin: 8 manual probes 05:27–05:36 UTC (7 paid); 1 first live check at 05:39; **a burst of 107 requests 05:39:58–05:41:31** (75 paid and all 32 of the 402/504) — our first live build under parallel headless-browser screenshots, when concurrent page loads each started their own BTC-price purchase because that version had no shared in-flight request and its limit check did not count payments in flight, so spend went past the $0.50 limit set then; fixed at 05:41 (one shared snapshot, in-flight reservation), the file lock came later. The devnode rate limit (60 new questions per client per minute) was not what failed: there is no `429` in the ledger, and every request in the burst repeated the same question, which the node does not count; most `402`s (15 of 17) are settlements the facilitator could not complete ("payment was verified but could not be settled") while many payments from one wallet were in flight, and the `504`s are gateway timeouts. Since 2026-11-10 the client also refuses a 31st request within any minute (`src/lib/live/telegraph.ts`); then 11 single purchases (8 by the app during development, 3 by the hourly agent at 19:57, 20:04 and 20:19). Three more paid probes ran before the ledger existed and are in `docs/evidence/first-hashprice.json` and `docs/evidence/second-queries.json`. Agent runs and decisions of that day: `docs/evidence/agent-runs.jsonl`, `docs/evidence/agent-decisions.jsonl`.
 
 ## 5. Break it (reasonable failures)
 
@@ -143,7 +143,7 @@ Without a token the agent prints the alerts it would have sent (`alert (bot not 
 - The daily limit stops purchases before payment (live runs with limits $0.50 and $0.01 while $0.92–0.93 was spent: 0 payments, all places paused; on 2026-11-10 `DAILY_SPEND_LIMIT_USD=0` on a clean copy with an empty ledger and no wallet key: 0 payments, all places paused; unit test `src/lib/live/telegraph.test.ts`).
 - Telegraph unreachable → no call, banner and alerts, no payment.
 - All screens in demo and live mode open without console errors (68 demo + 17 live automated browser checks, desktop and a 390 px phone viewport).
-- `npm test` (77 tests), `npm run typecheck`, `npm run build` pass.
+- `npm test` (79 tests), `npm run typecheck`, `npm run build` pass.
 
 **Network:** testnet only — Telegraph devnode + Ethereum Sepolia (test USDC). Nothing ran on mainnet.
 

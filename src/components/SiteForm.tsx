@@ -249,7 +249,7 @@ export function SiteForm({ initial }: { initial?: Site }) {
             </div>
             <label className="row">
               <input type="checkbox" checked={!!v.includesPower} onChange={(e) => set("includesPower", e.target.checked)} />
-              Rate includes power <span className="muted small">(power is not subtracted)</span>
+              Power is included in this rate <span className="muted small">(we won&apos;t subtract the power price)</span>
             </label>
             {ds.fetchLeaseGuide && <div>
               <button type="button" className="btn small" onClick={loadGuide} disabled={limitReached}>See market guide ({usd(GUIDE_COST_USD)})</button>

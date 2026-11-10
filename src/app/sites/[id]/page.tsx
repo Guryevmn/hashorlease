@@ -153,7 +153,7 @@ export default function SiteDetailPage({ params }: { params: Promise<{ id: strin
               <Row
                 label="AI lease rate"
                 value={`${usd(r.inputs.leaseRate.value)} /MWh`}
-                detail={site.lease.includesPower ? "Rate includes power" : "Power is on you, so it is subtracted"}
+                detail={site.lease.includesPower ? "Power is included in the rate, so it is not subtracted" : "Power is on you, so it is subtracted"}
                 receipt={r.inputs.leaseRate.receipt}
                 now={now}
               />
