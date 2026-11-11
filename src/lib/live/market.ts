@@ -1,6 +1,6 @@
-// Живой снимок рынка: курс BTC — платный запрос Telegraph (с чеком), сеть биткоина — mempool.space,
-// цена электричества — Energy-Charts (SMARD, day-ahead). На devnode Telegraph интенты hashprice и ERCOT
-// возвращают пустые поля, поэтому эти цифры считаем сами (docs/PLAN.md §3).
+// Live market snapshot: the BTC price is a paid Telegraph request (with a receipt), the Bitcoin network comes from mempool.space,
+// the electricity price from Energy-Charts (SMARD, day-ahead). On the Telegraph devnode the hashprice and ERCOT intents
+// return empty fields, so we compute those numbers ourselves (docs/PLAN.md §3).
 
 import type { MarketSnapshot, PowerQuote, Receipt, Sourced } from "../types";
 import { LIVE_NODES } from "./catalog";
@@ -15,9 +15,9 @@ const SERIES_TTL_MS = 60 * 60_000;
 const HOUR_S = 3600;
 
 export interface HourlySeries {
-  /** Начала часов, unix-секунды. */
+  /** Hour starts, unix seconds. */
   hours: number[];
-  /** $/МВт·ч. */
+  /** $/MWh. */
   usdPerMwh: number[];
 }
 
@@ -29,7 +29,7 @@ async function getJson<T>(url: string): Promise<T> {
 
 const shortHash = (h: string) => `${h.slice(0, 6)}…${h.slice(-4)}`;
 
-// ---- Биткоин ----
+// ---- Bitcoin ----
 
 interface BtcNetwork {
   btcUsd: number;
@@ -53,7 +53,7 @@ async function fetchBtcNetwork(): Promise<BtcNetwork> {
   };
 }
 
-/** $ за PH/s в день = блоков в сутки × средняя награда × курс / хешрейт сети. */
+/** $ per PH/s per day = blocks per day × average reward × price / network hashrate. */
 export function hashpriceUsdPerPhDay(n: { btcUsd: number; hashratePhs: number; avgRewardBtc: number }): number {
   return Math.round(((144 * n.avgRewardBtc * n.btcUsd) / n.hashratePhs) * 100) / 100;
 }
@@ -69,13 +69,13 @@ async function telegraphBtcPrice(): Promise<{ price: number; tx: string | null; 
   }
 }
 
-// ---- Электричество ----
+// ---- Electricity ----
 
 const seriesCache = new Map<string, { at: number; series: HourlySeries }>();
 const seriesInflight = new Map<string, Promise<HourlySeries>>();
 const SERIES_DIR = join(process.cwd(), "data", "series");
 
-/** Кэш рядов цен на диске: Energy-Charts ограничивает частоту запросов (429), а приложение и агент — разные процессы. */
+/** On-disk cache of price series: Energy-Charts rate-limits requests (429), and the app and the agent are separate processes. */
 function seriesFromDisk(node: string): { at: number; series: HourlySeries } | null {
   const f = join(SERIES_DIR, `${node}.json`);
   try {
@@ -90,7 +90,7 @@ async function downloadSeries(node: string, eurUsd: number): Promise<HourlySerie
   const end = Date.now() + 2 * 86_400_000;
   const url = `https://api.energy-charts.info/price?bzn=${encodeURIComponent(node)}&start=${day(Date.now() - 31 * 86_400_000)}&end=${day(end)}`;
   type Prices = { unix_seconds: number[]; price: (number | null)[] };
-  // Energy-Charts иногда отвечает 429 / ошибкой — две повторные попытки с паузой.
+  // Energy-Charts sometimes answers 429 / an error: two retries with a pause.
   let d: Prices | null = null;
   for (let attempt = 0; !d; attempt++) {
     try {
@@ -117,7 +117,7 @@ async function downloadSeries(node: string, eurUsd: number): Promise<HourlySerie
   };
 }
 
-/** Часовые цены за последние ~31 день, усреднённые из 15-минутных. При сбое источника — последний сохранённый ряд. */
+/** Hourly prices for the last ~31 days, averaged from 15-minute ones. If the source fails, the last saved series. */
 export async function fetchSeries(node: string, eurUsd: number): Promise<HourlySeries> {
   const hit = seriesCache.get(node) ?? seriesFromDisk(node);
   if (hit && Date.now() - hit.at < SERIES_TTL_MS) {
@@ -134,7 +134,7 @@ export async function fetchSeries(node: string, eurUsd: number): Promise<HourlyS
           if (!existsSync(SERIES_DIR)) mkdirSync(SERIES_DIR, { recursive: true });
           writeFileSync(join(SERIES_DIR, `${node}.json`), JSON.stringify(entry));
         } catch {
-          /* кэш на диске — не обязателен */
+          /* disk cache is optional */
         }
         return series;
       })
@@ -154,7 +154,7 @@ function currentAndNext(series: HourlySeries, nowS: number): { current?: number;
   return i < 0 ? {} : { current: series.usdPerMwh[i], next: series.usdPerMwh[i + 1] };
 }
 
-// ---- Снимок ----
+// ---- Snapshot ----
 
 let snapCache: { at: number; value: MarketSnapshot; fx: number } | null = null;
 let lastGoodAt: string | undefined;
@@ -164,7 +164,7 @@ function receipt(status: Receipt["status"], p: Omit<Receipt, "status" | "network
 }
 
 async function buildSnapshot(): Promise<{ snapshot: MarketSnapshot; fx: number }> {
-  // Сначала бесплатные данные: если mempool.space не ответил, платный запрос не делаем (иначе покупка пропала бы зря).
+  // Free data first: if mempool.space did not answer, we skip the paid request (otherwise the purchase would be wasted).
   const net = await fetchBtcNetwork();
   const tg = await telegraphBtcPrice();
   const now = new Date();
@@ -184,7 +184,7 @@ async function buildSnapshot(): Promise<{ snapshot: MarketSnapshot; fx: number }
       }),
     };
   } else {
-    // Telegraph недоступен или лимит — считаем по курсу mempool.space, чек помечаем.
+    // Telegraph unavailable or rate-limited: compute from the mempool.space price and mark the receipt.
     hashprice = {
       value: hashpriceUsdPerPhDay(net),
       receipt: receipt(tg.limit ? "stale" : "unavailable", {
@@ -207,7 +207,7 @@ async function buildSnapshot(): Promise<{ snapshot: MarketSnapshot; fx: number }
           dayAhead: next,
           realTime: {
             value: current ?? null,
-            // Energy-Charts — бесплатный публичный источник, не Telegraph: чека оплаты нет.
+            // Energy-Charts is a free public source, not Telegraph: there is no payment receipt.
             receipt: receipt(current === undefined ? "unavailable" : "public", {
               service: "Day-ahead price",
               provider: "Energy-Charts",
@@ -224,7 +224,7 @@ async function buildSnapshot(): Promise<{ snapshot: MarketSnapshot; fx: number }
     }),
   );
 
-  // Telegraph не ответил (не лимит) — экраны покажут «Can't reach Telegraph» и время последнего чека.
+  // Telegraph did not answer (not a rate limit): screens will show "Can't reach Telegraph" and the time of the last receipt.
   const telegraphDown = "error" in tg && !tg.limit;
   if (!telegraphDown) lastGoodAt = now.toISOString();
   return {
@@ -241,13 +241,13 @@ async function buildSnapshot(): Promise<{ snapshot: MarketSnapshot; fx: number }
   };
 }
 
-/** Снимок без чека Telegraph (лимит, сеть) живёт в кэше 5 минут, а не 30: потом пробуем снова. */
+/** A snapshot without a Telegraph receipt (rate limit, network) lives in the cache for 5 minutes, not 30: then we try again. */
 const UNVERIFIED_TTL_MS = 5 * 60_000;
 
 const SNAPSHOT_FILE = join(process.cwd(), "data", "snapshot.json");
 let inflight: Promise<MarketSnapshot> | null = null;
 
-/** Берёт снимок с диска, если он новее кэша в памяти: веб-приложение и агент (отдельный процесс) делят одну покупку. */
+/** Takes the snapshot from disk if it is newer than the in-memory cache: the web app and the agent (a separate process) share one purchase. */
 function loadFromDisk() {
   if (!existsSync(SNAPSHOT_FILE)) return;
   try {
@@ -257,7 +257,7 @@ function loadFromDisk() {
     snapCache = d;
     lastGoodAt = d.value.lastGoodAt;
   } catch {
-    /* повреждён — построим заново */
+    /* corrupted: rebuild it */
   }
 }
 
@@ -272,7 +272,7 @@ function refresh(): Promise<MarketSnapshot> {
     })
     .catch((e) => {
       if (snapCache) {
-        // Следующая попытка — не раньше чем через 5 минут, а не на каждый запрос.
+        // The next attempt is no sooner than in 5 minutes, not on every request.
         snapCache = { ...snapCache, at: Math.min(snapCache.at, Date.now() - SNAPSHOT_TTL_MS + UNVERIFIED_TTL_MS) };
         return { ...snapCache.value, networkDown: true, lastGoodAt };
       }
@@ -284,10 +284,10 @@ function refresh(): Promise<MarketSnapshot> {
   return inflight;
 }
 
-/** Свежий снимок из кэша; устаревший отдаём сразу, обновляя в фоне (оплата x402 занимает до минуты). */
+/** Fresh snapshot from cache; a stale one is returned immediately while refreshing in the background (x402 payment takes up to a minute). */
 export async function getLiveSnapshot(force = false, opts: { minForceIntervalMs?: number } = {}): Promise<MarketSnapshot> {
   loadFromDisk();
-  // «Refresh now» из браузера не чаще раза в minForceIntervalMs: повторные нажатия не съедают лимит.
+  // "Refresh now" from the browser at most once per minForceIntervalMs: repeated clicks don't eat the limit.
   const realAge = snapCache ? Date.now() - new Date(snapCache.value.asOf).getTime() : Infinity;
   if (force && opts.minForceIntervalMs && snapCache && realAge < opts.minForceIntervalMs) return snapCache.value;
   if (force) return refresh();
@@ -297,8 +297,8 @@ export async function getLiveSnapshot(force = false, opts: { minForceIntervalMs?
 }
 
 /**
- * Для ежечасного агента: ждёт свежий снимок — не старше 30 минут и построенный в текущем часе UTC
- * (цена электричества берётся на час сборки). Если кэш такой — новой оплаты нет.
+ * For the hourly agent: waits for a fresh snapshot, no older than 30 minutes and built in the current UTC hour
+ * (the electricity price is taken for the build hour). If the cache is like that, there is no new payment.
  */
 export async function getFreshSnapshot(): Promise<MarketSnapshot> {
   loadFromDisk();

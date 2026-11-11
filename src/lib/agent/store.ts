@@ -1,4 +1,4 @@
-// Хранилище агента на диске: data/agent/<mode>/decisions.jsonl, runs.jsonl, alerts.json. Не в git.
+// Agent storage on disk: data/agent/<mode>/decisions.jsonl, runs.jsonl, alerts.json. Not in git.
 
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -21,7 +21,7 @@ function readJsonl<T>(file: string): T[] {
     try {
       out.push(JSON.parse(line) as T);
     } catch {
-      /* битая строка (например, оборванная запись) — пропускаем */
+      /* broken line (e.g. a truncated write): skip it */
     }
   }
   return out;
@@ -61,7 +61,7 @@ export function createFileStore(dir: string): AgentStore {
   };
 }
 
-/** Последнее записанное решение по каждой площадке (одна запись на площадку). */
+/** Latest recorded decision for each site (one entry per site). */
 export function latestBySite(rows: DecisionRecord[]): Map<string, DecisionRecord> {
   const m = new Map<string, DecisionRecord>();
   for (const r of rows) {
@@ -71,14 +71,14 @@ export function latestBySite(rows: DecisionRecord[]): Map<string, DecisionRecord
   return m;
 }
 
-/** Последнее решение по площадке, которое не было паузой. */
+/** Latest decision for a site that was not a pause. */
 export function lastDecided(rows: DecisionRecord[], siteId: string): DecisionRecord | null {
   let best: DecisionRecord | null = null;
   for (const r of rows) if (r.siteId === siteId && r.status === "ok" && (!best || r.at >= best.at)) best = r;
   return best;
 }
 
-/** Одна запись на площадку и час — самая поздняя (повтор цикла через 10 минут перекрывает первую попытку). */
+/** One entry per site and hour: the latest (a cycle retry after 10 minutes overrides the first attempt). */
 export function hourlyRows(rows: DecisionRecord[]): DecisionRecord[] {
   const m = new Map<string, DecisionRecord>();
   for (const r of rows) {

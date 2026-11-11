@@ -1,5 +1,5 @@
-// Как показывать выигрыш по площадке: крупно $/ч, рядом мелко $/МВт·ч.
-// Если сумма меньше $1 в час (копеечные площадки), крупно показываем $/день, иначе смысл теряется.
+// How to show a site's gain: large $/h, small $/MWh next to it.
+// If the amount is under $1 per hour (penny sites), show $/day large, otherwise the meaning is lost.
 
 import type { Decision, DecisionOutcome } from "./decision";
 import { signedUsd, usd } from "./format";
@@ -7,13 +7,13 @@ import { signedUsd, usd } from "./format";
 export const SMALL_GAIN_PER_HOUR_USD = 1;
 
 export interface GainText {
-  /** Крупная строка, например «Earning +$47.81 /h» или «Earning +$0.63 /day». */
+  /** Large line, e.g. "Earning +$47.81 /h" or "Earning +$0.63 /day". */
   big: string;
-  /** Мелкая строка рядом, $/МВт·ч, например «+$2.19 /MWh». */
+  /** Small line next to it, $/MWh, e.g. "+$2.19 /MWh". */
   small: string;
 }
 
-/** Выигрыш в час: для «майнить» — прибыль, для остальных — против «майнить». */
+/** Gain per hour: for "mine" it is profit, for the others it is vs "mine". */
 export function gainPerHour(r: DecisionOutcome): number {
   return r.chosen === "mine" ? r.profitPerHour : r.gainVsMiningPerHour;
 }

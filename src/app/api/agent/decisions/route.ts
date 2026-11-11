@@ -2,7 +2,7 @@ import { agentDir, createFileStore, hourlyRows } from "@/lib/agent/store";
 
 export const dynamic = "force-dynamic";
 
-/** Решения агента за последние N часов (по одной записи на площадку и час). */
+/** Agent decisions for the last N hours (one entry per site and hour). */
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const mode = url.searchParams.get("mode") === "live" ? "live" : "mock";

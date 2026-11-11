@@ -1,4 +1,4 @@
-// Проверка полей формы «Add site» (значения приходят строками из полей ввода).
+// Validation of the "Add site" form fields (values arrive as strings from the inputs).
 
 import { DEFAULT_THRESHOLD_USD_PER_MWH } from "./decision";
 import type { SiteInput } from "./types";
@@ -7,7 +7,7 @@ export interface SiteFormValues {
   kind: "grid" | "tariff";
   name: string;
   nodeId: string;
-  /** Тариф в $/МВт·ч (форма пересчитывает из $/кВт·ч). */
+  /** Tariff in $/MWh (the form converts from $/kWh). */
   tariffUsdPerMwh: string;
   mw: string;
   phs: string;
@@ -60,7 +60,7 @@ export function validateSiteInput(v: SiteFormValues): SiteFormErrors {
   return e;
 }
 
-/** Подсказка, если три числа флота не сходятся (MW ≈ PH/s × J/TH ÷ 1000). Не блокирует отправку. */
+/** Hint when the three fleet numbers do not add up (MW ≈ PH/s × J/TH ÷ 1000). Does not block submission. */
 export function fleetConsistencyHint(v: Pick<SiteFormValues, "mw" | "phs" | "jPerTh">): string | null {
   const mw = num(v.mw);
   const phs = num(v.phs);
@@ -117,7 +117,7 @@ export function toSiteInput(v: SiteFormValues, nodeLabel: string): SiteInput {
   };
 }
 
-/** Значения формы из готовой площадки (для Edit site). */
+/** Form values from an existing site (for Edit site). */
 export function formValuesOf(site: SiteInput): SiteFormValues {
   return {
     kind: site.kind,
@@ -135,14 +135,14 @@ export function formValuesOf(site: SiteInput): SiteFormValues {
   };
 }
 
-/** Ошибки по уже собранной площадке (та же проверка, что и в форме). */
+/** Errors for an already assembled site (the same validation as in the form). */
 export function siteInputErrors(input: SiteInput): SiteFormErrors {
   return validateSiteInput(formValuesOf(input));
 }
 
 /**
- * Площадка из тела запроса к API: берём только известные поля нужных типов, остальное отбрасываем.
- * null — тело совсем не похоже на площадку.
+ * Site from an API request body: take only known fields of the right types, discard the rest.
+ * null — the body does not look like a site at all.
  */
 export function sanitizeSiteInput(body: unknown): SiteInput | null {
   if (!body || typeof body !== "object") return null;

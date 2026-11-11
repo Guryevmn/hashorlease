@@ -1,11 +1,11 @@
-// Ежечасный агент Hash or Lease: без открытого браузера раз в час (hh:01 UTC) пересчитывает решения по всем площадкам,
-// сам платит за данные Telegraph (x402, тестовая сеть) в пределах DAILY_SPEND_LIMIT_USD и пишет историю в data/agent/<mode>/.
+// Hash or Lease hourly agent: with no browser open, once an hour (hh:01 UTC) it recomputes decisions for all sites,
+// pays for Telegraph data itself (x402, test network) within DAILY_SPEND_LIMIT_USD and writes history to data/agent/<mode>/.
 //
-//   npm run agent                         # цикл сразу, дальше каждый час; Ctrl+C — стоп
-//   npm run agent -- --once               # один цикл и выход
-//   npm run agent -- --mode=mock          # выдуманные данные, без сети и денег
-//   npm run agent -- --mode=mock --state=provider-error   # сымитировать сбой (provider-error | error | limit)
-//   npm run agent -- --once --fresh       # live: не брать снимок из кэша (30 мин), купить новый — для проверки лимита и сбоев
+//   npm run agent                         # run a cycle now, then every hour; Ctrl+C to stop
+//   npm run agent -- --once               # one cycle and exit
+//   npm run agent -- --mode=mock          # made-up data, no network or money
+//   npm run agent -- --mode=mock --state=provider-error   # simulate a failure (provider-error | error | limit)
+//   npm run agent -- --once --fresh       # live: do not use the cached snapshot (30 min), buy a new one, to test the limit and failures
 
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -16,7 +16,7 @@ import { agentDir } from "@/lib/agent/store";
 import type { AgentMode } from "@/lib/agent/types";
 import type { CycleResult } from "@/lib/agent/cycle";
 
-if (existsSync(".env")) process.loadEnvFile(".env"); // переменные из командной строки важнее файла
+if (existsSync(".env")) process.loadEnvFile(".env"); // variables from the command line take precedence over the file
 
 const args = new Map(
   process.argv.slice(2).map((a) => {
@@ -54,7 +54,7 @@ if (fresh && (mode !== "live" || !once)) {
 const ts = () => new Date().toISOString().replace(/\.\d+Z$/, "Z");
 const log = (line: string) => console.log(`[${ts()}] ${line}`);
 
-// Один агент на режим: второй процесс не запускаем, чтобы не платить дважды.
+// One agent per mode: do not start a second process, to avoid paying twice.
 const dir = agentDir(mode);
 const lock = join(dir, "agent.pid");
 function alive(pid: number) {
@@ -79,7 +79,7 @@ if (!once) {
     try {
       if (existsSync(lock) && readFileSync(lock, "utf8") === String(process.pid)) unlinkSync(lock);
     } catch {
-      /* ничего */
+      /* nothing */
     }
   };
   process.on("exit", release);
@@ -117,13 +117,13 @@ async function cycle(): Promise<CycleResult | null> {
   }
 }
 
-/** Следующий запуск: hh:01 UTC; если в цикле был сбой — повтор через 10 минут. */
+/** Next run: hh:01 UTC; if the cycle had a failure, retry after 10 minutes. */
 function nextDelay(r: CycleResult | null, now = new Date()): number {
   const next = new Date(now);
   next.setUTCMinutes(1, 0, 0);
   if (next.getTime() <= now.getTime()) next.setUTCHours(next.getUTCHours() + 1);
   const hourly = next.getTime() - now.getTime();
-  // Сбой цикла или пауза хотя бы одной площадки (поставщик цены) — повтор через 10 минут; кэш снимка общий, лишней оплаты нет.
+  // Cycle failure or a pause on at least one site (price provider): retry after 10 minutes; the snapshot cache is shared, so no extra payment.
   const failed = !r || r.run.error !== undefined || r.decisions.some((d) => d.pauseKind === "provider" || d.pauseKind === "network");
   const limitOnly = r?.run.limitReached;
   return failed && !limitOnly ? Math.min(hourly, 10 * 60_000) : hourly;

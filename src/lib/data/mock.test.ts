@@ -11,8 +11,8 @@ function memoryStore(): KeyValueStore {
 const mk = (state?: MockState) =>
   createMockDataSource({ state, latencyMs: 0, storage: memoryStore() });
 
-describe("mock DataSource: три площадки из docs/screens.md", () => {
-  it("решения и суммы совпадают с примером", async () => {
+describe("mock DataSource: three sites from docs/screens.md", () => {
+  it("decisions and totals match the example", async () => {
     const o = await mk().getOverview();
     const by = Object.fromEntries(o.reports.map((r) => [r.site.id, r]));
     const h = by["houston"].result!;
@@ -35,7 +35,7 @@ describe("mock DataSource: три площадки из docs/screens.md", () => 
     expect(Math.round(o.totalGainPerHour)).toBe(255);
   });
 
-  it("чеки: Verified у рыночных цифр, Your input у тарифа", async () => {
+  it("receipts: Verified on market numbers, Your input on the rate", async () => {
     const o = await mk().getOverview();
     const houston = o.reports.find((r) => r.site.id === "houston")!;
     const garage = o.reports.find((r) => r.site.id === "garage")!;
@@ -45,19 +45,19 @@ describe("mock DataSource: три площадки из docs/screens.md", () => 
   });
 });
 
-describe("mock DataSource: состояния", () => {
-  it("empty → нет площадок", async () => {
+describe("mock DataSource: states", () => {
+  it("empty → no sites", async () => {
     expect((await mk("empty").getOverview()).reports).toHaveLength(0);
   });
 
-  it("error → всё Stale, сеть недоступна", async () => {
+  it("error → everything Stale, network unavailable", async () => {
     const o = await mk("error").getOverview();
     expect(o.snapshot.networkDown).toBe(true);
     expect(o.reports.every((r) => r.status === "stale")).toBe(true);
     await expect(mk("error").getSpend()).rejects.toThrow();
   });
 
-  it("provider-error → North Ridge на паузе, остальные нет", async () => {
+  it("provider-error → North Ridge paused, the others not", async () => {
     const o = await mk("provider-error").getOverview();
     const north = o.reports.find((r) => r.site.id === "north-ridge")!;
     expect(north.status).toBe("paused");
@@ -66,7 +66,7 @@ describe("mock DataSource: состояния", () => {
     expect(o.reports.find((r) => r.site.id === "houston")!.status).toBe("ok");
   });
 
-  it("limit → лимит достигнут, карточки Stale, обновление запрещено", async () => {
+  it("limit → limit reached, cards Stale, refresh forbidden", async () => {
     const ds = mk("limit");
     const s = await ds.getStatus();
     expect(s.limitReached).toBe(true);
@@ -77,8 +77,8 @@ describe("mock DataSource: состояния", () => {
   });
 });
 
-describe("mock DataSource: лента и расходы", () => {
-  it("лента за 24 ч: по строке на час, без выдуманных действий оператора", async () => {
+describe("mock DataSource: feed and spend", () => {
+  it("24h feed: one row per hour, no made-up operator actions", async () => {
     const feed = await mk().getFeed("24h", "houston");
     expect(feed).toHaveLength(24);
     expect(feed[0]).toMatchObject({ advice: "lease", keepAsIs: false });
@@ -88,7 +88,7 @@ describe("mock DataSource: лента и расходы", () => {
     expect(s).toMatchObject({ totalHours: 24, markedHours: 0, missedUsd: 0 });
   });
 
-  it("упущенная выгода считается только по отмеченным часам", async () => {
+  it("missed gain is counted only over marked hours", async () => {
     const feed = await mk().getFeed("24h", "houston");
     const marks = {
       [markKey("houston", feed[0].hour)]: { kind: "other", actual: "mine" } as const,
@@ -99,12 +99,12 @@ describe("mock DataSource: лента и расходы", () => {
     expect(Math.round(s.missedUsd)).toBe(136);
   });
 
-  it("в состоянии limit в ленте есть паузы", async () => {
+  it("in the limit state the feed has pauses", async () => {
     const feed = await mk("limit").getFeed("24h", "all");
     expect(feed.filter((e) => e.advice === null).length).toBe(9);
   });
 
-  it("Try demo data возвращает выдуманные площадки после удаления всех", async () => {
+  it("Try demo data restores the made-up sites after deleting all of them", async () => {
     const ds = mk();
     for (const r of (await ds.getOverview()).reports) await ds.deleteSite(r.site.id);
     expect((await ds.getOverview()).reports).toHaveLength(0);
@@ -112,7 +112,7 @@ describe("mock DataSource: лента и расходы", () => {
     expect((await ds.getOverview()).reports).toHaveLength(3);
   });
 
-  it("расходы: $0.42 из $1.00, прогноз $0.73", async () => {
+  it("spend: $0.42 of $1.00, forecast $0.73", async () => {
     const sp = await mk().getSpend();
     expect(sp.spentUsd).toBe(0.42);
     expect(sp.limitUsd).toBe(1);
@@ -121,7 +121,7 @@ describe("mock DataSource: лента и расходы", () => {
   });
 });
 
-describe("mock DataSource: добавление площадки", () => {
+describe("mock DataSource: adding a site", () => {
   const input: SiteInput = {
     name: "Test Site",
     kind: "grid",
@@ -134,7 +134,7 @@ describe("mock DataSource: добавление площадки", () => {
     thresholdUsdPerMwh: 5,
   };
 
-  it("добавляет и сохраняет", async () => {
+  it("adds and saves", async () => {
     const ds = mk();
     const r = await ds.addSite(input);
     expect(r.ok).toBe(true);
@@ -143,7 +143,7 @@ describe("mock DataSource: добавление площадки", () => {
     expect(o.reports[3].result?.ok).toBe(true);
   });
 
-  it("неизвестный узел и некорректный ввод отклоняются", async () => {
+  it("unknown node and invalid input are rejected", async () => {
     const ds = mk();
     expect(await ds.addSite({ ...input, nodeId: "NOPE" })).toMatchObject({ ok: false, error: "node-not-found" });
     expect(await ds.addSite({ ...input, mw: 0 })).toMatchObject({ ok: false, error: "invalid" });

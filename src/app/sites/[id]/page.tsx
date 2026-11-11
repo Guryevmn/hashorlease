@@ -77,7 +77,7 @@ export default function SiteDetailPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      {/* 2. Решение */}
+      {/* 2. Decision */}
       <section className="card" aria-label="Decision">
         {!result || !result.ok ? (
           <>
@@ -105,7 +105,7 @@ export default function SiteDetailPage({ params }: { params: Promise<{ id: strin
         )}
       </section>
 
-      {/* 3. Сравнение вариантов */}
+      {/* 3. Option comparison */}
       {result && result.ok && (
         <section className="card" aria-label="Comparison">
           <h2 style={{ marginBottom: 12 }}>Three options, per MWh</h2>
@@ -118,7 +118,7 @@ export default function SiteDetailPage({ params }: { params: Promise<{ id: strin
         </section>
       )}
 
-      {/* 4. Откуда цифры */}
+      {/* 4. Where the numbers come from */}
       <section className="card" aria-label="Where the numbers come from">
         <h2 style={{ marginBottom: 8 }}>Where the numbers come from</h2>
         <div className="breakdown num">
@@ -192,7 +192,7 @@ export default function SiteDetailPage({ params }: { params: Promise<{ id: strin
       {/* 5. Proof */}
       <Proof report={r} demo={!live} />
 
-      {/* 6. График */}
+      {/* 6. Chart */}
       <section className="card" aria-label="Last 24 hours">
         <h2 style={{ marginBottom: 8 }}>Last 24 hours</h2>
         {history.loading ? (
@@ -206,7 +206,7 @@ export default function SiteDetailPage({ params }: { params: Promise<{ id: strin
         )}
       </section>
 
-      {/* 7. Кнопки */}
+      {/* 7. Buttons */}
       <div className="row">
         <button className="btn primary" disabled={busy || limitReached || r.status === "paused"} onClick={refresh}>
           {busy ? "Refreshing…" : `Refresh now (${usd(ds.refreshCostUsd)})`}
@@ -332,7 +332,7 @@ function Proof({ report, demo }: { report: SiteReport; demo: boolean }) {
           try {
             void navigator.clipboard?.writeText(summary);
           } catch {
-            /* буфер недоступен */
+            /* clipboard unavailable */
           }
           setCopied(true);
           setTimeout(() => setCopied(false), 1500);

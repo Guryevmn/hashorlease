@@ -38,7 +38,7 @@ function copy(text: string) {
   try {
     void navigator.clipboard?.writeText(text);
   } catch {
-    /* буфер недоступен — молча */
+    /* clipboard unavailable — silently ignore */
   }
 }
 
@@ -50,7 +50,7 @@ const STATUS_TITLE: Record<Receipt["status"], string> = {
   public: "Public source, not bought via Telegraph",
 };
 
-/** Чек Telegraph у цифры: маленький значок рядом с числом, подробности по тапу (поповер; на телефоне нижняя панель). */
+/** Telegraph receipt next to a number: a small icon beside the figure, details on tap (popover; bottom sheet on phone). */
 export function ReceiptChip({ receipt, now }: { receipt: Receipt; now: string }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);

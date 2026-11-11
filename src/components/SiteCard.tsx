@@ -82,7 +82,7 @@ function Opt({ label, value, best }: { label: string; value: string; best: boole
   );
 }
 
-/** Отрыв, из-за которого оставили всё как есть, $/МВт·ч. */
+/** Margin that made us keep everything as is, $/MWh. */
 export function keepDifference(r: DecisionOutcome): number {
   if (r.chosen === r.best) return r.marginToNext;
   return (r.options[r.best] as number) - (r.options[r.chosen] as number);

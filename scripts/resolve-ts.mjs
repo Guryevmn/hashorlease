@@ -1,4 +1,4 @@
-// Хук разрешения модулей для register-ts.mjs: «@/x» → src/x, «./x» → ./x.ts | ./x/index.ts.
+// Module resolution hook for register-ts.mjs: "@/x" → src/x, "./x" → ./x.ts | ./x/index.ts.
 import { existsSync, statSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join, resolve as resolvePath } from "node:path";
@@ -26,7 +26,7 @@ export async function resolve(specifier, context, next) {
   return next(specifier, context);
 }
 
-// Наши .ts — всегда ES-модули (без предупреждения о типе пакета).
+// Our .ts files are always ES modules (no package type warning).
 export async function load(url, context, next) {
   if (url.startsWith("file:") && url.endsWith(".ts") && !url.includes("/node_modules/")) {
     return next(url, { ...context, format: "module-typescript" });

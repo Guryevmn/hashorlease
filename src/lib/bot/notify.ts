@@ -1,4 +1,4 @@
-// Отправка оповещений агента подписчикам бота через Telegram Bot API (grammY). Без токена не создаётся.
+// Sends agent alerts to bot subscribers via the Telegram Bot API (grammY). Not created without a token.
 
 import { Api, InlineKeyboard } from "grammy";
 import { isSnoozed, readChats, CHATS_FILE } from "./chats";

@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-// Журнал и замок оплаты лежат в process.cwd()/data — подменяем папку до загрузки модуля, чтобы не тронуть настоящий data/.
+// The journal and payment lock live in process.cwd()/data: swap the folder before loading the module so the real data/ isn't touched.
 async function loadInEmptyDir() {
   const dir = mkdtempSync(join(tmpdir(), "hol-telegraph-"));
   vi.spyOn(process, "cwd").mockReturnValue(dir);
@@ -17,8 +17,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("дневной лимит Telegraph", () => {
-  it("DAILY_SPEND_LIMIT_USD=0 на чистой установке: ask() отказывает до оплаты, сети и кошелька", async () => {
+describe("Telegraph daily limit", () => {
+  it("DAILY_SPEND_LIMIT_USD=0 on a clean install: ask() refuses before payment, network and wallet", async () => {
     vi.stubEnv("DAILY_SPEND_LIMIT_USD", "0");
     vi.stubEnv("TELEGRAPH_WALLET_KEY", "");
     const fetchSpy = vi.fn(() => Promise.reject(new Error("network must not be used")));
@@ -33,16 +33,16 @@ describe("дневной лимит Telegraph", () => {
   });
 });
 
-describe("частота запросов к Telegraph", () => {
+describe("Telegraph request rate", () => {
   const question = { query: "What is the current price of Bitcoin (BTC) in USD?" };
-  // Строки журнала без оплаты (504 от devnode): дневной лимит не мешает, считается только частота.
+  // Unpaid journal lines (504 from the devnode): the daily limit doesn't interfere, only the rate counts.
   function seedLedger(dir: string, agesMs: number[]) {
     mkdirSync(join(dir, "data"), { recursive: true });
     const rows = agesMs.map((age) => JSON.stringify({ at: new Date(Date.now() - age).toISOString(), intent: null, params: question, status: 504, cost_usd: 0, tx: null, signal_hash: null, body: null }));
     writeFileSync(join(dir, "data", "ledger.jsonl"), rows.join("\n") + "\n");
   }
 
-  it("30 запросов за последнюю минуту: ask() отказывает до оплаты и сети", async () => {
+  it("30 requests in the last minute: ask() refuses before payment and network", async () => {
     vi.stubEnv("DAILY_SPEND_LIMIT_USD", "10");
     const fetchSpy = vi.fn(() => Promise.reject(new Error("network must not be used")));
     vi.stubGlobal("fetch", fetchSpy);
@@ -55,7 +55,7 @@ describe("частота запросов к Telegraph", () => {
     expect(existsSync(join(dir, "data", ".payment.lock"))).toBe(false);
   });
 
-  it("запросы старше минуты не считаются: 29 свежих + 40 старых — ограничитель пропускает", async () => {
+  it("requests older than a minute don't count: 29 fresh + 40 old, the limiter lets it through", async () => {
     vi.stubEnv("DAILY_SPEND_LIMIT_USD", "10");
     vi.stubEnv("TELEGRAPH_WALLET_KEY", "");
     vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("network must not be used"))));
@@ -63,7 +63,7 @@ describe("частота запросов к Telegraph", () => {
     seedLedger(dir, [...Array.from({ length: 29 }, (_, i) => i * 1000), ...Array.from({ length: 40 }, (_, i) => 61_000 + i * 1000)]);
 
     expect(mod.asksLastMinute()).toBe(29);
-    // Дальше ограничителя: без кошелька запрос падает на клиенте, а не на частоте.
+    // Past the limiter: without a wallet the request fails on the client, not on the rate.
     await expect(mod.ask(question, "All sites")).rejects.toThrow("TELEGRAPH_WALLET_KEY is not set");
     expect(existsSync(join(dir, "data", ".payment.lock"))).toBe(false);
   });

@@ -1,5 +1,5 @@
-// Сборка зависимостей цикла для режима: live (Telegraph + публичные источники, площадки из data/sites.json)
-// или mock (выдуманные цифры, без сети и денег).
+// Builds the cycle dependencies for a mode: live (Telegraph + public sources, sites from data/sites.json)
+// or mock (made-up numbers, no network or money).
 
 import { mockAgentSnapshot, mockSeedSites, type MockState } from "../data/mock";
 import { getFreshSnapshot, getLiveSnapshot } from "../live/market";
@@ -13,18 +13,18 @@ import type { AgentMode } from "./types";
 
 export interface RunnerOptions {
   mode: AgentMode;
-  /** Только mock: сымитировать сбой (provider-error, error, limit). */
+  /** Mock only: simulate a failure (provider-error, error, limit). */
   state?: MockState;
   log?: (line: string) => void;
-  /** Папка data/ (для тестов). */
+  /** The data/ folder (for tests). */
   dataRoot?: string;
-  /** Только live: не брать снимок из кэша, а купить новый (проверка лимита и сбоев). */
+  /** Live only: do not use the cached snapshot, buy a new one (to test the limit and failures). */
   fresh?: boolean;
 }
 
 /**
- * Токен бота Hash or Lease. Имя переменной своё, а не TELEGRAM_BOT_TOKEN / BOT_TOKEN: такие часто уже есть
- * в окружении машины от других ботов, и приложение не должно молча взять чужой токен.
+ * Hash or Lease bot token. The variable has its own name, not TELEGRAM_BOT_TOKEN / BOT_TOKEN: those often already exist
+ * in the machine environment from other bots, and the app must not silently pick up someone else's token.
  */
 export const BOT_TOKEN_VAR = "HASHORLEASE_BOT_TOKEN";
 
@@ -56,7 +56,7 @@ export function createDeps(opts: RunnerOptions): CycleDeps {
     ...common,
     loadSites: () => mockSeedSites(),
     getSnapshot: async () => mockAgentSnapshot(state, new Date()),
-    // В mock денег нет: платных запросов не бывает, лимит выдуманный.
+    // No money in mock: there are no paid requests, the limit is made up.
     spend: () => ({ spentUsd: state === "limit" ? 1 : 0, limitUsd: 1, paidRequests: 0 }),
   };
 }

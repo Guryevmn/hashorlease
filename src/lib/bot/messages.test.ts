@@ -67,8 +67,8 @@ const garage = rec({
   profitPerHour: 0.033,
 });
 
-describe("оповещение о смене решения (screens.md §6)", () => {
-  it("совпадает с макетом", () => {
+describe("decision-change alert (screens.md §6)", () => {
+  it("matches the mockup", () => {
     const m = changeAlert(rec({}), "https://hol.example");
     expect(m.text).toBe(
       ["🔄 Houston Hub: Mine → Lease to AI", "+$136/h vs. mining · $54.60/MWh", "Power $32.40 · Hashprice $38.50/PH/day", "Receipts: 2 · testnet"].join("\n"),
@@ -80,7 +80,7 @@ describe("оповещение о смене решения (screens.md §6)", (
     ]);
   });
 
-  it("без публичного адреса кнопки-ссылки нет; публичный источник цены назван отдельно", () => {
+  it("no link button without a public URL; public price source is named separately", () => {
     const m = changeAlert(
       rec({ receipts: [rec({}).receipts[0], { label: "Power price", status: "public", service: "Day-ahead price", provider: "Energy-Charts", costUsd: 0 }] }),
       null,
@@ -89,7 +89,7 @@ describe("оповещение о смене решения (screens.md §6)", (
     expect(m.buttons.map((b) => b.text)).toEqual(["Snooze 1h", "Receipts"]);
   });
 
-  it("выключение — «saves … vs. mining»", () => {
+  it("switch off: 'saves … vs. mining'", () => {
     expect(changeAlert(north, null).text.split("\n").slice(0, 2)).toEqual(["🔄 North Ridge: Mine → Switch off", "saves $119/h vs. mining · $0.00/MWh"]);
   });
 });
@@ -102,7 +102,7 @@ describe("/now", () => {
   ];
   const base = { sites, decisions: [rec({}), north, garage], now: new Date("2026-11-08T14:05:00Z"), spentUsd: 0.42, limitUsd: 1, appUrl: null };
 
-  it("все площадки — как в макете", () => {
+  it("all sites — as in the mockup", () => {
     expect(nowReply(base).text).toBe(
       [
         "Right now · 14:05 UTC",
@@ -114,7 +114,7 @@ describe("/now", () => {
     );
   });
 
-  it("одна площадка по части названия: варианты и чеки", () => {
+  it("one site by partial name: options and receipts", () => {
     const m = nowReply({ ...base, query: "houston" });
     expect(m.text).toBe(
       [
@@ -127,13 +127,13 @@ describe("/now", () => {
     expect(m.buttons).toEqual([{ text: "Receipts", data: "receipts:houston" }]);
   });
 
-  it("нет такой площадки / нет площадок / агент ещё не запускался", () => {
+  it("no such site / no sites / agent has not run yet", () => {
     expect(nowReply({ ...base, query: "Texas" }).text).toBe("No site matches “Texas”. Your sites: Houston Hub, North Ridge, My tariff.");
     expect(nowReply({ ...base, sites: [] }).text).toBe("No sites yet. Add one in the app to get calls here.");
     expect(nowReply({ ...base, decisions: [] }).text).toMatch(/^No calls yet/);
   });
 
-  it("пауза и устаревшее решение видны в строке", () => {
+  it("pause and stale decision are visible in the line", () => {
     const paused = rec({ siteId: "north-ridge", siteName: "North Ridge", status: "paused", decision: null, reason: "Paused · daily limit" });
     const old = rec({ hour: "2026-11-08T10:00:00.000Z", at: "2026-11-08T10:01:00.000Z" });
     const t = nowReply({ ...base, decisions: [old, paused, garage] }).text.split("\n");
@@ -141,14 +141,14 @@ describe("/now", () => {
     expect(t[2]).toBe("⏸ North Ridge — on hold · Paused · daily limit");
   });
 
-  it("берёт последнюю запись по площадке", () => {
+  it("takes the latest entry per site", () => {
     const later = rec({ at: "2026-11-08T15:01:00.000Z", hour: "2026-11-08T15:00:00.000Z", decision: "mine", gainVsMiningPerHour: 0, profitPerHour: 956 });
     expect(nowReply({ ...base, now: new Date("2026-11-08T15:05:00Z"), decisions: [rec({}), later] }).text.split("\n")[1]).toBe("⛏ Houston Hub — Mine · +$956/h");
   });
 });
 
-describe("прочие сообщения", () => {
-  it("сбой поставщика, лимит, сеть, /start", () => {
+describe("other messages", () => {
+  it("provider failure, limit, network, /start", () => {
     expect(providerAlert(rec({ siteName: "North Ridge", status: "paused" }), north).text).toBe(
       "⚠️ North Ridge: grid price unavailable. Last call (14:00): Switch off. Retrying in 10 min.",
     );
@@ -158,7 +158,7 @@ describe("прочие сообщения", () => {
     expect(startMessage(null).text.split("\n")[0]).toBe("I check every hour whether to mine, lease to AI, or switch off. Add a site in the app first.");
   });
 
-  it("чеки: Telegraph, публичный источник, ввод оператора; ссылка на Sepolia", () => {
+  it("receipts: Telegraph, public source, operator input; Sepolia link", () => {
     const m = receiptsMessage(
       rec({
         receipts: [
@@ -179,11 +179,11 @@ describe("прочие сообщения", () => {
     expect(m.buttons).toEqual([{ text: "CRYPTO_PRICE_USD on Sepolia ↗", url: "https://sepolia.etherscan.io/tx/0xb2" }]);
   });
 
-  it("выгода мелкой площадки — в $/день", () => {
+  it("small site gain — in $/day", () => {
     expect(gainPhrase(garage)).toBe("+$0.79/day");
   });
 
-  it("адрес приложения для кнопок — только https", () => {
+  it("app URL for buttons — https only", () => {
     expect(publicAppUrl("https://hol.example/")).toBe("https://hol.example");
     expect(publicAppUrl("http://localhost:3000")).toBeNull();
     expect(publicAppUrl("")).toBeNull();
@@ -191,8 +191,8 @@ describe("прочие сообщения", () => {
   });
 });
 
-describe("подписчики бота", () => {
-  it("подписка, snooze на час, отписка", () => {
+describe("bot subscribers", () => {
+  it("subscribe, snooze for an hour, unsubscribe", () => {
     const now = new Date("2026-11-08T14:00:00Z");
     let chats = subscribe({}, "42", now);
     chats = snooze(chats, "42", "houston", new Date(now.getTime() + 3600_000));
@@ -202,7 +202,7 @@ describe("подписчики бота", () => {
     expect(unsubscribe(chats, "42")).toEqual({});
   });
 
-  it("Snooze в отписанном чате не включает оповещения снова", () => {
+  it("Snooze in an unsubscribed chat does not re-enable alerts", () => {
     expect(snooze({}, "42", "houston", new Date())).toEqual({});
   });
 });

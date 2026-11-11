@@ -1,6 +1,6 @@
-// Один цикл ежечасного агента: снимок рынка → решение по каждой площадке → запись на диск → оповещения.
-// Правило: нет свежего чека Telegraph — нет решения (час записывается как пауза с причиной).
-// Зависимости передаются снаружи, поэтому цикл одинаково работает в mock, в живом режиме и в тестах.
+// One cycle of the hourly agent: market snapshot → decision per site → write to disk → alerts.
+// Rule: no fresh Telegraph receipt, no decision (the hour is recorded as a pause with a reason).
+// Dependencies are passed in, so the cycle works the same in mock, live mode and tests.
 
 import { buildSiteReport } from "../report";
 import type { MarketSnapshot, Receipt, Site, SiteReport } from "../types";
@@ -11,7 +11,7 @@ import type { AgentMode, AlertState, DecisionRecord, RecordedReceipt, RunRecord 
 export interface SpendInfo {
   spentUsd: number;
   limitUsd: number;
-  /** Всего платных запросов в журнале (разница до/после цикла = купленное агентом). */
+  /** Total paid requests in the ledger (difference before/after a cycle = bought by the agent). */
   paidRequests: number;
 }
 
@@ -22,7 +22,7 @@ export interface CycleDeps {
   getSnapshot: () => Promise<MarketSnapshot>;
   spend: () => SpendInfo;
   now?: () => Date;
-  /** Отправка оповещений; возвращает, сколько сообщений ушло. Нет — оповещения только в лог. */
+  /** Sends alerts; returns how many messages went out. If absent, alerts only go to the log. */
   notify?: (messages: BotMessage[]) => Promise<number>;
   appUrl?: string | null;
   log?: (line: string) => void;
@@ -73,10 +73,10 @@ function pausedRecord(base: Omit<DecisionRecord, "status" | "decision" | "keepAs
   };
 }
 
-/** Почему решения в этом часе выдавать нельзя совсем (для всех площадок), или null. */
+/** Why no decisions can be issued this hour at all (for all sites), or null. */
 function globalPause(s: MarketSnapshot): { kind: "limit" | "network"; reason: string } | null {
   const network = { kind: "network" as const, reason: "Paused · no fresh Telegraph receipt (Telegraph unavailable)" };
-  // Сеть упала, а в кэше старый снимок: старый чек свежим не считаем.
+  // Network is down and the cache holds an old snapshot: an old receipt is not treated as fresh.
   if (s.networkDown) return network;
   if (s.hashprice.receipt.status === "verified") return null;
   if (s.limitReached || (s.hashprice.receipt.status === "stale" && /limit/i.test(s.hashprice.receipt.source ?? ""))) {
@@ -181,7 +181,7 @@ export async function runCycle(deps: CycleDeps): Promise<CycleResult> {
     if (rec.changed) messages.push(changeAlert(rec, deps.appUrl ?? null));
   }
 
-  // Оповещения о лимите и сети — по одному разу, пока состояние не сменится.
+  // Limit and network alerts: once each, until the state changes.
   const day = at.slice(0, 10);
   if (pause?.kind === "limit" && alerts.limitAlertDay !== day) {
     messages.push(limitAlert(before.limitUsd, deps.appUrl ?? null));
@@ -211,7 +211,7 @@ export async function runCycle(deps: CycleDeps): Promise<CycleResult> {
       for (const m of messages) log(`alert (bot not configured, not sent): ${m.text.replace(/\n/g, " | ")}`);
     }
   }
-  // Отправка упала — состояние оповещений не запоминаем: в следующем цикле попробуем снова.
+  // Sending failed: do not remember the alert state, so the next cycle tries again.
   if (!notifyFailed) store.writeAlerts(alerts);
 
   const after = safeSpend();

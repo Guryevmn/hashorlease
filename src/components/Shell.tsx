@@ -21,7 +21,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const status = useAsync((ds) => ds.getStatus());
   const [dismissed, setDismissed] = useState(false);
   const s = status.data;
-  // Баннер лимита, скрытый сегодня («Dismiss» / «Resume tomorrow»), не возвращается при переходах; в просмотре ?state=limit — всегда виден.
+  // A limit banner dismissed today ("Dismiss" / "Resume tomorrow") does not come back on navigation; in the ?state=limit preview it is always visible.
   useEffect(() => setDismissed(state === "default" && limitAcknowledged()), [state, status.data]);
 
   return (

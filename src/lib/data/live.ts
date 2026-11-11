@@ -1,7 +1,7 @@
-// Источник данных для реального режима: цифры, площадки и история агента приходят с сервера (/api/live/*, /api/agent/*).
-// Площадки лежат на сервере (data/sites.json), чтобы ежечасный агент работал без открытого браузера.
-// Лента: часы, которые записал агент, — как есть (с чеками); остальные досчитываются по реальным часовым ценам
-// электричества с текущим хешпрайсом (исторического хешпрайса у нас нет). Отметки оператора — в браузере (marks.ts).
+// Data source for real mode: numbers, sites and the agent history come from the server (/api/live/*, /api/agent/*).
+// Sites live on the server (data/sites.json) so the hourly agent works without an open browser.
+// Feed: hours recorded by the agent are shown as is (with receipts); the rest are computed from real hourly
+// electricity prices with the current hashprice (we have no historical hashprice). Operator marks live in the browser (marks.ts).
 
 import { decide, type Decision } from "../decision";
 import { entryFromOutcome } from "../feed";
@@ -25,7 +25,7 @@ import type { KeyValueStore } from "./mock";
 
 export const LIVE_NODE_OPTIONS: NodeOption[] = LIVE_NODES;
 
-/** Одна покупка — курс BTC через Telegraph, $0.01 (testnet USDC). */
+/** One purchase: the BTC price via Telegraph, $0.01 (testnet USDC). */
 export const LIVE_REFRESH_COST_USD = 0.01;
 
 interface Series {
@@ -51,7 +51,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
-/** Запись агента → строка ленты. */
+/** Agent record → feed row. */
 export function entryFromRecord(r: DecisionRecord): FeedEntry {
   return {
     hour: r.hour,
@@ -94,7 +94,7 @@ export function createLiveDataSource(opts: { storage?: KeyValueStore | null } = 
       const raw = storage?.getItem(settingsKey);
       if (raw) return { alertAtPct: Number(JSON.parse(raw).alertAtPct) || 80 };
     } catch {
-      /* игнорируем */
+      /* ignore */
     }
     return { alertAtPct: 80 };
   }
@@ -116,7 +116,7 @@ export function createLiveDataSource(opts: { storage?: KeyValueStore | null } = 
     return p;
   };
 
-  /** Часы от старых к новым до текущего включительно: решение «по совету», досчитанное по истории цен. */
+  /** Hours from oldest to newest up to and including the current one: the "as advised" decision, computed from price history. */
   async function history(site: Site, hours: number) {
     const snapshotNow = await snapshot();
     const hashprice = snapshotNow.hashprice.value;
@@ -148,7 +148,7 @@ export function createLiveDataSource(opts: { storage?: KeyValueStore | null } = 
     return out;
   }
 
-  /** Решение, действовавшее до текущего часа: из записей агента, а если их нет — по истории цен. */
+  /** The decision in effect before the current hour: from agent records, or from price history if there are none. */
   async function withPrevious(site: Site, rows: DecisionRecord[]): Promise<Site> {
     const hourStart = new Date(Math.floor(Date.now() / 3600_000) * 3600_000).toISOString();
     const prev = rows.filter((r) => r.siteId === site.id && r.status === "ok" && r.hour < hourStart).sort((a, b) => a.at.localeCompare(b.at)).pop();
@@ -163,7 +163,7 @@ export function createLiveDataSource(opts: { storage?: KeyValueStore | null } = 
 
   async function spend(): Promise<SpendState> {
     const s = await api<SpendApi>("/api/live/spend");
-    // Лимит и остановка на лимите — на сервере (DAILY_SPEND_LIMIT_USD), браузер их не выключает.
+    // The limit and stopping at the limit are on the server (DAILY_SPEND_LIMIT_USD); the browser can't turn them off.
     return { ...s, stopAtLimit: true, ...loadSettings() };
   }
 
@@ -216,7 +216,7 @@ export function createLiveDataSource(opts: { storage?: KeyValueStore | null } = 
             const rec = agentRows.get(`${site.id}|${h.hour}`);
             return rec ? { ...entryFromRecord(rec), siteName: site.name } : entryFromOutcome(site, h.hour, h.price, h.outcome);
           });
-          // Часы агента, которых нет в истории цен (например, пауза без данных), тоже показываем.
+          // Agent hours missing from the price history (e.g. a pause with no data) are shown too.
           const seen = new Set(entries.map((e) => e.hour));
           for (const r of rows) if (r.siteId === site.id && !seen.has(r.hour)) entries.push({ ...entryFromRecord(r), siteName: site.name });
           return entries;
@@ -239,7 +239,7 @@ export function createLiveDataSource(opts: { storage?: KeyValueStore | null } = 
 
     estimateAddSite: async (): Promise<AddSiteEstimate> => {
       const s = await spend();
-      // Новая площадка новых платных запросов не требует: курс BTC общий на все площадки, цены электричества бесплатные.
+      // A new site needs no new paid requests: the BTC price is shared across all sites, and electricity prices are free.
       return { requestsPerDay: 0, costPerDayUsd: 0, wouldExceedLimit: false, limitUsd: s.limitUsd };
     },
 

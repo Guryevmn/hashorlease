@@ -16,24 +16,24 @@
   --bad-bg: #fde8e6;
   --accent: #1d4ed8;
 
-  /* Сетка: шаг 4 px. Отступы только из этой шкалы (исключения — 1–2 px у линий и бейджей). */
-  --s1: 4px;   /* внутри элемента: иконка и подпись */
-  --s2: 8px;   /* между близкими элементами */
-  --s3: 12px;  /* внутри карточки между строками */
-  --s4: 16px;  /* поля карточки, между карточками */
-  --s5: 24px;  /* между блоками */
-  --s6: 32px;  /* между секциями страницы */
+  /* Grid: 4 px step. Spacing only from this scale (exceptions: 1–2 px for lines and badges). */
+  --s1: 4px;   /* inside an element: icon and label */
+  --s2: 8px;   /* between related elements */
+  --s3: 12px;  /* inside a card between rows */
+  --s4: 16px;  /* card padding, between cards */
+  --s5: 24px;  /* between blocks */
+  --s6: 32px;  /* between page sections */
   --s7: 48px;
-  /* Радиусы */
+  /* Radii */
   --r1: 12px; --r2: 20px; --r3: 28px;
-  /* Шрифты (шкала Apple, размер/интерлиньяж; интерлиньяж кратен 4) */
-  --t-large: 36px;  --lh-large: 44px;   /* Large Title: главная цифра */
-  --t-title1: 30px; --lh-title1: 36px;  /* Title 1: заголовок страницы */
-  --t-title2: 24px; --lh-title2: 28px;  /* Title 2: решение */
-  --t-head: 19px;   --lh-head: 24px;    /* Headline: заголовки блоков, выгода */
-  --t-body: 17px;   --lh-body: 24px;    /* Body: основной текст */
-  --t-sub: 15px;    --lh-sub: 20px;     /* Subhead: подписи, таблицы */
-  --t-cap: 13px;    --lh-cap: 16px;     /* Caption: бейджи, мелкое */
+  /* Fonts (Apple scale, size/line height; line height is a multiple of 4) */
+  --t-large: 36px;  --lh-large: 44px;   /* Large Title: main number */
+  --t-title1: 30px; --lh-title1: 36px;  /* Title 1: page title */
+  --t-title2: 24px; --lh-title2: 28px;  /* Title 2: decision */
+  --t-head: 19px;   --lh-head: 24px;    /* Headline: block headings, gain */
+  --t-body: 17px;   --lh-body: 24px;    /* Body: main text */
+  --t-sub: 15px;    --lh-sub: 20px;     /* Subhead: labels, tables */
+  --t-cap: 13px;    --lh-cap: 16px;     /* Caption: badges, small print */
   --radius: var(--r2);
 }
 * { box-sizing: border-box; }
@@ -61,7 +61,7 @@ p { margin: 0; }
 .tiny { font-size: var(--t-cap); line-height: var(--lh-cap); letter-spacing: 0; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* Каркас */
+/* Layout shell */
 .header { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10; }
 .header-inner { max-width: 960px; margin: 0 auto; padding: var(--s2) var(--s4); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); }
 .logo { font-weight: 700; font-size: var(--t-head); line-height: var(--lh-head); letter-spacing: -0.022em; }
@@ -103,13 +103,13 @@ p { margin: 0; }
 .between { justify-content: space-between; }
 .page-title { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; margin-bottom: var(--s4); }
 
-/* Сводка рынка */
+/* Market summary */
 .market { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); padding: var(--s3) var(--s4); background: #fff; border: 1px solid var(--line); border-radius: var(--r2); margin-bottom: var(--s5); align-items: center; font-size: var(--t-sub); line-height: var(--lh-sub); }
 .market b { font-weight: 700; }
 .hero { margin-bottom: var(--s5); }
 .hero .big { font-size: var(--t-large); line-height: var(--lh-large); font-weight: 700; letter-spacing: -0.022em; }
 
-/* Карточки площадок */
+/* Site cards */
 .site-card { display: block; }
 .site-card:hover { border-color: #b8c0cc; }
 .site-head { display: flex; justify-content: space-between; gap: var(--s3); align-items: flex-start; }
@@ -124,10 +124,10 @@ p { margin: 0; }
 .chev { color: var(--muted); font-size: var(--t-title2); line-height: var(--lh-head); }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: var(--s2); }
 
-/* Чек */
+/* Receipt */
 .chip-wrap { display: inline-block; vertical-align: middle; position: relative; margin-left: var(--s1); }
 .rcpt { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 50%; background: var(--off-bg); color: var(--muted); position: relative; vertical-align: middle; }
-.rcpt::after { content: ""; position: absolute; inset: -12px; } /* зона нажатия 44 px */
+.rcpt::after { content: ""; position: absolute; inset: -12px; } /* 44 px tap target */
 .rcpt.verified { color: var(--mine); background: var(--mine-bg); }
 .rcpt.stale { color: var(--warn); background: var(--warn-bg); }
 .rcpt.unavailable { color: var(--off); background: var(--off-bg); }
@@ -145,7 +145,7 @@ p { margin: 0; }
   .sheet-backdrop { z-index: 40; }
 }
 
-/* Сравнение вариантов */
+/* Option comparison */
 .options { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3); }
 @media (max-width: 640px) { .options { gap: var(--s2); } .option { padding: var(--s2) var(--s3); } .option .row { flex-wrap: wrap; gap: var(--s1) !important; } .option .badge { display: none; } .option .v { font-size: var(--t-head); line-height: var(--lh-head); font-weight: 700; } }
 .option { border-radius: var(--r1); padding: var(--s3); background: #f4f5f7; }
@@ -161,12 +161,12 @@ p { margin: 0; }
 .brow.problem { background: var(--bad-bg); margin: 0 calc(-1 * var(--s2)); padding: var(--s3) var(--s2); border-radius: var(--r1); }
 .brow .v { font-size: var(--t-head); line-height: var(--lh-head); font-weight: 600; }
 
-/* Скелетоны */
+/* Skeletons */
 .skel { background: linear-gradient(90deg, #e9ecf0 25%, #f3f5f7 50%, #e9ecf0 75%); background-size: 200% 100%; animation: sh 1.4s infinite; border-radius: 6px; display: inline-block; }
 @keyframes sh { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .skel { animation: none; } }
 
-/* Формы */
+/* Forms */
 .field { display: flex; flex-direction: column; gap: var(--s1); }
 .field label, .field .label { font-weight: 600; font-size: var(--t-sub); line-height: var(--lh-sub); }
 .input { border: 1px solid #c4cbd4; border-radius: var(--r1); min-height: 40px; padding: 0 var(--s3); background: #fff; width: 100%; font-size: var(--t-body); }
@@ -184,7 +184,7 @@ p { margin: 0; }
 .listbox button:first-child { border-top: 0; }
 .listbox button:hover { background: #f3f5f7; }
 
-/* Расходы */
+/* Spending */
 .meter { height: 8px; background: var(--off-bg); border-radius: 999px; overflow: hidden; }
 .meter > i { display: block; height: 100%; background: var(--accent); }
 .meter.over > i { background: var(--bad); }
@@ -194,7 +194,7 @@ th, td { text-align: left; padding: var(--s2); border-top: 1px solid var(--line)
 th { color: var(--muted); font-weight: 600; border-top: 0; }
 tr.blocked td { color: var(--muted); background: #f6f7f9; }
 
-/* Лента */
+/* Feed */
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3); }
 @media (max-width: 640px) { .stats { gap: var(--s2); } .stats .card { padding: var(--s3); } .stat .v { font-size: var(--t-head); line-height: var(--lh-head); } }
 .stat .v { font-size: var(--t-title2); line-height: var(--lh-title2); font-weight: 700; letter-spacing: -0.02em; }
@@ -217,7 +217,7 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 .opt.best span:last-child { font-weight: 700; }
 .verdict { margin: var(--s2) 0; font-size: var(--t-body); line-height: var(--lh-body); }
 
-/* Телефон: нижняя панель вкладок, компактная шапка */
+/* Phone: bottom tab bar, compact header */
 @media (max-width: 640px) {
   .header-inner { flex-wrap: nowrap; gap: var(--s2); padding: var(--s2) var(--s3); }
   .logo { white-space: nowrap; }
@@ -236,14 +236,14 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
   .table-wrap td:first-child { font-weight: 600; }
 }
 
-/* Иконки в таб-баре: на телефоне иконка над подписью (как в iOS) */
+/* Tab bar icons: on phone the icon sits above the label (like iOS) */
 .nav a { display: inline-flex; align-items: center; gap: var(--s2); }
 @media (max-width: 720px) {
   .nav a { flex-direction: column; gap: 2px; padding: var(--s2) var(--s2); font-size: var(--t-cap); line-height: var(--lh-cap); font-weight: 600; }
 }
 
 
-/* Э0-c: «Keep as is» заметнее, но спокойно; выигрыш $/ч + $/МВт·ч; отметки в ленте */
+/* E0-c: «Keep as is» more prominent but calm; gain $/h + $/MWh; marks in the feed */
 .badge.calm { background: #e6eef8; color: #2b4a73; }
 .keep-note { display: flex; align-items: flex-start; gap: var(--s2); margin-top: var(--s3); padding: var(--s2) var(--s3); border-radius: var(--r1); background: #eef3fa; color: #2b4a73; font-size: var(--t-sub); line-height: var(--lh-sub); }
 .keep-note svg { flex: none; margin-top: 2px; }

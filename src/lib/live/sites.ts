@@ -1,5 +1,5 @@
-// Площадки живого режима на сервере (data/sites.json): их видит и веб-приложение, и ежечасный агент,
-// который работает без открытого браузера. Файл не в git.
+// Live-mode sites on the server (data/sites.json): seen by both the web app and the hourly agent,
+// which runs without an open browser. The file is not in git.
 
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -21,7 +21,7 @@ export function readSites(file = SITES_FILE): Site[] {
   } catch {
     data = null;
   }
-  // Повреждённый файл не затираем и не считаем пустым списком: ошибка видна на экране и в логе агента.
+  // A corrupted file is not overwritten or treated as an empty list: the error is visible on screen and in the agent log.
   if (!Array.isArray(data)) throw new Error(`${file} is damaged: fix or delete it (the app recreates example sites)`);
   return data as Site[];
 }
@@ -53,7 +53,7 @@ function labelOf(input: SiteInput): string {
   return input.nodeLabel.trim() || LIVE_NODES.find((n) => n.id === input.nodeId)?.label || input.nodeId || "";
 }
 
-/** id, которые уже встречаются в истории агента: новой площадке их не даём, чтобы она не унаследовала чужую историю. */
+/** ids already present in the agent history: a new site is not given them so it doesn't inherit someone else's history. */
 function historyIds(): Set<string> {
   try {
     return new Set(createFileStore(agentDir("live")).readDecisions().map((r) => r.siteId));
@@ -67,7 +67,7 @@ export function addSite(input: SiteInput, file = SITES_FILE, usedIds: () => Set<
   if (bad) return bad;
   const sites = readSites(file);
   const used = usedIds();
-  // Короткий id: он попадает в кнопки Telegram, а у них лимит 64 байта на данные.
+  // Short id: it ends up in Telegram buttons, which have a 64-byte limit on data.
   const base = input.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 32).replace(/-$/, "") || "site";
   let id = base;
   for (let n = 2; sites.some((s) => s.id === id) || used.has(id); n++) id = `${base}-${n}`;

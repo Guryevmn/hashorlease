@@ -1,64 +1,64 @@
-// Логика решения «Mine / Lease to AI / Switch off» на МВт·ч (docs/PLAN.md §2).
-// Чистые функции: без UI, сети и времени.
+// Decision logic "Mine / Lease to AI / Switch off" per MWh (docs/PLAN.md §2).
+// Pure functions: no UI, network or clock.
 
 export type Decision = "mine" | "lease" | "off";
 
 export const DEFAULT_THRESHOLD_USD_PER_MWH = 5;
 
-/** Порядок предпочтения при равенстве значений (если нет текущего решения). */
+/** Preference order when values are equal (if there is no current decision). */
 const TIE_ORDER: Decision[] = ["mine", "lease", "off"];
 const EPS = 1e-9;
 
 export interface LeaseTerms {
-  /** Ставка контракта, $/МВт·ч. */
+  /** Contract rate, $/MWh. */
   rateUsdPerMwh: number;
-  /** «Ставка за всё»: электричество уже включено, не вычитать. */
+  /** "All-in rate": electricity is already included, do not subtract it. */
   includesPower: boolean;
-  /** Накладные, $/МВт·ч. */
+  /** Overhead, $/MWh. */
   overheadUsdPerMwh: number;
 }
 
 export interface DecisionInput {
-  /** $ за PH/s в день. */
+  /** $ per PH/s per day. */
   hashpriceUsdPerPhDay: number;
-  /** Цена электричества, $/МВт·ч (может быть отрицательной). */
+  /** Electricity price, $/MWh (can be negative). */
   powerPriceUsdPerMwh: number;
-  /** Потребление площадки, МВт. */
+  /** Site power draw, MW. */
   mw: number;
-  /** Хешрейт флота, PH/s. */
+  /** Fleet hashrate, PH/s. */
   phs: number;
-  /** Условия ИИ-аренды; нет — вариант «Lease» недоступен. */
+  /** AI lease terms; if absent, the "Lease" option is unavailable. */
   lease?: LeaseTerms | null;
-  /** Оплата за снижение нагрузки при выключении, $/МВт·ч. */
+  /** Payment for load reduction when switched off, $/MWh. */
   curtailmentUsdPerMwh?: number;
-  /** Порог «оставить как есть», $/МВт·ч. */
+  /** "Keep as is" threshold, $/MWh. */
   thresholdUsdPerMwh?: number;
-  /** Решение, которое сейчас действует на площадке. */
+  /** The decision currently in effect at the site. */
   current?: Decision | null;
 }
 
 export interface DecisionOutcome {
   ok: true;
-  /** Значения вариантов, $/МВт·ч. lease = null, если ставка не задана. */
+  /** Option values, $/MWh. lease = null if no rate is set. */
   options: { mine: number; lease: number | null; off: number };
   phsPerMw: number;
-  /** Валовый доход от майнинга, $/МВт·ч (до вычета электричества). */
+  /** Gross mining revenue, $/MWh (before subtracting electricity). */
   miningRevenue: number;
-  /** Лучший по значению вариант. */
+  /** Best option by value. */
   best: Decision;
-  /** Итоговое решение (может отличаться от best, если «keep as is»). */
+  /** Final decision (may differ from best if "keep as is"). */
   chosen: Decision;
   keepAsIs: boolean;
-  /** Отрыв лучшего варианта от следующего, $/МВт·ч. */
+  /** Gap between the best option and the next one, $/MWh. */
   marginToNext: number;
-  /** Решение отличается от текущего. */
+  /** The decision differs from the current one. */
   changed: boolean;
   thresholdUsdPerMwh: number;
-  /** Значение выбранного варианта, $/МВт·ч. */
+  /** Value of the chosen option, $/MWh. */
   chosenUsdPerMwh: number;
-  /** Выигрыш выбранного против «майнить» = (chosen − mine) × МВт, $/ч. */
+  /** Gain of the chosen option vs "mine" = (chosen − mine) × MW, $/h. */
   gainVsMiningPerHour: number;
-  /** Прибыль выбранного варианта, $/ч. */
+  /** Profit of the chosen option, $/h. */
   profitPerHour: number;
 }
 
@@ -88,7 +88,7 @@ export function validateInput(input: DecisionInput): string[] {
   return errors;
 }
 
-/** Валовый доход от майнинга, $/МВт·ч: hashprice × (PH/s на МВт) / 24. */
+/** Gross mining revenue, $/MWh: hashprice × (PH/s per MW) / 24. */
 export function miningRevenuePerMwh(hashprice: number, phs: number, mw: number): number {
   return (hashprice * (phs / mw)) / 24;
 }
@@ -113,7 +113,7 @@ export function decide(input: DecisionInput): DecisionResult {
   const valueOf = (d: Decision) => options[d] as number;
   const current = input.current && available.includes(input.current) ? input.current : null;
 
-  // Лучший вариант: максимум; при равенстве — текущее решение, затем порядок TIE_ORDER.
+  // Best option: the maximum; on a tie, the current decision, then TIE_ORDER.
   const best = available.reduce((a, b) => {
     const diff = valueOf(b) - valueOf(a);
     if (diff > EPS) return b;

@@ -1,5 +1,5 @@
-// Серверный клиент Telegraph Engine: платит x402 (тестовый USDC в Sepolia), ведёт журнал data/ledger.jsonl
-// и останавливается на дневном лимите. Работает только на сервере: ключ кошелька из .env.
+// Server-side Telegraph Engine client: pays via x402 (test USDC on Sepolia), keeps the data/ledger.jsonl journal
+// and stops at the daily limit. Server-only: the wallet key comes from .env.
 
 import { x402Client, wrapFetchWithPayment, x402HTTPClient } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm/exact/client";
@@ -10,10 +10,10 @@ import { join } from "node:path";
 const USDC_SEPOLIA = "0xcc194e1a843B658526D0D5C431f670028582Ae17";
 const REQUEST_COST_USD = 0.01;
 const LEDGER = join(process.cwd(), "data", "ledger.jsonl");
-/** Замок оплаты на диске: приложение и агент — разные процессы, платят строго по очереди. */
+/** Payment lock on disk: the app and the agent are separate processes and pay strictly one at a time. */
 const PAY_LOCK = join(process.cwd(), "data", ".payment.lock");
 const PAY_TIMEOUT_MS = 90_000;
-/** Не больше 30 запросов за минуту на все процессы: у devnode лимит 60 новых вопросов в минуту на клиента (429). */
+/** At most 30 requests per minute across all processes: the devnode limits a client to 60 new questions per minute (429). */
 const MAX_ASKS_PER_MINUTE = 30;
 
 export interface LedgerRow {
@@ -25,10 +25,10 @@ export interface LedgerRow {
   tx: string | null;
   signal_hash: string | null;
   miner_name?: string | null;
-  /** Для чего сделан запрос (название площадки / «All sites»). */
+  /** What the request was made for (site name / "All sites"). */
   purpose?: string;
   body: unknown;
-  /** Ответа нет, но платёж уже был отправлен: считаем потраченным (осторожно), пока не доказано обратное. */
+  /** No response, but the payment was already sent: counted as spent (conservatively) until proven otherwise. */
   uncertain?: boolean;
   error?: string;
 }
@@ -59,7 +59,7 @@ export function readLedger(): LedgerRow[] {
       try {
         return JSON.parse(l) as LedgerRow;
       } catch {
-        // Оборванная строка: считаем её сегодняшним платежом, чтобы лимит не ослаб.
+        // Truncated line: count it as today's payment so the limit doesn't weaken.
         return { at: new Date().toISOString(), intent: null, params: null, status: 0, cost_usd: REQUEST_COST_USD, tx: null, signal_hash: null, body: null, uncertain: true, error: "unreadable ledger line" };
       }
     });
@@ -72,7 +72,7 @@ export function spentTodayUsd(now = new Date()): number {
     .reduce((s, r) => s + (r.cost_usd ?? 0), 0);
 }
 
-/** Запросы к Telegraph за последнюю минуту по журналу — и оплаченные, и с ошибкой (402, 504): devnode их тоже видел. */
+/** Telegraph requests in the last minute per the journal, both paid and failed (402, 504): the devnode saw those too. */
 export function asksLastMinute(now = Date.now()): number {
   return readLedger().filter((r) => {
     const t = Date.parse(r.at);
@@ -80,7 +80,7 @@ export function asksLastMinute(now = Date.now()): number {
   }).length;
 }
 
-/** Запросы в полёте: их стоимость уже считается потраченной, чтобы параллельные вызовы не пробили лимит. */
+/** In-flight requests: their cost is already counted as spent so parallel calls can't break the limit. */
 let reservedUsd = 0;
 
 let client: x402Client | null = null;
@@ -90,7 +90,7 @@ function getClient(): x402Client {
   if (!key) throw new Error("TELEGRAPH_WALLET_KEY is not set");
   const c = new x402Client();
   c.register("eip155:*", new ExactEvmScheme(privateKeyToAccount(key as `0x${string}`)));
-  // Токен Telegraph не из списка по умолчанию — разрешаем только его и не больше $0.02 за платёж.
+  // The Telegraph token is not in the default list: allow only it and no more than $0.02 per payment.
   c.setSpendControls({ allowedAssets: [{ network: "eip155:11155111", asset: USDC_SEPOLIA, maxAmountPerPayment: "20000" }] });
   client = c;
   return c;
@@ -113,15 +113,15 @@ async function acquirePayLock(): Promise<() => void> {
         try {
           unlinkSync(PAY_LOCK);
         } catch {
-          /* уже снят */
+          /* already removed */
         }
       };
     } catch {
-      // Замок от упавшего процесса старше двух минут — снимаем.
+      // A lock from a crashed process older than two minutes is removed.
       try {
         if (Date.now() - statSync(PAY_LOCK).mtimeMs > 2 * PAY_TIMEOUT_MS) unlinkSync(PAY_LOCK);
       } catch {
-        /* исчез сам */
+        /* vanished on its own */
       }
       if (Date.now() > deadline) throw new Error("Another payment is still in progress");
       await new Promise((r) => setTimeout(r, 300));
@@ -130,9 +130,9 @@ async function acquirePayLock(): Promise<() => void> {
 }
 
 /**
- * Платный запрос. Бросает SpendLimitError, если дневной лимит исчерпан, и RateLimitError — после 30 запросов за минуту.
- * Лимит жёсткий: проверка и оплата идут под замком на диске (один платёж за раз на все процессы),
- * а платёж без ответа записывается в журнал как потраченный.
+ * Paid request. Throws SpendLimitError if the daily limit is exhausted, and RateLimitError after 30 requests per minute.
+ * The limit is strict: the check and the payment run under an on-disk lock (one payment at a time across all processes),
+ * and a payment without a response is recorded in the journal as spent.
  */
 export async function ask(
   payload: { intent: string; params: Record<string, unknown> } | { query: string },
@@ -145,7 +145,7 @@ export async function ask(
   let release: (() => void) | null = null;
   try {
     release = await acquirePayLock();
-    // Под замком — ещё раз: пока ждали, мог заплатить другой процесс.
+    // Under the lock, once more: another process may have paid while we waited.
     if (spentTodayUsd() + REQUEST_COST_USD > limit + 1e-9) throw new SpendLimitError(limit);
     if (asksLastMinute() >= MAX_ASKS_PER_MINUTE) throw new RateLimitError();
     return await doAsk(payload, purpose);
@@ -160,7 +160,7 @@ async function doAsk(
   purpose: string,
 ): Promise<AskResult> {
   const c = getClient();
-  // Замечаем, ушёл ли запрос с подписанным платежом: тогда при обрыве считаем деньги потраченными.
+  // We notice whether a request with a signed payment went out: if it drops, we count the money as spent.
   let paymentSent = false;
   const tracked: typeof fetch = (input, init) => {
     const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
@@ -202,7 +202,7 @@ async function doAsk(
     const receipt = new x402HTTPClient(c).getPaymentSettleResponse((n) => res.headers.get(n));
     if (receipt?.success) tx = receipt.transaction ?? null;
   } catch {
-    /* оплаты не было */
+    /* no payment was made */
   }
 
   if (!existsSync(join(process.cwd(), "data"))) mkdirSync(join(process.cwd(), "data"));

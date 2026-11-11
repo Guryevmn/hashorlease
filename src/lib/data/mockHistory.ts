@@ -1,12 +1,12 @@
-// Выдуманная история цен и решений по часам (детерминированная).
-// Нужна для ленты «что было бы» и мини-графика. Текущий час (i = 0) совпадает со снимком рынка.
+// Made-up hourly history of prices and decisions (deterministic).
+// Needed for the "what would have happened" feed and the mini chart. The current hour (i = 0) matches the market snapshot.
 
 import { decide, type Decision, type DecisionOutcome } from "../decision";
 import { entryFromOutcome } from "../feed";
 import type { FeedEntry, HourPoint, Site } from "../types";
 
 export const MOCK_HASHPRICE = 38.5;
-/** Выдуманные цены real-time по узлам, $/МВт·ч. */
+/** Made-up real-time prices by node, $/MWh. */
 export const MOCK_POWER_RT: Record<string, number> = {
   HB_HOUSTON: 32.4,
   HB_NORTH: 74.1,
@@ -18,7 +18,7 @@ export const MOCK_POWER_DA: Record<string, number> = {
   HB_WEST: 30.2,
 };
 
-/** Начало «текущего» часа в mock: 8 нояб 2026, 14:00 UTC. */
+/** Start of the "current" hour in mock: Nov 8, 2026, 14:00 UTC. */
 export const MOCK_HOUR_START = Date.UTC(2026, 10, 8, 14, 0, 0);
 export const MAX_HISTORY_HOURS = 720;
 const HOUR_MS = 3600_000;
@@ -48,7 +48,7 @@ export function powerAt(site: Site, i: number): number {
 }
 
 export interface HistoryHour {
-  /** Сколько часов назад (0 = текущий). */
+  /** How many hours ago (0 = current). */
   i: number;
   hour: string;
   power: number;
@@ -62,7 +62,7 @@ function siteKey(site: Site): string {
   return JSON.stringify([site.id, site.kind, site.nodeId, site.tariffUsdPerMwh, site.mw, site.phs, site.lease, site.thresholdUsdPerMwh]);
 }
 
-/** История от старых часов к новым, MAX_HISTORY_HOURS записей, последняя — текущий час. */
+/** History from oldest to newest hour, MAX_HISTORY_HOURS entries, the last one being the current hour. */
 export function simulateHistory(site: Site): HistoryHour[] {
   const key = siteKey(site);
   const hit = cache.get(key);
@@ -96,7 +96,7 @@ export function simulateHistory(site: Site): HistoryHour[] {
   return out;
 }
 
-/** Решение за час перед текущим: для бейджа «Changed from …». */
+/** Decision for the hour before the current one: for the "Changed from …" badge. */
 export function previousDecisionOf(site: Site): Decision | null {
   const h = simulateHistory(site);
   return h.length >= 2 ? h[h.length - 2].outcome.chosen : null;
@@ -121,5 +121,5 @@ export function feedEntries(site: Site, hours: number, pausedHours: number[] = [
     }
     return entryFromOutcome(site, h.hour, h.power, h.outcome);
   });
-  return entries.reverse(); // новые сверху
+  return entries.reverse(); // newest first
 }

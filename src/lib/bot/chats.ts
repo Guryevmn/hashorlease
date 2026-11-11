@@ -1,11 +1,11 @@
-// Подписчики бота (data/bot-chats.json, не в git): кто написал /start, и «Snooze 1h» по площадкам.
+// Bot subscribers (data/bot-chats.json, not in git): who sent /start, and "Snooze 1h" per site.
 
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 export interface ChatState {
   subscribedAt: string;
-  /** id площадки → до какого времени (ISO) не присылать оповещения. */
+  /** site id → ISO time until which alerts are muted. */
   snooze: Record<string, string>;
 }
 
@@ -38,7 +38,7 @@ export function unsubscribe(chats: Chats, chatId: string): Chats {
 }
 
 export function snooze(chats: Chats, chatId: string, siteId: string, until: Date): Chats {
-  // Старая кнопка «Snooze» в отписанном чате не включает оповещения снова.
+  // An old "Snooze" button in an unsubscribed chat does not re-enable alerts.
   const c = chats[chatId];
   if (!c) return chats;
   return { ...chats, [chatId]: { ...c, snooze: { ...c.snooze, [siteId]: until.toISOString() } } };

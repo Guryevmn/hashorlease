@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Не дописывать автоматический блок в AGENTS.md проекта.
+  // Do not append the automatic block to the project's AGENTS.md.
   agentRules: false, devIndicators: false,
-  // Открытие dev-сайта с телефона по Wi-Fi.
+  // Open the dev site from a phone over Wi-Fi.
   allowedDevOrigins: ["10.1.31.83", "*.local"],
 };
 export default nextConfig;

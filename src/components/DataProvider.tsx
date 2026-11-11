@@ -12,9 +12,9 @@ export const LIVE = process.env.NEXT_PUBLIC_DATA_MODE === "live";
 interface Ctx {
   ds: DataSource;
   state: MockState;
-  /** Реальные данные (а не демо / просмотр состояний). */
+  /** Real data (not demo / state preview). */
   live: boolean;
-  /** Увеличивается, когда нужно перечитать данные (после трат, Retry). */
+  /** Incremented when data needs to be re-read (after spending, Retry). */
   tick: number;
   bump: () => void;
 }
@@ -48,7 +48,7 @@ export interface AsyncState<T> {
   reload: () => void;
 }
 
-/** Загрузка данных из источника; перечитывается при смене источника или bump(). */
+/** Loads data from the source; re-read when the source changes or on bump(). */
 export function useAsync<T>(load: (ds: DataSource) => Promise<T>, deps: unknown[] = []): AsyncState<T> {
   const { ds, tick, bump } = useData();
   const [s, setS] = useState<{ data?: T; error?: Error; loading: boolean }>({ loading: true });
@@ -72,7 +72,7 @@ export function useAsync<T>(load: (ds: DataSource) => Promise<T>, deps: unknown[
   return { data: s.data, error: s.error, loading: s.loading, reload: bump };
 }
 
-/** Ссылка, сохраняющая ?state=… между экранами. */
+/** Link that preserves ?state=… across screens. */
 export function AppLink({ href, children, ...rest }: React.ComponentProps<typeof Link>) {
   const { state } = useData();
   const target = typeof href === "string" && state !== "default" ? `${href}${href.includes("?") ? "&" : "?"}state=${state}` : href;
@@ -88,7 +88,7 @@ export function useIsActive(path: string): boolean {
   return path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/");
 }
 
-/** Добавляет ?state=… к пути для программной навигации. */
+/** Appends ?state=… to the path for programmatic navigation. */
 export function useWithState(): (path: string) => string {
   const { state } = useData();
   return (path) => (state === "default" ? path : `${path}${path.includes("?") ? "&" : "?"}state=${state}`);

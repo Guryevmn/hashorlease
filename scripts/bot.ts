@@ -1,8 +1,8 @@
-// Telegram-бот Hash or Lease (grammY): /start — подписка на оповещения, /now — текущее решение, /stop — отписка.
-// Оповещения о смене решения шлёт ежечасный агент (npm run agent) тем, кто подписался здесь.
-// Бот не делает платных запросов: /now читает последние записи агента из data/agent/<mode>/.
+// Hash or Lease Telegram bot (grammY): /start subscribes to alerts, /now shows the current decision, /stop unsubscribes.
+// Decision-change alerts are sent by the hourly agent (npm run agent) to those who subscribed here.
+// The bot makes no paid requests: /now reads the agent's latest entries from data/agent/<mode>/.
 //
-//   npm run bot        # нужен HASHORLEASE_BOT_TOKEN в .env; без него бот не стартует
+//   npm run bot        # needs HASHORLEASE_BOT_TOKEN in .env; the bot does not start without it
 
 import { existsSync } from "node:fs";
 import { Bot } from "grammy";

@@ -44,7 +44,7 @@ function deps(store: AgentStore, snapshot: () => Promise<MarketSnapshot>, extra:
 const snap = (state: MockState) => async () => buildMockSnapshot(state);
 
 describe("runCycle", () => {
-  it("записывает решение по каждой площадке с чеками и считает купленные запросы", async () => {
+  it("records a decision for each site with receipts and counts purchased requests", async () => {
     const store = memoryStore();
     const { run, decisions } = await runCycle(deps(store, snap("default")));
     expect(run.ok).toBe(true);
@@ -61,11 +61,11 @@ describe("runCycle", () => {
     expect(store.runs).toHaveLength(1);
   });
 
-  it("первое решение — не смена; смена против прошлого часа даёт оповещение", async () => {
+  it("first decision is not a change; a change vs. the previous hour triggers an alert", async () => {
     const store = memoryStore();
     const first = await runCycle(deps(store, snap("default")));
     expect(first.messages).toHaveLength(0);
-    // Прошлый час: Houston майнил → теперь Lease to AI.
+    // Previous hour: Houston was mining → now Lease to AI.
     store.decisions = store.decisions.map((d) => (d.siteId === "houston" ? { ...d, decision: "mine" } : d));
     const second = await runCycle(deps(store, snap("default"), { now: () => new Date(NOW.getTime() + 3600_000) }));
     const change = second.messages.find((m) => m.kind === "change");
@@ -74,7 +74,7 @@ describe("runCycle", () => {
     expect(second.run.changes).toEqual([{ siteId: "houston", siteName: "Houston Hub", from: "mine", to: "lease" }]);
   });
 
-  it("сбой поставщика: площадка на паузе, оповещение один раз, остальные решены", async () => {
+  it("provider failure: site paused, one alert, the rest decided", async () => {
     const store = memoryStore();
     await runCycle(deps(store, snap("default")));
     const a = await runCycle(deps(store, snap("provider-error")));
@@ -87,7 +87,7 @@ describe("runCycle", () => {
     expect(b.messages).toHaveLength(0);
   });
 
-  it("лимит исчерпан: все часы на паузе, одно оповещение за день", async () => {
+  it("limit reached: all hours paused, one alert per day", async () => {
     const store = memoryStore();
     const a = await runCycle(deps(store, snap("limit")));
     expect(a.run.decided).toBe(0);
@@ -98,7 +98,7 @@ describe("runCycle", () => {
     expect(b.messages).toHaveLength(0);
   });
 
-  it("Telegraph недоступен: решения не выдаются; когда вернулся — сообщение и решения снова", async () => {
+  it("Telegraph unavailable: no decisions; when it returns, a message and decisions again", async () => {
     const store = memoryStore();
     const down = await runCycle(deps(store, snap("error")));
     expect(down.run.ok).toBe(false);
@@ -109,7 +109,7 @@ describe("runCycle", () => {
     expect(back.messages.map((m) => m.kind)).toEqual(["network-back"]);
   });
 
-  it("исключение при сборке снимка не роняет цикл: пауза с причиной", async () => {
+  it("an exception while building the snapshot does not crash the cycle: pause with a reason", async () => {
     const store = memoryStore();
     const r = await runCycle(
       deps(store, async () => {
@@ -121,7 +121,7 @@ describe("runCycle", () => {
     expect(r.decisions.every((d) => d.status === "paused")).toBe(true);
   });
 
-  it("отдаёт сообщения в notify и записывает, сколько ушло", async () => {
+  it("passes messages to notify and records how many went out", async () => {
     const store = memoryStore();
     const sent: string[] = [];
     const r = await runCycle(deps(store, snap("limit"), { notify: async (ms) => (ms.forEach((m) => sent.push(m.kind)), ms.length) }));
@@ -130,8 +130,8 @@ describe("runCycle", () => {
   });
 });
 
-describe("сбои вокруг цикла", () => {
-  it("отправка в Telegram упала — оповещение повторится в следующем цикле", async () => {
+describe("failures around the cycle", () => {
+  it("Telegram send failed: the alert is retried in the next cycle", async () => {
     const store = memoryStore();
     const failing = { notify: async () => { throw new Error("telegram down"); } };
     const a = await runCycle(deps(store, snap("limit"), failing));
@@ -140,14 +140,14 @@ describe("сбои вокруг цикла", () => {
     expect(b.messages.map((m) => m.kind)).toEqual(["limit"]);
   });
 
-  it("журнал трат не читается — цикл всё равно записан", async () => {
+  it("spend ledger is unreadable: the cycle is still recorded", async () => {
     const store = memoryStore();
     const r = await runCycle(deps(store, snap("default"), { spend: () => { throw new Error("bad ledger"); } }));
     expect(r.run.decided).toBe(3);
     expect(store.runs).toHaveLength(1);
   });
 
-  it("площадки не читаются — пауза с причиной, без падения", async () => {
+  it("sites are unreadable: pause with a reason, no crash", async () => {
     const store = memoryStore();
     const r = await runCycle(deps(store, snap("default"), { loadSites: () => { throw new Error("sites.json is damaged"); } }));
     expect(r.run.ok).toBe(false);
@@ -155,8 +155,8 @@ describe("сбои вокруг цикла", () => {
   });
 });
 
-describe("файловое хранилище агента", () => {
-  it("пишет и читает jsonl, пропускает битые строки, берёт последнюю запись часа", async () => {
+describe("agent file store", () => {
+  it("writes and reads jsonl, skips broken lines, takes the latest entry of the hour", async () => {
     const dir = mkdtempSync(join(tmpdir(), "hol-agent-"));
     const store = createFileStore(dir);
     await runCycle(deps(store, async () => mockAgentSnapshot("default", NOW)));

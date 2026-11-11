@@ -9,8 +9,8 @@ import { LIVE_SEED_SITES } from "./catalog";
 const file = () => join(mkdtempSync(join(tmpdir(), "hol-sites-")), "sites.json");
 const good = { kind: "grid", name: "Paris Farm", nodeId: "FR", nodeLabel: "", mw: 10, phs: 500, jPerTh: 20, lease: null, thresholdUsdPerMwh: 5 };
 
-describe("площадки на сервере (data/sites.json)", () => {
-  it("первый запуск — стартовые площадки; добавление, правка, удаление", () => {
+describe("server-side sites (data/sites.json)", () => {
+  it("first run uses the starter sites; add, edit, delete", () => {
     const f = file();
     expect(readSites(f).map((s) => s.id)).toEqual(LIVE_SEED_SITES.map((s) => s.id));
     const added = addSite(sanitizeSiteInput(good)!, f, () => new Set());
@@ -24,7 +24,7 @@ describe("площадки на сервере (data/sites.json)", () => {
     expect(readSites(f)).toHaveLength(LIVE_SEED_SITES.length);
   });
 
-  it("неверный ввод и недоступная зона — понятная ошибка, файл не меняется", () => {
+  it("invalid input and an unavailable zone give a clear error, file unchanged", () => {
     const f = file();
     const bad = addSite(sanitizeSiteInput({ ...good, jPerTh: 2 })!, f);
     expect(bad).toMatchObject({ ok: false, error: "invalid" });
@@ -34,7 +34,7 @@ describe("площадки на сервере (data/sites.json)", () => {
     expect(readSites(f)).toHaveLength(LIVE_SEED_SITES.length);
   });
 
-  it("тело запроса чистится: лишние поля отброшены, мусор отклонён", () => {
+  it("request body is sanitized: extra fields dropped, junk rejected", () => {
     expect(sanitizeSiteInput(null)).toBeNull();
     expect(sanitizeSiteInput({ kind: "boat" })).toBeNull();
     const s = sanitizeSiteInput({ ...good, mw: "10", evil: "<script>", lastDecision: "mine" })!;
@@ -44,15 +44,15 @@ describe("площадки на сервере (data/sites.json)", () => {
   });
 });
 
-describe("защита данных площадок", () => {
-  it("повреждённый файл — ошибка, а не пустой список, и он не перезаписывается", () => {
+describe("site data protection", () => {
+  it("a corrupted file gives an error, not an empty list, and is not overwritten", () => {
     const f = file();
     writeFileSync(f, "{oops");
     expect(() => readSites(f)).toThrow(/damaged/);
     expect(() => addSite(sanitizeSiteInput(good)!, f, () => new Set())).toThrow(/damaged/);
   });
 
-  it("id короткий и не повторяет id из истории агента", () => {
+  it("id is short and does not repeat an id from the agent history", () => {
     const f = file();
     const long = addSite(sanitizeSiteInput({ ...good, name: "A very long site name that goes on and on and on forever" })!, f, () => new Set());
     expect(long.ok && long.site.id.length).toBeLessThanOrEqual(32);

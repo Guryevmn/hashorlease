@@ -1,5 +1,5 @@
-// Mock-источник данных на выдуманных цифрах из docs/screens.md. Сети нет.
-// Состояния для просмотра экранов: ?state=loading | empty | error | provider-error | limit
+// Mock data source with made-up numbers from docs/screens.md. No network.
+// States for previewing screens: ?state=loading | empty | error | provider-error | limit
 
 import { buildOverview, buildSiteReport } from "../report";
 import type {
@@ -37,7 +37,7 @@ export interface KeyValueStore {
 export interface MockOptions {
   state?: MockState;
   storage?: KeyValueStore | null;
-  /** Искусственная задержка ответов, мс. */
+  /** Artificial response delay, ms. */
   latencyMs?: number;
 }
 
@@ -160,8 +160,8 @@ export function buildMockSnapshot(state: MockState): MarketSnapshot {
 }
 
 /**
- * Снимок для ежечасного агента в mock-режиме: те же выдуманные цифры, но на текущий час,
- * а цена электричества гуляет по часам (чтобы решения иногда менялись и было что показать в оповещениях).
+ * Snapshot for the hourly agent in mock mode: the same made-up numbers, but for the current hour,
+ * and the electricity price wanders by the hour (so decisions sometimes change and there is something to show in notifications).
  */
 export function mockAgentSnapshot(state: MockState, now: Date): MarketSnapshot {
   const base = buildMockSnapshot(state);
@@ -184,7 +184,7 @@ export function mockAgentSnapshot(state: MockState, now: Date): MarketSnapshot {
   };
 }
 
-/** Площадки демо (для агента в mock-режиме). */
+/** Demo sites (for the agent in mock mode). */
 export function mockSeedSites(): Site[] {
   return SEED_SITES.map((s) => ({ ...s, lastDecision: null }));
 }
@@ -245,7 +245,7 @@ export function createMockDataSource(opts: MockOptions = {}): DataSource {
       try {
         return JSON.parse(raw) as Site[];
       } catch {
-        /* повреждено — начинаем заново */
+        /* corrupted: start over */
       }
     }
     if (memorySites) return memorySites;
@@ -265,7 +265,7 @@ export function createMockDataSource(opts: MockOptions = {}): DataSource {
       try {
         return JSON.parse(raw) as SpendSettings;
       } catch {
-        /* игнорируем */
+        /* ignore */
       }
     }
     return memorySettings ?? { limitUsd: DAILY_LIMIT_DEFAULT, stopAtLimit: true, alertAtPct: 80 };
@@ -318,7 +318,7 @@ export function createMockDataSource(opts: MockOptions = {}): DataSource {
       limitReached: status().limitReached,
       forecastPerDayUsd: Math.round(requests * REQUEST_COST * 100) / 100,
       forecastNote: `${gridSites} grid ${gridSites === 1 ? "site" : "sites"} × 24 grid price + 24 hashprice + 1 web search, ~$0.01 each (estimate)`,
-      // В «пустом» демо запросов ещё не было.
+      // In the "empty" demo there have been no requests yet.
       byService: state === "empty" ? [] : by,
       log: state === "empty" ? [...extraLog] : [...extraLog, ...buildLog(state)],
     };
@@ -342,7 +342,7 @@ export function createMockDataSource(opts: MockOptions = {}): DataSource {
 
   return {
     getStatus: async () => {
-      // Статус доступен всегда: лимит работает, даже если остальное не грузится.
+      // Status is always available: the limit works even if everything else fails to load.
       return status();
     },
 
@@ -428,7 +428,7 @@ export function createMockDataSource(opts: MockOptions = {}): DataSource {
         const sites = loadSites();
         const prev = sites.find((s) => s.id === id);
         if (!prev) return { ok: false, error: "invalid", message: "This place no longer exists." };
-        // Действующее решение сохраняем: правка цифр не должна сбрасывать «keep as is».
+        // Keep the current decision: editing the numbers must not reset "keep as is".
         const site: Site = { ...input, id, name: input.name.trim(), lastDecision: prev.lastDecision ?? null };
         saveSites(sites.map((s) => (s.id === id ? site : s)));
         return { ok: true, site };
@@ -438,7 +438,7 @@ export function createMockDataSource(opts: MockOptions = {}): DataSource {
     serverLimit: false,
 
     getAgentStatus: async () => {
-      // Демо-агент (npm run agent -- --mode=mock) пишет свои циклы на сервере, читаем их оттуда.
+      // The demo agent (npm run agent -- --mode=mock) writes its cycles on the server; read them from there.
       if (typeof window === "undefined") return null;
       try {
         const res = await fetch("/api/agent?mode=mock", { cache: "no-store" });
@@ -450,7 +450,7 @@ export function createMockDataSource(opts: MockOptions = {}): DataSource {
 
     loadDemoSites: () =>
       wait(() => {
-        // Площадки демо лежат под обычным ключом: так они остаются и после выхода из ?state=empty.
+        // Demo sites live under the usual key: so they stay even after leaving ?state=empty.
         const seeded: Site[] = SEED_SITES.map((s) => ({ ...s, lastDecision: previousDecisionOf({ ...s, lastDecision: null }) }));
         storage?.setItem("hol.sites.v1", JSON.stringify(seeded));
         memorySites = seeded;

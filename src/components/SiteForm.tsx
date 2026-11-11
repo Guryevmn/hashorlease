@@ -18,11 +18,11 @@ import {
 } from "@/lib/siteForm";
 import type { NodeOption, Site, Sourced } from "@/lib/types";
 
-/** Короткие подписи быстрых кнопок по id узла; остальные узлы — по названию до скобки. */
+/** Short labels for quick buttons by node id; other nodes use the name up to the parenthesis. */
 const SHORT: Record<string, string> = { HB_HOUSTON: "Houston hub", HB_NORTH: "North hub", HB_WEST: "West hub" };
 const shortLabel = (n: NodeOption) => SHORT[n.id] ?? n.label.replace(/\s*\(.*$/, "");
 
-/** Форма площадки: добавление (без initial) или правка существующей. */
+/** Site form: add (no initial) or edit an existing one. */
 export function SiteForm({ initial }: { initial?: Site }) {
   const { ds, bump, live } = useData();
   const withState = useWithState();
@@ -49,19 +49,19 @@ export function SiteForm({ initial }: { initial?: Site }) {
   const set = <K extends keyof SiteFormValues>(k: K, val: SiteFormValues[K]) => setV((p) => ({ ...p, [k]: val }));
   const blur = (k: keyof SiteFormValues) => setTouched((t) => ({ ...t, [k]: true }));
 
-  // Тариф: пересчёт из $/кВт·ч в $/МВт·ч
+  // Tariff: conversion from $/kWh to $/MWh
   useEffect(() => {
     const n = Number(tariffRaw.replace(",", "."));
     const perMwh = tariffRaw.trim() === "" || !Number.isFinite(n) ? "" : String(unit === "kwh" ? Math.round(n * 1000 * 1e6) / 1e6 : n);
     setV((p) => (p.tariffUsdPerMwh === perMwh ? p : { ...p, tariffUsdPerMwh: perMwh }));
   }, [tariffRaw, unit]);
 
-  // Живая проверка полей
+  // Live field validation
   useEffect(() => {
     setErrors(validateSiteInput(v));
   }, [v]);
 
-  // Поиск узла
+  // Node search
   useEffect(() => {
     if (v.kind !== "grid") return;
     let alive = true;
@@ -91,7 +91,7 @@ export function SiteForm({ initial }: { initial?: Site }) {
     setTouched(Object.fromEntries(Object.keys(v).map((k) => [k, true])));
     setFormError(null);
     if (hasErrors) return;
-    // Узел не из списка сети — говорим сразу, без запроса к серверу.
+    // Node is not in the grid list — say so right away, without a server request.
     if (v.kind === "grid" && quick.data && !quick.data.some((n) => n.id === v.nodeId)) {
       setFormError(
         live

@@ -1,11 +1,11 @@
-// Лента «что было бы»: совет по часам + отметки оператора → упущенная выгода.
-// Без отметки час не считается: что делал оператор, мы не знаем.
+// "What would have been" feed: hourly advice + operator marks → missed gain.
+// An hour without a mark is not counted: we do not know what the operator did.
 
 import type { Decision, DecisionOutcome } from "./decision";
 import { markKey, type MarkMap } from "./marks";
 import type { FeedEntry, FeedRow, Site } from "./types";
 
-/** Запись ленты по итогу решения за час. */
+/** Feed entry for an hour's decision outcome. */
 export function entryFromOutcome(
   site: Pick<Site, "id" | "name" | "mw" | "kind">,
   hour: string,
@@ -26,7 +26,7 @@ export function entryFromOutcome(
   };
 }
 
-/** Упущено за час, $: совет против того, что оператор сделал. Близкие часы («keep as is») не считаются. */
+/** Missed in an hour, $: advice vs what the operator did. Near-tie hours ("keep as is") are not counted. */
 function missedIfActual(e: FeedEntry, actual: Decision): number {
   if (!e.advice || !e.options || e.keepAsIs) return 0;
   const actualValue = e.options[actual];
@@ -46,15 +46,15 @@ export function resolveFeed(entries: FeedEntry[], marks: MarkMap): FeedRow[] {
 }
 
 export interface FeedSummary {
-  /** Часы с советом (без пауз). */
+  /** Hours with advice (excluding pauses). */
   totalHours: number;
-  /** Отмечено «Followed» или «Did something else». */
+  /** Marked "Followed" or "Did something else". */
   markedHours: number;
   followedHours: number;
   skippedHours: number;
-  /** Упущено по отмеченным часам, $. */
+  /** Missed across marked hours, $. */
   missedUsd: number;
-  /** Выиграно за счёт того, что следовали совету, $. */
+  /** Gained by following the advice, $. */
   gainedUsd: number;
 }
 
@@ -76,7 +76,7 @@ export interface FeedDay {
   /** YYYY-MM-DD (UTC). */
   day: string;
   entries: FeedRow[];
-  /** Есть ли в дне отмеченные часы (иначе «Not marked»). */
+  /** Whether the day has marked hours (otherwise "Not marked"). */
   marked: boolean;
   missedUsd: number;
 }

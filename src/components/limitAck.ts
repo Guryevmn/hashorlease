@@ -1,4 +1,4 @@
-// «Resume tomorrow» / «Dismiss» у баннера лимита: помним в браузере, что сегодня (UTC) баннер уже видели.
+// «Resume tomorrow» / «Dismiss» on the limit banner: we remember in the browser that the banner was already seen today (UTC).
 
 const KEY = "hol.limitAck.v1";
 const today = () => new Date().toISOString().slice(0, 10);
@@ -7,7 +7,7 @@ export function acknowledgeLimit(): void {
   try {
     window.localStorage.setItem(KEY, today());
   } catch {
-    /* хранилище недоступно */
+    /* storage unavailable */
   }
 }
 

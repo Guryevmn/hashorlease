@@ -1,30 +1,30 @@
-// Общие типы данных. Реальный клиент Telegraph (Э1) должен отдавать то же самое,
-// экраны от источника данных не зависят.
+// Shared data types. The real Telegraph client (E1) must return the same shapes;
+// screens do not depend on the data source.
 
 import type { Decision, DecisionResult } from "./decision";
 
 /**
- * Статус чека у цифры. "public" — цифра из бесплатного публичного источника (не Telegraph):
- * чека оплаты нет, есть только ссылка на источник.
+ * Status of the receipt on a number. "public" — a number from a free public source (not Telegraph):
+ * no payment receipt, only a link to the source.
  */
 export type ReceiptStatus = "verified" | "stale" | "unavailable" | "input" | "public";
 
 /**
- * Чек Telegraph. Точный формат станет известен после первого платного запроса (Э1),
- * поэтому все поля, кроме статуса, необязательные.
+ * Telegraph receipt. The exact format will be known after the first paid request (E1),
+ * so all fields except the status are optional.
  */
 export interface Receipt {
   status: ReceiptStatus;
   service?: string;
-  /** Майнер/поставщик, например "m-1f3". */
+  /** Miner/supplier, e.g. "m-1f3". */
   provider?: string;
-  /** ISO-время получения. */
+  /** ISO time of receipt. */
   fetchedAt?: string;
   costUsd?: number;
-  /** Короткий хеш чека, например "0x55f8…e138". */
+  /** Short receipt hash, e.g. "0x55f8…e138". */
   hash?: string;
   proofUrl?: string;
-  /** Источник данных, например "ERCOT, real-time LMP". */
+  /** Data source, e.g. "ERCOT, real-time LMP". */
   source?: string;
   network: "testnet" | "mainnet";
 }
@@ -35,24 +35,24 @@ export interface Sourced<T> {
 }
 
 export interface PowerQuote {
-  /** Real-time, $/МВт·ч. null — поставщик не ответил и последнего значения нет. */
+  /** Real-time, $/MWh. null — the supplier did not respond and there is no last value. */
   realTime: Sourced<number | null>;
   dayAhead?: number;
 }
 
-/** Рыночные цифры «сейчас» вместе с чеками. */
+/** Market numbers "now" together with receipts. */
 export interface MarketSnapshot {
   asOf: string;
   hashprice: Sourced<number | null>;
-  /** Ключ — id узла, например "HB_HOUSTON". */
+  /** Key — node id, e.g. "HB_HOUSTON". */
   power: Record<string, PowerQuote>;
-  /** Ориентир ставки аренды (WEB_SEARCH), только подсказка. */
+  /** Lease rate reference (WEB_SEARCH), a hint only. */
   leaseGuide: Sourced<string> | null;
-  /** Telegraph недоступен: все цифры — последние известные. */
+  /** Telegraph is unavailable: all numbers are the last known ones. */
   networkDown: boolean;
-  /** Время последнего удачного обновления при networkDown. */
+  /** Time of the last successful refresh when networkDown. */
   lastGoodAt?: string;
-  /** Платный запрос не сделан: дневной лимит исчерпан. */
+  /** Paid request not made: daily limit exhausted. */
   limitReached?: boolean;
 }
 
@@ -60,19 +60,19 @@ export interface Site {
   id: string;
   name: string;
   kind: "grid" | "tariff";
-  /** Для grid: id узла ("HB_HOUSTON"). */
+  /** For grid: node id ("HB_HOUSTON"). */
   nodeId?: string;
   nodeLabel: string;
-  /** Для tariff: тариф, $/МВт·ч. */
+  /** For tariff: tariff, $/MWh. */
   tariffUsdPerMwh?: number;
   mw: number;
   phs: number;
   jPerTh: number;
   lease?: { rateUsdPerMwh: number; includesPower: boolean; overheadUsdPerMwh: number } | null;
   thresholdUsdPerMwh: number;
-  /** Действующее решение до текущего часа. */
+  /** Decision in effect before the current hour. */
   lastDecision?: Decision | null;
-  /** Добавлена с «Add anyway (paused)»: запросы не делаются. */
+  /** Added with "Add anyway (paused)": no requests are made. */
   paused?: boolean;
 }
 
@@ -83,7 +83,7 @@ export type ReportStatus = "ok" | "stale" | "paused";
 export interface SiteReport {
   site: Site;
   status: ReportStatus;
-  /** Причина паузы, текст для интерфейса. */
+  /** Reason for the pause, UI text. */
   pausedReason?: string;
   asOf: string;
   inputs: {
@@ -94,7 +94,7 @@ export interface SiteReport {
     overhead: Sourced<number> | null;
     leaseGuide: Sourced<string> | null;
   };
-  /** null — решение не выдаётся (пауза). */
+  /** null — no decision is issued (paused). */
   result: DecisionResult | null;
   previousDecision: Decision | null;
 }
@@ -102,11 +102,11 @@ export interface SiteReport {
 export interface Overview {
   snapshot: MarketSnapshot;
   reports: SiteReport[];
-  /** Суммарный выигрыш против «майнить везде», $/ч. */
+  /** Total gain vs "mine everywhere", $/h. */
   totalGainPerHour: number;
 }
 
-// ---- Расходы ----
+// ---- Costs ----
 
 export type RequestStatus = "paid" | "failed" | "blocked";
 
@@ -139,42 +139,42 @@ export interface SpendSettings {
   alertAtPct: number;
 }
 
-// ---- Лента «что было бы» ----
+// ---- "What would have been" feed ----
 
-/** Отметка оператора по часу: что он реально сделал. Нет отметки — упущенную выгоду не считаем. */
+/** Operator mark for an hour: what they actually did. No mark — missed gain is not counted. */
 export type Mark = { kind: "followed" } | { kind: "other"; actual: Decision } | { kind: "skip" };
 
-/** Совет за один час по одной площадке (без отметки оператора). */
+/** Advice for one hour at one site (without an operator mark). */
 export interface FeedEntry {
-  /** ISO начала часа. */
+  /** ISO start of the hour. */
   hour: string;
   siteId: string;
   siteName: string;
-  /** null — час на паузе (лимит, нет данных), совета нет. */
+  /** null — the hour is paused (limit, no data), no advice. */
   advice: Decision | null;
-  /** Почему час на паузе, текст для интерфейса. */
+  /** Why the hour is paused, UI text. */
   pauseReason?: string;
-  /** Решение записано ежечасным агентом (а не досчитано по истории цен). */
+  /** Decision recorded by the hourly agent (not recomputed from price history). */
   recorded?: boolean;
   keepAsIs: boolean;
-  /** Значения вариантов за час, $/МВт·ч; нужны, чтобы посчитать упущенное по отметке. */
+  /** Option values for the hour, $/MWh; needed to compute the missed gain from a mark. */
   options: { mine: number; lease: number | null; off: number } | null;
-  /** Потребление площадки, МВт. */
+  /** Site power draw, MW. */
   mw: number;
-  /** Что дал совет против «майнить», $/ч. */
+  /** What the advice yielded vs "mine", $/h. */
   adviceGainUsd: number;
-  /** Цена электричества в этот час, $/МВт·ч. */
+  /** Electricity price in that hour, $/MWh. */
   powerPrice: number;
   receiptCount: number;
 }
 
 export type FeedStatus = "paused" | "not-marked" | "followed" | "other" | "skipped";
 
-/** Строка ленты с учётом отметки оператора. */
+/** Feed row taking the operator mark into account. */
 export interface FeedRow extends FeedEntry {
   mark: Mark | null;
   status: FeedStatus;
-  /** Упущено, $ за час; только по отмеченным часам. */
+  /** Missed, $ per hour; only for marked hours. */
   missedUsd: number;
 }
 
@@ -187,7 +187,7 @@ export interface HourPoint {
   keepAsIs: boolean;
 }
 
-// ---- Поиск узлов и добавление площадки ----
+// ---- Node search and adding a site ----
 
 export interface NodeOption {
   id: string;

@@ -26,11 +26,11 @@ const tariff: DecisionInput = {
   hashpriceUsdPerPhDay: 38.5,
   powerPriceUsdPerMwh: 40,
   mw: 0.015,
-  phs: 0.3945, // 26.3 PH/s на МВт, как в docs/screens.md
+  phs: 0.3945, // 26.3 PH/s per MW, as in docs/screens.md
   current: "mine",
 };
 
-describe("примеры из docs/screens.md", () => {
+describe("examples from docs/screens.md", () => {
   it("Houston Hub → Lease to AI, +$136/h", () => {
     const r = ok(houston);
     expect(r.phsPerMw).toBeCloseTo(50, 9);
@@ -45,7 +45,7 @@ describe("примеры из docs/screens.md", () => {
     expect(r.marginToNext).toBeCloseTo(6.8, 1);
   });
 
-  it("North Ridge → Switch off, экономия $119/h", () => {
+  it("North Ridge → Switch off, saves $119/h", () => {
     const r = ok(northRidge);
     expect(r.phsPerMw).toBeCloseTo(40, 9);
     expect(r.miningRevenue).toBeCloseTo(64.17, 2);
@@ -70,8 +70,8 @@ describe("примеры из docs/screens.md", () => {
 });
 
 describe("keep as is", () => {
-  it("близкая аренда не перебивает текущий Mine (46.00 против 47.80)", () => {
-    // Lease = 95 − 32.4 − 8 = 54.6; снижаем ставку, чтобы получить +46.00.
+  it("a close lease does not override the current Mine (46.00 vs 47.80)", () => {
+    // Lease = 95 − 32.4 − 8 = 54.6; lower the rate to get +46.00.
     const r = ok({ ...houston, lease: { rateUsdPerMwh: 86.4, includesPower: false, overheadUsdPerMwh: 8 } });
     expect(r.options.lease).toBeCloseTo(46, 9);
     expect(r.best).toBe("mine");
@@ -80,16 +80,16 @@ describe("keep as is", () => {
     expect(r.changed).toBe(false);
   });
 
-  it("лучший вариант опережает текущий меньше порога → остаёмся на текущем", () => {
+  it("best option leads the current one by less than the threshold → stay on current", () => {
     const r = ok({ ...houston, current: "mine", lease: { rateUsdPerMwh: 90, includesPower: false, overheadUsdPerMwh: 8 } });
-    // lease = 49.6, mine ≈ 47.81: разница < 5
+    // lease = 49.6, mine ≈ 47.81: difference < 5
     expect(r.best).toBe("lease");
     expect(r.chosen).toBe("mine");
     expect(r.keepAsIs).toBe(true);
     expect(r.gainVsMiningPerHour).toBeCloseTo(0, 9);
   });
 
-  it("разница ровно равна порогу → переключаемся", () => {
+  it("difference exactly equals the threshold → switch", () => {
     const r = ok({
       hashpriceUsdPerPhDay: 24,
       powerPriceUsdPerMwh: 0,
@@ -104,13 +104,13 @@ describe("keep as is", () => {
     expect(r.keepAsIs).toBe(false);
   });
 
-  it("свой порог: при threshold=10 Houston остаётся на Mine", () => {
+  it("custom threshold: with threshold=10 Houston stays on Mine", () => {
     const r = ok({ ...houston, thresholdUsdPerMwh: 10 });
     expect(r.chosen).toBe("mine");
     expect(r.keepAsIs).toBe(true);
   });
 
-  it("без текущего решения близкий отрыв помечается keep as is, но выбирается лучший", () => {
+  it("without a current decision a close gap is flagged keep as is, but the best is chosen", () => {
     const r = ok({ ...tariff, current: null });
     expect(r.chosen).toBe("mine");
     expect(r.keepAsIs).toBe(true);
@@ -118,24 +118,24 @@ describe("keep as is", () => {
   });
 });
 
-describe("крайние случаи", () => {
-  it("ставка «за всё» — электричество не вычитается", () => {
+describe("edge cases", () => {
+  it("\"all-in\" rate — electricity is not subtracted", () => {
     const r = ok({ ...houston, lease: { rateUsdPerMwh: 95, includesPower: true, overheadUsdPerMwh: 8 } });
     expect(r.options.lease).toBe(87);
-    // и не зависит от цены электричества
+    // and does not depend on the electricity price
     const r2 = ok({ ...houston, powerPriceUsdPerMwh: 500, lease: { rateUsdPerMwh: 95, includesPower: true, overheadUsdPerMwh: 8 } });
     expect(r2.options.lease).toBe(87);
     expect(r2.chosen).toBe("lease");
   });
 
-  it("отрицательная цена электричества увеличивает доход от майнинга и аренды", () => {
+  it("negative electricity price increases mining and lease revenue", () => {
     const r = ok({ ...houston, powerPriceUsdPerMwh: -20, current: null });
     expect(r.options.mine).toBeCloseTo(100.21, 1);
     expect(r.options.lease).toBeCloseTo(107, 9);
     expect(r.chosen).toBe("lease");
   });
 
-  it("отрицательная цена и отрицательная аренда без электричества: выбирается майнинг", () => {
+  it("negative price and negative lease without electricity: mining is chosen", () => {
     const r = ok({
       hashpriceUsdPerPhDay: 60,
       powerPriceUsdPerMwh: -50,
@@ -146,38 +146,38 @@ describe("крайние случаи", () => {
     expect(r.chosen).toBe("mine");
   });
 
-  it("оплата за снижение нагрузки делает Switch off выгоднее", () => {
+  it("payment for load reduction makes Switch off more attractive", () => {
     const r = ok({ ...northRidge, curtailmentUsdPerMwh: 12 });
     expect(r.options.off).toBe(12);
     expect(r.chosen).toBe("off");
     expect(r.gainVsMiningPerHour).toBeCloseTo((12 + 9.9333) * 12, 2);
   });
 
-  it("равенство значений: без текущего — по порядку Mine → Lease → Off", () => {
+  it("equal values: with no current decision — in order Mine → Lease → Off", () => {
     // mine = 0 − 0 = 0 = off
     const r = ok({ hashpriceUsdPerPhDay: 0, powerPriceUsdPerMwh: 0, mw: 1, phs: 1 });
     expect(r.options.mine).toBe(0);
     expect(r.chosen).toBe("mine");
   });
 
-  it("равенство значений: текущее решение сохраняется", () => {
+  it("equal values: the current decision is kept", () => {
     const base = { hashpriceUsdPerPhDay: 0, powerPriceUsdPerMwh: 0, mw: 1, phs: 1, thresholdUsdPerMwh: 0 };
     expect(ok({ ...base, current: "off" }).chosen).toBe("off");
     expect(ok({ ...base, current: "off" }).changed).toBe(false);
   });
 
-  it("без ставки аренды вариант Lease недоступен, даже если текущее решение — lease", () => {
+  it("without a lease rate the Lease option is unavailable, even if the current decision is lease", () => {
     const r = ok({ ...tariff, current: "lease" });
     expect(r.options.lease).toBeNull();
     expect(r.chosen).not.toBe("lease");
   });
 
-  it("нулевая мощность — ошибка", () => {
+  it("zero power — error", () => {
     const r = decide({ ...houston, mw: 0 });
     expect(r).toEqual({ ok: false, errors: ["Power draw must be greater than 0"] });
   });
 
-  it("некорректный ввод: NaN, Infinity, отрицательные значения", () => {
+  it("invalid input: NaN, Infinity, negative values", () => {
     const r = decide({
       hashpriceUsdPerPhDay: -1,
       powerPriceUsdPerMwh: Number.NaN,
@@ -190,7 +190,7 @@ describe("крайние случаи", () => {
     if (!r.ok) expect(r.errors.length).toBe(7);
   });
 
-  it("нулевой хешрейт — ошибка", () => {
+  it("zero hashrate — error", () => {
     expect(decide({ ...houston, phs: 0 }).ok).toBe(false);
   });
 });

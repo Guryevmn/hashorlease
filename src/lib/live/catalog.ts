@@ -1,8 +1,8 @@
-// Справочник живого режима без серверных зависимостей: его читают и браузер, и сервер, и агент.
+// Live-mode reference data with no server dependencies: read by the browser, the server and the agent alike.
 
 import type { NodeOption, Site } from "../types";
 
-/** Зоны рынка с почасовой ценой Energy-Charts (day-ahead). ERCOT через Telegraph на devnode отдаёт пустые цены. */
+/** Market zones with hourly Energy-Charts prices (day-ahead). ERCOT via Telegraph on the devnode returns empty prices. */
 export const LIVE_NODES: NodeOption[] = [
   { id: "DE-LU", label: "Germany–Luxembourg (DE-LU), day-ahead" },
   { id: "FR", label: "France (FR), day-ahead" },
@@ -11,7 +11,7 @@ export const LIVE_NODES: NodeOption[] = [
   { id: "NL", label: "Netherlands (NL), day-ahead" },
 ];
 
-/** Площадки, с которыми живой режим стартует, пока оператор не завёл свои (data/sites.json). */
+/** Sites live mode starts with until the operator adds their own (data/sites.json). */
 export const LIVE_SEED_SITES: Site[] = [
   {
     id: "leipzig",

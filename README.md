@@ -2,111 +2,111 @@
 
 > **Reviewers:** start with [docs/JUDGE.md](docs/JUDGE.md) (English): run, new input, real Telegraph request and payment, failure cases, what is verified. Network: testnet only (Telegraph devnode + Ethereum Sepolia).
 
-Веб-приложение и ежечасный агент для Telegraph Hackathon Season II, миссия 12 «Mining and Power».
-Раз в час для каждой площадки майнера: **Mine / Lease to AI / Switch off**, сумма в $ и чек у каждой входной цифры.
-План — `docs/PLAN.md`, экраны — `docs/screens.md`, черновик заявки — `docs/SUBMISSION.md`.
+A web app and an hourly agent for Telegraph Hackathon Season II, Mission 12 "Mining and Power".
+Once an hour, for each miner site: **Mine / Lease to AI / Switch off**, the amount in $, and a receipt for every input number.
+Plan: `docs/PLAN.md`, screens: `docs/screens.md`, submission draft: `docs/SUBMISSION.md`.
 
-## Запуск с нуля
+## Quick start
 
 ```
 git clone https://github.com/Guryevmn/hashorlease.git
 cd hashorlease
 npm install
-npm run dev        # откройте http://localhost:3000 — демо-режим, .env и кошелёк не нужны
+npm run dev        # open http://localhost:3000 — demo mode, no .env or wallet needed
 ```
 
-Для живого режима: `cp .env.example .env`, заполнить переменные (раздел «Живой режим»). Папка `data/` не хранится в git — приложение и агент создают её сами.
+For live mode: `cp .env.example .env` and fill in the variables (see "Live mode"). The `data/` folder is not stored in git; the app and the agent create it themselves.
 
-## Команды
+## Commands
 
-Нужен Node.js **22.18+** (агент и бот запускают TypeScript средствами самого Node). Проверялось на Node 22.23.
+Requires Node.js **22.18+** (the agent and the bot run TypeScript using Node itself). Tested on Node 22.23.
 
 ```
-npm install        # зависимости ставятся только в папку проекта
+npm install        # dependencies are installed only into the project folder
 npm run dev        # http://localhost:3000
-npm run build      # production-сборка
-npm start          # запуск собранного приложения
-npm test           # тесты (vitest)
-npm run typecheck  # проверка типов
-npm run agent      # ежечасный агент (см. ниже)
-npm run bot        # Telegram-бот (нужен токен, см. ниже)
+npm run build      # production build
+npm start          # run the built app
+npm test           # tests (vitest)
+npm run typecheck  # type check
+npm run agent      # hourly agent (see below)
+npm run bot        # Telegram bot (needs a token, see below)
 ```
 
-## Режимы
+## Modes
 
-- **Демо** (по умолчанию, без `.env`): все цифры и чеки выдуманные, сети и кошелька нет. На всех экранах — плашки «Testnet» и «Demo data».
-- **Живой** (`NEXT_PUBLIC_DATA_MODE=live` в `.env`): курс BTC покупается через Telegraph (x402, тестовые USDC в Sepolia), остальное — из бесплатных публичных источников. Подробно — раздел «Живой режим».
+- **Demo** (default, no `.env`): all numbers and receipts are made up, no network and no wallet. Every screen shows the "Testnet" and "Demo data" badges.
+- **Live** (`NEXT_PUBLIC_DATA_MODE=live` in `.env`): the BTC price is bought through Telegraph (x402, test USDC on Sepolia); everything else comes from free public sources. Details in "Live mode".
 
-Состояния экранов на демо-данных — `?state=…` к адресу любого экрана (ссылки есть в подвале):
-`loading` (скелетоны), `empty` (нет площадок), `error` (Telegraph недоступен), `provider-error` (нет цены электричества у North Ridge), `limit` (дневной лимит исчерпан).
+Screen states on demo data: add `?state=…` to the address of any screen (links are in the footer):
+`loading` (skeletons), `empty` (no sites), `error` (Telegraph unreachable), `provider-error` (no power price for North Ridge), `limit` (daily limit reached).
 
-## Экраны
+## Screens
 
-Places (`/`), площадка (`/sites/<id>`), правка площадки (`/sites/<id>/edit`), History (`/feed`), Usage (`/spend`), Add place (`/sites/new`).
+Places (`/`), site (`/sites/<id>`), edit site (`/sites/<id>/edit`), History (`/feed`), Usage (`/spend`), Add place (`/sites/new`).
 
-## Ежечасный агент
+## Hourly agent
 
-`npm run agent` — без открытого браузера раз в час (в hh:01 UTC) пересчитывает решения по всем площадкам, сам платит за данные Telegraph в пределах дневного лимита, пишет историю на диск и шлёт оповещения в Telegram (если бот настроен).
+`npm run agent` runs without an open browser: once an hour (at hh:01 UTC) it recomputes the decisions for all sites, pays for Telegraph data itself within the daily limit, writes the history to disk and sends Telegram alerts (if the bot is set up).
 
 ```
-npm run agent                                  # первый цикл сразу, дальше каждый час; Ctrl+C — стоп
-npm run agent -- --once                        # один цикл и выход
-npm run agent -- --mode=mock                   # демо-данные: без сети и денег
-npm run agent -- --mode=mock --once --state=provider-error   # имитация сбоя: provider-error | error | limit
-npm run agent -- --mode=live --once --fresh    # не брать снимок из кэша — проверка лимита и сбоев (только с --once)
+npm run agent                                  # first cycle right away, then every hour; Ctrl+C to stop
+npm run agent -- --once                        # one cycle, then exit
+npm run agent -- --mode=mock                   # demo data: no network, no money
+npm run agent -- --mode=mock --once --state=provider-error   # simulate a failure: provider-error | error | limit
+npm run agent -- --mode=live --once --fresh    # skip the cached snapshot — to test the limit and failures (only with --once)
 ```
 
-- Режим по умолчанию берётся из `NEXT_PUBLIC_DATA_MODE`. Второй экземпляр агента того же режима не запустится.
-- Правило: **нет свежего чека Telegraph — нет решения.** Лимит, недоступный Telegraph или поставщик цены — час записывается как пауза с причиной; оповещение — один раз на смену состояния. После сбоя повтор через 10 минут.
-- Где лежит: `data/agent/<mode>/decisions.jsonl` (решение по площадке за час, с чеками), `runs.jsonl` (итог цикла), `alerts.json` (что уже сообщили). Не в git.
-- На экранах: Usage → карточка «Hourly agent»; History → часы с пометкой «Agent call».
+- The default mode comes from `NEXT_PUBLIC_DATA_MODE`. A second agent instance in the same mode will not start.
+- Rule: **no fresh Telegraph receipt, no decision.** If the limit is reached, or Telegraph or the price provider is unavailable, the hour is recorded as a pause with the reason; an alert is sent once per state change. After a failure it retries in 10 minutes.
+- Where it is stored: `data/agent/<mode>/decisions.jsonl` (the decision per site per hour, with receipts), `runs.jsonl` (cycle summary), `alerts.json` (what has already been reported). Not in git.
+- On screen: Usage → "Hourly agent" card; History → hours tagged "Agent call".
 
-## Telegram-бот
+## Telegram bot
 
-`npm run bot` (grammY): `/start` — подписка на оповещения, `/now` или `/now Leipzig` — текущее решение, `/stop` — отписка, кнопки «Snooze 1h» и «Receipts». Бот ничего не покупает: `/now` читает последние записи агента. Оповещения о смене решения отправляет агент.
+`npm run bot` (grammY): `/start` subscribes to alerts, `/now` or `/now Leipzig` shows the current decision, `/stop` unsubscribes, plus the "Snooze 1h" and "Receipts" buttons. The bot buys nothing: `/now` reads the agent's latest records. Decision-change alerts are sent by the agent.
 
-- Нужен токен от @BotFather в `.env`: `HASHORLEASE_BOT_TOKEN=…`. **Без него бот не стартует** и пишет, что делать. Приложение и агент работают и без бота (агент пишет в лог, что отправил бы).
-- Имя переменной своё, не `TELEGRAM_BOT_TOKEN`: на машине может быть токен другого бота, приложение не должно его подхватить.
-- Кнопки-ссылки («Open app», «Open breakdown») появляются, только если в `.env` задан публичный `APP_URL` с https (localhost Telegram не принимает).
-- Подписчики — `data/bot-chats.json` (не в git). Тексты сообщений покрыты тестами; с настоящим Telegram бот ещё не запускался.
+- Needs a token from @BotFather in `.env`: `HASHORLEASE_BOT_TOKEN=…`. **Without it the bot does not start** and says what to do. The app and the agent work without the bot (the agent logs what it would have sent).
+- The variable has its own name, not `TELEGRAM_BOT_TOKEN`: the machine may hold another bot's token, and the app must not pick it up.
+- Link buttons ("Open app", "Open breakdown") appear only if `.env` sets a public `APP_URL` with https (Telegram does not accept localhost).
+- Subscribers are stored in `data/bot-chats.json` (not in git). Message texts are covered by tests; the bot has not yet been run against real Telegram.
 
-## Живой режим
+## Live mode
 
-`NEXT_PUBLIC_DATA_MODE=live` в `.env` включает реальные данные.
+`NEXT_PUBLIC_DATA_MODE=live` in `.env` turns on real data.
 
-- **Кошелёк:** `node scripts/create-wallet.mjs` создаёт тестовый ключ в `.env` (не коммитить). Нужны Sepolia ETH (газ для `mint`) и тестовый USDC `0xcc19…Ae17` (`mint` у токена открытый). Платежи x402 газа не требуют.
-- **Что платное:** один запрос Telegraph на снимок рынка — курс BTC (`CRYPTO_PRICE_USD`, $0.01). Снимок общий для приложения и агента и живёт 30 минут (`data/snapshot.json`); без свежего чека — 5 минут, потом новая попытка. Агент — около $0.24 в день.
-- **Хешпрайс** считаем сами: 144 блока × средняя награда × курс (Telegraph) / хешрейт сети (mempool.space). Интент `MINING_HASHPRICE_VERIFY_GENERAL` на devnode возвращает пустые числа (см. `docs/PLAN.md` §3).
-- **Электричество:** Energy-Charts (SMARD), day-ahead по зонам DE-LU, FR, PL, AT, NL, бесплатно. На экране у этой цифры значок «Public source, not bought via Telegraph». ERCOT через Telegraph на devnode отдаёт пустые цены.
-- **Площадки** хранятся на сервере в `data/sites.json` (не в git), чтобы агент видел их без браузера. Повреждённый файл не перезаписывается — экран и агент показывают ошибку. API: `GET/POST /api/live/sites`, `PUT/DELETE /api/live/sites/<id>` — с той же проверкой, что форма.
-- **Лимит расходов:** `DAILY_SPEND_LIMIT_USD` в `.env` (по умолчанию 0.50). Проверяется перед каждым платежом по журналу `data/ledger.jsonl` под замком на диске (`data/.payment.lock`): приложение и агент платят строго по очереди. Платёж, ушедший без ответа, записывается как потраченный. Один платёж — не больше $0.02 и только в тестовом USDC. Платный запрос делается только после бесплатных данных; после сбоя — пауза 5 минут. «Refresh now» — не чаще раза в 2 минуты. Из интерфейса лимит не меняется (на Usage показан только для чтения).
-- **Чеки:** транзакции Sepolia в журнале, на экране площадки (чек у цифры), на Usage и в логе агента; ссылка на etherscan.
-- **Клиент для скриптов:** `node scripts/telegraph.mjs query "…"` или `node scripts/telegraph.mjs INTENT '{"param":…}'` (платно, с лимитом и журналом).
+- **Wallet:** `node scripts/create-wallet.mjs` creates a test key in `.env` (do not commit it). You need Sepolia ETH (gas for `mint`) and test USDC `0xcc19…Ae17` (the token's `mint` is open). x402 payments need no gas.
+- **What is paid:** one Telegraph request per market snapshot: the BTC price (`CRYPTO_PRICE_USD`, $0.01). The snapshot is shared by the app and the agent and lives 30 minutes (`data/snapshot.json`); without a fresh receipt it is retried after 5 minutes. The agent costs about $0.24 a day.
+- **Hashprice** is computed by us: 144 blocks × average reward × price (Telegraph) / network hashrate (mempool.space). The `MINING_HASHPRICE_VERIFY_GENERAL` Intent returns empty numbers on the devnode (see `docs/PLAN.md` §3).
+- **Electricity:** Energy-Charts (SMARD), day-ahead prices for zones DE-LU, FR, PL, AT, NL, free of charge. On screen this number carries the "Public source, not bought via Telegraph" badge. ERCOT through Telegraph returns empty prices on the devnode.
+- **Sites** are stored on the server in `data/sites.json` (not in git) so the agent can see them without a browser. A corrupted file is not overwritten: the screen and the agent show an error. API: `GET/POST /api/live/sites`, `PUT/DELETE /api/live/sites/<id>`, with the same validation as the form.
+- **Spend limit:** `DAILY_SPEND_LIMIT_USD` in `.env` (default 0.50). It is checked before every payment against the `data/ledger.jsonl` ledger under a disk lock (`data/.payment.lock`): the app and the agent pay strictly one at a time. A payment that went out without a response is recorded as spent. A single payment is at most $0.02 and only in test USDC. A paid request is made only after the free data; after a failure there is a 5-minute pause. "Refresh now" is allowed at most once every 2 minutes. The limit cannot be changed from the UI (Usage shows it read-only).
+- **Receipts:** Sepolia transactions in the ledger, on the site screen (a receipt next to each number), on Usage and in the agent log, with an etherscan link.
+- **Script client:** `node scripts/telegraph.mjs query "…"` or `node scripts/telegraph.mjs INTENT '{"param":…}'` (paid, with the limit and the ledger).
 
-## Устройство
+## Architecture
 
-- `src/lib/decision.ts` — чистая логика решения (формулы на МВт·ч), `src/lib/report.ts` — отчёт по площадке из снимка рынка.
-- `src/lib/data/` — интерфейс `DataSource` и два источника: `mock.ts` (демо) и `live.ts` (сервер). Экраны работают только через него.
-- `src/lib/live/` — Telegraph-клиент с лимитом (`telegraph.ts`), снимок рынка (`market.ts`), площадки на сервере (`sites.ts`), расходы (`spend.ts`).
-- `src/lib/agent/` — цикл агента (`cycle.ts`, зависимости передаются снаружи — так он тестируется), хранилище (`store.ts`), сборка под режим (`runner.ts`). Запуск — `scripts/agent.ts`.
-- `src/lib/bot/` — тексты бота (`messages.ts`), подписчики (`chats.ts`), отправка (`notify.ts`). Запуск — `scripts/bot.ts`.
-- `scripts/register-ts.mjs` — подключает пути `@/…` при запуске `.ts`-скриптов через Node.
-- `src/app/api/` — серверные адреса: `live/*` (снимок, ряды цен, расходы, площадки), `agent/*` (состояние агента и его решения).
+- `src/lib/decision.ts` — pure decision logic (formulas per MWh), `src/lib/report.ts` — the site report built from the market snapshot.
+- `src/lib/data/` — the `DataSource` interface and two sources: `mock.ts` (demo) and `live.ts` (server). Screens work only through it.
+- `src/lib/live/` — Telegraph client with the limit (`telegraph.ts`), market snapshot (`market.ts`), server-side sites (`sites.ts`), spend (`spend.ts`).
+- `src/lib/agent/` — agent cycle (`cycle.ts`, dependencies are passed in from outside so it can be tested), storage (`store.ts`), per-mode assembly (`runner.ts`). Entry point: `scripts/agent.ts`.
+- `src/lib/bot/` — bot texts (`messages.ts`), subscribers (`chats.ts`), sending (`notify.ts`). Entry point: `scripts/bot.ts`.
+- `scripts/register-ts.mjs` — wires up `@/…` paths when running `.ts` scripts through Node.
+- `src/app/api/` — server routes: `live/*` (snapshot, price series, spend, sites), `agent/*` (agent state and its decisions).
 
-## Известные упрощения
+## Known simplifications
 
-- В демо выдумано всё: цены, чеки, история часов; ссылки «View proof» не работают. В живом режиме площадки — примеры, реальных пользователей пока нет.
-- Только тестовая сеть (Telegraph devnode, Sepolia). Реальных денег и основной сети нет.
-- Хешпрайс считаем сами, электричество — Energy-Charts (Европа). Площадки в США (ERCOT) — только в демо.
-- Ставку ИИ-аренды вводит оператор; ориентир рынка (`WEB_SEARCH`) есть только в демо.
-- История до запуска агента досчитывается по прошлым ценам электричества с сегодняшним хешпрайсом; «Agent call» — только часы, которые агент решил вживую.
-- Что оператор делал в каждый час, мы не знаем: он отмечает сам на History («Followed» / «Did something else» / «Skip»). Отметки — в `localStorage` браузера. Упущенная выгода считается только по отмеченным часам, часы «Keep as is» не считаются упущенными никогда.
-- Входа (логина) нет: API площадок рассчитан на локальную установку одного оператора, не на публичный сервер.
-- Агент и веб-приложение — разные процессы: снимок рынка они делят через файл, платят по очереди через замок на диске.
-- Агент принимает решение только по снимку текущего часа UTC: при работе каждый час это одна покупка в час.
-- Telegram-бот не запускался с настоящим токеном.
-- Время в демо зафиксировано: 8 нояб 2026, 14:04 UTC.
+- In demo mode everything is made up: prices, receipts, hourly history; "View proof" links do not work. In live mode the sites are examples; there are no real users yet.
+- Testnet only (Telegraph devnode, Sepolia). No real money and no mainnet.
+- Hashprice is computed by us, electricity comes from Energy-Charts (Europe). US sites (ERCOT) exist only in the demo.
+- The AI lease rate is entered by the operator; the market guide (`WEB_SEARCH`) exists only in the demo.
+- History before the agent started is recomputed from past electricity prices with today's hashprice; "Agent call" marks only the hours the agent decided live.
+- We do not know what the operator did in each hour: they mark it themselves on History ("Followed" / "Did something else" / "Skip"). Marks are stored in the browser's `localStorage`. Missed gain is computed only for marked hours; "Keep as is" hours are never counted as missed.
+- There is no login: the sites API is designed for a local single-operator install, not for a public server.
+- The agent and the web app are separate processes: they share the market snapshot through a file and pay one at a time through a disk lock.
+- The agent decides only from the snapshot of the current UTC hour: when running every hour, that is one purchase per hour.
+- The Telegram bot has not been run with a real token.
+- Time in the demo is fixed: 8 Nov 2026, 14:04 UTC.
 
-## Лицензия
+## License
 
-MIT — см. [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).

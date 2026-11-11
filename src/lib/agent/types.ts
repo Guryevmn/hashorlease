@@ -1,4 +1,4 @@
-// Записи ежечасного агента (data/agent/<mode>/*.jsonl). Только типы: их читают и сервер, и браузер, и бот.
+// Hourly agent records (data/agent/<mode>/*.jsonl). Types only: read by the server, the browser and the bot.
 
 import type { Decision } from "../decision";
 import type { ReceiptStatus } from "../types";
@@ -6,7 +6,7 @@ import type { ReceiptStatus } from "../types";
 export type AgentMode = "live" | "mock";
 
 export interface RecordedReceipt {
-  /** Что за цифра: "Mining income", "Power price". */
+  /** What the figure is: "Mining income", "Power price". */
   label: string;
   status: ReceiptStatus;
   service?: string;
@@ -17,24 +17,24 @@ export interface RecordedReceipt {
   proofUrl?: string;
 }
 
-/** Решение по одной площадке за один цикл. */
+/** Decision for one site in one cycle. */
 export interface DecisionRecord {
-  /** Когда записано, ISO. */
+  /** When recorded, ISO. */
   at: string;
-  /** Начало часа, на который решение, ISO. */
+  /** Start of the hour the decision is for, ISO. */
   hour: string;
   mode: AgentMode;
   siteId: string;
   siteName: string;
   mw: number;
   status: "ok" | "paused";
-  /** Почему на паузе (для ленты и бота). */
+  /** Why paused (for the feed and the bot). */
   reason?: string;
-  /** Тип паузы — для оповещений. */
+  /** Pause type, for alerts. */
   pauseKind?: "limit" | "network" | "provider" | "site-paused" | "invalid";
   decision: Decision | null;
   keepAsIs: boolean;
-  /** Решение отличается от предыдущего записанного. */
+  /** Decision differs from the previous recorded one. */
   changed: boolean;
   previous: Decision | null;
   options: { mine: number; lease: number | null; off: number } | null;
@@ -46,7 +46,7 @@ export interface DecisionRecord {
   receipts: RecordedReceipt[];
 }
 
-/** Итог одного цикла агента. */
+/** Result of one agent cycle. */
 export interface RunRecord {
   at: string;
   hour: string;
@@ -56,23 +56,23 @@ export interface RunRecord {
   decided: number;
   paused: number;
   changes: { siteId: string; siteName: string; from: Decision; to: Decision }[];
-  /** Сколько платных запросов Telegraph сделано за цикл. */
+  /** How many paid Telegraph requests were made in the cycle. */
   paidRequests: number;
   spentTodayUsd: number;
   limitUsd: number;
   limitReached: boolean;
-  /** Сколько сообщений отправлено в Telegram (0 — бот не настроен). */
+  /** How many messages were sent to Telegram (0 = bot not configured). */
   notified: number;
   error?: string;
   durationMs: number;
 }
 
-/** Состояние оповещений между циклами: чтобы не слать одно и то же каждый час. */
+/** Alert state between cycles, so the same thing is not sent every hour. */
 export interface AlertState {
-  /** День (YYYY-MM-DD), за который уже предупредили о лимите. */
+  /** Day (YYYY-MM-DD) for which the limit warning was already sent. */
   limitAlertDay?: string;
   networkDown?: boolean;
-  /** Площадки, по которым уже сообщили о сбое поставщика. */
+  /** Sites for which a provider failure was already reported. */
   providerDown?: string[];
 }
 
@@ -81,6 +81,6 @@ export interface AgentStatus {
   lastRun: RunRecord | null;
   runsToday: number;
   paidRequestsToday: number;
-  /** Расписание: каждый час в hh:01 UTC. */
+  /** Schedule: every hour at hh:01 UTC. */
   schedule: string;
 }

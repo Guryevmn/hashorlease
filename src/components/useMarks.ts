@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { loadMarks, saveMarks, withMarks, type MarkMap } from "@/lib/marks";
 import type { Mark } from "@/lib/types";
 
-/** Отметки оператора из localStorage; обновляются сразу и сохраняются. */
+/** Operator marks from localStorage; updated immediately and persisted. */
 export function useMarks() {
   const [marks, setMarks] = useState<MarkMap>({});
   const [ready, setReady] = useState(false);

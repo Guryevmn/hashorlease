@@ -1,9 +1,9 @@
-# Hash or Lease — черновик заявки (НЕ отправлено)
+# Hash or Lease — submission draft (NOT submitted)
 
-Для пользователя: ниже — английские тексты для формы на сайте хакатона в порядке раздела 8 правил
-(«What to submit by December 1»: https://hackathon.telegraphprotocol.com/rules, сверено 2026-11-10), список скриншотов, сценарий видео и риски показа.
-Срок подачи — **1 декабря 2026, 23:59 UTC** (14 ноября — проверка хода, не дедлайн).
-Ничего не подано и не опубликовано. Поля в `[скобках]` заполняет владелец. Перед отправкой проверь пункты «Нужно от тебя» в конце.
+For the owner: below are the English texts for the hackathon site form, in the order of rules section 8
+("What to submit by December 1": https://hackathon.telegraphprotocol.com/rules, checked 2026-11-10), a screenshot list, the video script and demo risks.
+Submission deadline: **1 December 2026, 23:59 UTC** (14 November is a progress check, not a deadline).
+Nothing has been submitted or published. Fields in `[brackets]` are filled in by the owner. Before submitting, go through the "Needed from you" items at the end.
 
 ---
 
@@ -114,22 +114,22 @@ Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo
 - Tests: `npm test` (79 tests: decision logic, agent cycle, bot messages, site storage, spend limit, request rate).
 - Screenshots: `docs/shots/sites.png`, `docs/shots/site-detail-receipt.png`.
 
-**Карта доказательств (для нас, в форму не идёт):**
+**Evidence map (for us, not part of the form):**
 
-| Утверждение | Где проверить |
+| Claim | Where to check |
 |---|---|
-| x402-клиент, адрес Engine | `src/lib/live/telegraph.ts:4-5,153-161` |
-| Только тестовый USDC, потолок $0.02 | `src/lib/live/telegraph.ts:10,78` |
-| Лимит до оплаты и под замком | `src/lib/live/telegraph.ts:126,132`; тест `src/lib/live/telegraph.test.ts` |
-| Платёж без ответа — потрачен | `src/lib/live/telegraph.ts:163-177` |
-| Курс BTC — платный вход | `src/lib/live/market.ts:61-70` |
-| Формула хешпрайса | `src/lib/live/market.ts:56-59` |
-| Электричество — Energy-Charts, 5 зон | `src/lib/live/market.ts:88-91`, `src/lib/live/catalog.ts:6-12` |
-| Агент покупает не чаще раза в час UTC | `src/lib/live/market.ts` (`getFreshSnapshot`) |
-| Порог $5, формулы, поле curtailment | `src/lib/decision.ts:6,100-109` |
-| Нет чека — нет решения | `src/lib/agent/cycle.ts:77-86` |
-| Три удачных цикла агента 9 нояб | `docs/evidence/agent-runs.jsonl` (строки 1, 5, 10) |
-| Пустые значения у интентов миссии | `docs/evidence/second-queries.json`, `docs/PLAN.md:47-51` |
+| x402 client, Engine address | `src/lib/live/telegraph.ts:4-5,153-161` |
+| Test USDC only, $0.02 cap | `src/lib/live/telegraph.ts:10,78` |
+| Limit checked before payment and under a lock | `src/lib/live/telegraph.ts:126,132`; test `src/lib/live/telegraph.test.ts` |
+| Payment without a response counts as spent | `src/lib/live/telegraph.ts:163-177` |
+| BTC price is the paid input | `src/lib/live/market.ts:61-70` |
+| Hashprice formula | `src/lib/live/market.ts:56-59` |
+| Electricity from Energy-Charts, 5 zones | `src/lib/live/market.ts:88-91`, `src/lib/live/catalog.ts:6-12` |
+| Agent buys at most once per UTC hour | `src/lib/live/market.ts` (`getFreshSnapshot`) |
+| $5 threshold, formulas, curtailment field | `src/lib/decision.ts:6,100-109` |
+| No receipt, no call | `src/lib/agent/cycle.ts:77-86` |
+| Three successful agent cycles on 9 Nov | `docs/evidence/agent-runs.jsonl` (lines 1, 5, 10) |
+| Empty values for the mission Intents | `docs/evidence/second-queries.json`, `docs/PLAN.md:47-51` |
 
 ## 7. Short public summary
 
@@ -137,73 +137,73 @@ Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo
 >
 > Updates: `[link 1, date]` · `[link 2, date]` · `[link 3, date]` · Demo video: `[link]`
 
-## 8. Showcase permission `[решение владельца]`
+## 8. Showcase permission `[owner's decision]`
 
 - May be shared publicly: `[text / screenshots / video / tutorial — choose]`
 - Buyer introductions: `[yes / no]`
 
-## 9. Скриншоты для заявки
+## 9. Screenshots for the submission
 
-Готовы (живой режим, 9 нояб):
-- [x] `docs/shots/sites.png` — список площадок: решение, $/ч, чек у цифр.
-- [x] `docs/shots/site-detail-receipt.png` — площадка с раскрытым чеком Telegraph и ссылкой на оплату в Sepolia.
+Ready (live mode, 9 Nov):
+- [x] `docs/shots/sites.png` — site list: call, $/h, receipt next to the numbers.
+- [x] `docs/shots/site-detail-receipt.png` — a site with an expanded Telegraph receipt and a link to the payment on Sepolia.
 
-Снять перед подачей (`npm start`, окно 1280×900):
-- [ ] Usage — лимит, карточка «Hourly agent», таблица платных запросов со ссылками.
-- [ ] History — часы с пометкой «Agent call» и кнопками «Followed / Did something else / Skip».
-- [ ] Add place — ошибка ввода «2 J/TH is below any known miner».
-- [ ] Баннер «Can't reach Telegraph» (сценарий из JUDGE.md §5).
-- [ ] Терминал с логом агента (`npm run agent -- --once`).
-- [ ] Страница транзакции на sepolia.etherscan.io.
-- [ ] Telegram: оповещение о смене решения и `/now` — после подключения токена бота.
+To capture before submitting (`npm start`, 1280×900 window):
+- [ ] Usage — the limit, the "Hourly agent" card, the table of paid requests with links.
+- [ ] History — hours tagged "Agent call" and the "Followed / Did something else / Skip" buttons.
+- [ ] Add place — the input error "2 J/TH is below any known miner".
+- [ ] The "Can't reach Telegraph" banner (scenario from JUDGE.md §5).
+- [ ] Terminal with the agent log (`npm run agent -- --once`).
+- [ ] The transaction page on sepolia.etherscan.io.
+- [ ] Telegram: a call-change alert and `/now` — after the bot token is connected.
 
-## 10. Видео-демо, 2–3 минуты
+## 10. Demo video, 2–3 minutes
 
-Голос — по-английски, коротко. В скобках — что на экране. Правила просят 2–5 минут в порядке: проблема → запрос к Telegraph → данные и поставщик → цена запроса → результат → как попробовать.
+Voiceover in English, short. The Screen column shows what is on screen. The rules ask for 2–5 minutes in this order: problem → Telegraph request → data and provider → request price → result → how to try it.
 
-| Время | Экран | Текст |
+| Time | Screen | Voiceover |
 |---|---|---|
-| 0:00–0:15 | Places (живой режим) | "Miners decide every hour: mine, lease the power to AI, or switch off. Hash or Lease makes that call for every site, with a receipt under every number." |
-| 0:15–0:40 | Leipzig Hub → блок «Where the numbers come from» | "Leipzig: power is $420 a megawatt-hour tonight, mining earns $73, so leasing wins by about $9,000 an hour. Here is the formula, input by input." |
-| 0:40–1:05 | Тап по ✓ у Mining revenue → «View payment on Sepolia» | "This number is backed by a Telegraph purchase: provider, time, one cent in test USDC, and the settlement on Sepolia. The power price is marked as a free public source — we don't pretend it came from Telegraph." |
-| 1:05–1:30 | Терминал: `npm run agent -- --once` → Usage, карточка агента | "The agent runs every hour without a browser. It buys its own data through Telegraph with x402 and writes every decision with its receipts." |
-| 1:30–1:55 | Терминал: `DAILY_SPEND_LIMIT_USD=0 npm run agent -- --mode=live --once --fresh` → History, часы «Paused · daily limit» | "Spend is capped. Hit the daily limit and it stops before paying — no receipt, no call." |
-| 1:55–2:15 | Add place: France, 500 PH/s, 10 MW → новая площадка; затем 2 J/TH → ошибка | "Adding a site takes a minute. Bad input is caught next to the field." |
-| 2:15–2:35 | History, отметить час «Did something else» | "History shows what following the advice was worth — counted only for hours the operator marks." |
-| 2:35–2:50 | Шапка «Testnet · no real money», JUDGE.md | "Everything runs on testnet: Telegraph devnode and Sepolia. Reviewer steps are in docs/JUDGE.md." |
+| 0:00–0:15 | Places (live mode) | "Miners decide every hour: mine, lease the power to AI, or switch off. Hash or Lease makes that call for every site, with a receipt under every number." |
+| 0:15–0:40 | Leipzig Hub → "Where the numbers come from" block | "Leipzig: power is $420 a megawatt-hour tonight, mining earns $73, so leasing wins by about $9,000 an hour. Here is the formula, input by input." |
+| 0:40–1:05 | Tap the ✓ next to Mining revenue → "View payment on Sepolia" | "This number is backed by a Telegraph purchase: provider, time, one cent in test USDC, and the settlement on Sepolia. The power price is marked as a free public source — we don't pretend it came from Telegraph." |
+| 1:05–1:30 | Terminal: `npm run agent -- --once` → Usage, agent card | "The agent runs every hour without a browser. It buys its own data through Telegraph with x402 and writes every decision with its receipts." |
+| 1:30–1:55 | Terminal: `DAILY_SPEND_LIMIT_USD=0 npm run agent -- --mode=live --once --fresh` → History, "Paused · daily limit" hours | "Spend is capped. Hit the daily limit and it stops before paying — no receipt, no call." |
+| 1:55–2:15 | Add place: France, 500 PH/s, 10 MW → new site; then 2 J/TH → error | "Adding a site takes a minute. Bad input is caught next to the field." |
+| 2:15–2:35 | History, mark an hour "Did something else" | "History shows what following the advice was worth — counted only for hours the operator marks." |
+| 2:35–2:50 | "Testnet · no real money" header, JUDGE.md | "Everything runs on testnet: Telegraph devnode and Sepolia. Reviewer steps are in docs/JUDGE.md." |
 
-Перед записью: один обычный цикл агента (`npm run agent -- --once`), чтобы в History были свежие «Agent call».
-Цифры в тексте на 0:15 — с вечера 9 нояб; в день записи они будут другими: диктор читает то, что на экране.
+Before recording: run one normal agent cycle (`npm run agent -- --once`) so History has fresh "Agent call" hours.
+The numbers in the 0:15 line are from the evening of 9 Nov; on recording day they will differ: the narrator reads what is on screen.
 
-## 11. Риски показа и запасной план
+## 11. Demo risks and fallback plan
 
-Рекомендация: записывать по кадрам и на показе использовать готовую запись — живой показ зависит сразу от трёх чужих сервисов.
+Recommendation: record scene by scene and use the finished recording for the demo — a live demo depends on three third-party services at once.
 
-| Риск | Что делать |
+| Risk | What to do |
 |---|---|
-| Оплата x402 идёт долго (циклы агента 9 нояб — 17–23 с) | В записи вырезать ожидание; вживую — говорить текст кадра, пока идёт цикл. |
-| Узел Telegraph недоступен или отвечает 504 (9 нояб было 14 ответов 504) | Не чинить в кадре: показать баннер «Can't reach Telegraph» как правило «нет чека — нет решения», перейти к записи. |
-| Energy-Charts ограничил частоту запросов | Приложение берёт последний сохранённый ряд цен; если площадка всё же «Paused» — показывать площадку на своём тарифе. |
-| Лимит исчерпан пробными прогонами | Утром выставить лимит с запасом; каждый `--fresh` и «Refresh now» — минус цент. |
-| Сцена лимита | Только `DAILY_SPEND_LIMIT_USD=0`. Запасной кадр: `npm run agent -- --mode=mock --once --state=limit` — та же картинка на выдуманных данных, сказать об этом вслух. |
-| Цена электричества $400+ за МВт·ч выглядит подозрительно | Это реальный вечерний пик (сверено с Energy-Charts, `docs/JUDGE.md` §2); сказать «tonight power is at an evening peak». |
-| В кадр попал секрет | `.env` не открывать; терминал очищен; запись пересмотреть перед публикацией. |
-| Сеть пропала совсем | Демо-режим без сети с плашкой «Demo data», состояния `?state=error`, `?state=limit`; прямо сказать, что данные выдуманные. |
+| x402 payment is slow (agent cycles on 9 Nov took 17–23 s) | Cut the wait in the recording; live, keep talking through the scene while the cycle runs. |
+| The Telegraph node is unreachable or returns 504 (there were 14 504 responses on 9 Nov) | Do not fix it on camera: show the "Can't reach Telegraph" banner as the "no receipt, no call" rule, then switch to the recording. |
+| Energy-Charts rate-limited requests | The app uses the last saved price series; if a site is still "Paused", show a site on its own tariff. |
+| Limit used up by trial runs | Set the limit with headroom in the morning; every `--fresh` and "Refresh now" costs one cent. |
+| Limit scene | Only with `DAILY_SPEND_LIMIT_USD=0`. Fallback shot: `npm run agent -- --mode=mock --once --state=limit` — the same picture on made-up data; say so out loud. |
+| A power price of $400+ per MWh looks suspicious | It is a real evening peak (checked against Energy-Charts, `docs/JUDGE.md` §2); say "tonight power is at an evening peak". |
+| A secret got into the frame | Do not open `.env`; keep the terminal clean; review the recording before publishing. |
+| The network is gone entirely | Demo mode without network with the "Demo data" badge, states `?state=error`, `?state=limit`; say plainly that the data is made up. |
 
-## 12. Коротко по-русски
+## 12. Short summary for the owner
 
-**Одной строкой:** каждый час по каждой площадке — майнить, сдать мощность под ИИ или выключить, в долларах в час и с источником под каждой цифрой.
-**Telegraph:** агент сам платит за курс BTC (x402, тестовый USDC в Sepolia, $0.01 за запрос, около $0.24 в день). Хешпрайс и цены ERCOT пробовали купить — оплата прошла, значения пустые; поэтому хешпрайс считаем сами, электричество берём из открытого европейского источника.
-**Безопасность расходов:** дневной лимит до оплаты, один платёж за раз, потолок $0.02, только тестовая монета.
-**Ограничения:** только тестовая сеть, пользователей нет, через Telegraph покупается одна цифра, ставку аренды вводит оператор, агент запускался разово, бот не запускался в настоящем Telegram.
+**One line:** every hour, for every site — mine, lease the power to AI or switch off, in dollars per hour, with a source under every number.
+**Telegraph:** the agent pays for the BTC price itself (x402, test USDC on Sepolia, $0.01 per request, about $0.24 a day). We tried to buy hashprice and ERCOT prices — the payment went through but the values were empty; so we compute hashprice ourselves and take electricity from an open European source.
+**Spend safety:** daily limit checked before payment, one payment at a time, $0.02 cap, test coin only.
+**Limitations:** testnet only, no users, one number is bought through Telegraph, the lease rate is entered by the operator, the agent has run only in single cycles, the bot has not been run in real Telegram.
 
-## 13. Нужно от тебя перед подачей
+## 13. Needed from you before submitting
 
-- [ ] Контакт, ссылки на код и демо, имя на GitHub (поля в `[скобках]`).
-- [ ] Звезда на github.com/telegraphprotocol/bounties — ведёт другая сессия.
-- [ ] Первый коммит в git и публикация кода (судьям нужен доступ к коду) — твоё решение.
-- [ ] Токен Telegram-бота (создать у @BotFather, вписать в `.env` как `HASHORLEASE_BOT_TOKEN`) — если хотим показать бота.
-- [ ] Решение, где показывать демо: локально у тебя или выложить в интернет (выкладка — только с твоего «да»).
-- [ ] Записать видео (или поручить запись сессии) и «да» на публикацию.
-- [ ] Ссылки на публичные записи о ходе работы (updates) и разрешения на показ (раздел 8).
-- [ ] Отправка формы — сам или с твоего «да».
+- [ ] Contact, links to the code and demo, GitHub username (fields in `[brackets]`).
+- [ ] Star on github.com/telegraphprotocol/bounties — handled by another session.
+- [ ] First git commit and publishing the code (judges need access to the code) — your decision.
+- [ ] Telegram bot token (create with @BotFather, put in `.env` as `HASHORLEASE_BOT_TOKEN`) — if we want to show the bot.
+- [ ] Decide where to show the demo: locally on your machine or hosted online (hosting only with your "yes").
+- [ ] Record the video (or assign a session to record it) and give a "yes" to publish.
+- [ ] Links to public progress updates and showcase permissions (section 8).
+- [ ] Submitting the form — yourself or with your "yes".

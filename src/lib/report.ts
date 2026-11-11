@@ -1,5 +1,5 @@
-// Сборка отчёта по площадке из снимка рынка: чеки у входов + решение.
-// Не зависит от источника данных (mock или реальный Telegraph).
+// Building a site report from a market snapshot: receipts at the inputs + decision.
+// Independent of the data source (mock or real Telegraph).
 
 import { decide } from "./decision";
 import type { MarketSnapshot, Overview, Receipt, Site, SiteReport, Sourced } from "./types";

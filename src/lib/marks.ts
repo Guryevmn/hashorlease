@@ -1,4 +1,4 @@
-// Отметки оператора «что я сделал в этот час». Хранятся в браузере (localStorage), как и площадки.
+// Operator marks "what I did this hour". Stored in the browser (localStorage), like sites.
 
 import type { Decision } from "./decision";
 import type { Mark } from "./types";
@@ -38,7 +38,7 @@ export function saveMarks(storage: Store | null | undefined, marks: MarkMap): vo
   storage?.setItem(MARKS_KEY, JSON.stringify(marks));
 }
 
-/** Новая карта с отметкой (null — снять отметку). Исходную не меняет. */
+/** New map with the mark (null clears the mark). Does not mutate the original. */
 export function withMarks(marks: MarkMap, changes: Record<string, Mark | null>): MarkMap {
   const next = { ...marks };
   for (const [k, m] of Object.entries(changes)) {

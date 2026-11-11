@@ -8,7 +8,7 @@ function out(p: Parameters<typeof decide>[0]) {
   return r;
 }
 
-describe("выигрыш: крупно $/ч, мелко $/МВт·ч", () => {
+describe("gain: large $/h, small $/MWh", () => {
   it("Houston → Lease: +$136 /h more than mining", () => {
     const g = gainText(out({ hashpriceUsdPerPhDay: 38.5, powerPriceUsdPerMwh: 32.4, mw: 20, phs: 1000, lease: { rateUsdPerMwh: 95, includesPower: false, overheadUsdPerMwh: 8 }, thresholdUsdPerMwh: 5 }));
     expect(g.big).toBe("+$136 /h more than mining");
@@ -20,13 +20,13 @@ describe("выигрыш: крупно $/ч, мелко $/МВт·ч", () => {
     expect(g.big).toBe("Saves $119 /h vs. mining");
   });
 
-  it("копеечная площадка (< $1/ч): крупно $/день", () => {
+  it("penny site (< $1/h): large $/day", () => {
     const g = gainText(out({ hashpriceUsdPerPhDay: 38.5, powerPriceUsdPerMwh: 40, mw: 0.015, phs: 0.3945, thresholdUsdPerMwh: 5 }));
     expect(g.big).toMatch(/^Earning \+\$0\.\d\d \/day$/);
     expect(g.small).toBe("+$2.19 /MWh");
   });
 
-  it("майнинг от $1/ч показывается в $/ч", () => {
+  it("mining from $1/h is shown in $/h", () => {
     const g = gainText(out({ hashpriceUsdPerPhDay: 38.5, powerPriceUsdPerMwh: 32.4, mw: 20, phs: 1000, thresholdUsdPerMwh: 5 }));
     expect(g.big).toMatch(/^Earning \+\$\d+\.\d\d \/h$/);
   });

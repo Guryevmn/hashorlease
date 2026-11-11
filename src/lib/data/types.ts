@@ -1,5 +1,5 @@
-// Интерфейс источника данных. Экраны работают только через него:
-// в Э0 подставлен mock, в Э1 — реальный клиент Telegraph с той же формой ответов.
+// Data source interface. Screens work only through it:
+// in E0 it is backed by a mock, in E1 by the real Telegraph client with the same response shapes.
 
 import type { AgentStatus } from "../agent/types";
 import type {
@@ -17,17 +17,17 @@ import type {
   SpendState,
 } from "../types";
 
-/** Лёгкий статус для шапки и глобальных плашек. */
+/** Lightweight status for the header and global banners. */
 export interface AppStatus {
-  /** Текущее время источника, ISO. */
+  /** Current source time, ISO. */
   now: string;
   spentUsd: number;
   limitUsd: number;
   limitReached: boolean;
   networkDown: boolean;
-  /** Время последнего удачного обновления, если сеть недоступна. */
+  /** Time of the last successful refresh, if the network is unavailable. */
   lastGoodAt?: string;
-  /** Данные выдуманные (mock) — для плашки «Demo data». */
+  /** The data is made up (mock): for the "Demo data" banner. */
   demo: boolean;
 }
 
@@ -42,9 +42,9 @@ export interface DataSource {
   getStatus(): Promise<AppStatus>;
   getOverview(): Promise<Overview>;
   getSiteReport(id: string): Promise<SiteReport | null>;
-  /** Площадка без рыночных данных (для правки, даже когда данные рынка недоступны). */
+  /** A site without market data (for editing even when market data is unavailable). */
   getSite(id: string): Promise<Site | null>;
-  /** Последние 24 часа, от старых к новым. */
+  /** The last 24 hours, oldest to newest. */
   getSiteHistory(id: string): Promise<HourPoint[]>;
   getFeed(period: FeedPeriod, siteId: string | "all"): Promise<FeedEntry[]>;
   getSpend(): Promise<SpendState>;
@@ -54,17 +54,17 @@ export interface DataSource {
   addSite(input: SiteInput): Promise<AddSiteResult>;
   updateSite(id: string, input: SiteInput): Promise<AddSiteResult>;
   deleteSite(id: string): Promise<void>;
-  /** Только демо: вернуть выдуманные площадки, если список пуст. В живом режиме не реализуется. */
+  /** Demo only: restore the made-up sites if the list is empty. Not implemented in live mode. */
   loadDemoSites?(): Promise<void>;
-  /** Платное обновление по площадке (цена — refreshCostUsd). */
+  /** Paid refresh for a site (price is refreshCostUsd). */
   refreshSite(id: string): Promise<void>;
-  /** Сколько стоит «Refresh now», $. */
+  /** How much "Refresh now" costs, $. */
   refreshCostUsd: number;
-  /** Состояние ежечасного агента (null — не удалось узнать). */
+  /** Hourly agent state (null: could not be determined). */
   getAgentStatus(): Promise<AgentStatus | null>;
-  /** Лимит трат задаётся на сервере (.env) и из интерфейса не меняется. */
+  /** The spend limit is set on the server (.env) and can't be changed from the UI. */
   serverLimit: boolean;
-  /** Платный ориентир ставки аренды (≈ $0.01). Нет — в этом режиме ориентир не реализован. */
+  /** Paid reference lease rate (≈ $0.01). Absent: the reference is not implemented in this mode. */
   fetchLeaseGuide?(): Promise<Sourced<string> | null>;
 }
 

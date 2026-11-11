@@ -9,11 +9,11 @@ next-env.d.ts
 *.tmp
 *.log
 
-# Всё в data/ — локальное: снимок рынка, журнал оплат, площадки живого режима, рабочие файлы агента,
-# подписчики бота, замок оплат, сырые ответы Telegraph, черновые скриншоты. Приложение создаёт нужное само.
+# Everything in data/ is local: market snapshot, payment ledger, live-mode sites, agent working files,
+# bot subscribers, payment lock, raw Telegraph responses, draft screenshots. The app creates what it needs itself.
 /data/
 
-# Служебные заметки оркестратора и агентов, скачанные страницы сайта хакатона
+# Internal notes of the orchestrator and agents, downloaded hackathon site pages
 /AGENTS.md
 /HEAD.md
 /HEAD-QUEUE.md

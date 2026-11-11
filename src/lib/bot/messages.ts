@@ -1,5 +1,5 @@
-// Тексты Telegram-бота (docs/screens.md §6). Чистые функции: без сети и grammY, чтобы покрыть тестами.
-// Простой текст без Markdown — не нужно экранировать названия площадок.
+// Telegram bot texts (docs/screens.md §6). Pure functions: no network or grammY, so they are easy to test.
+// Plain text without Markdown, so site names need no escaping.
 
 import { DECISION_LABEL, type Decision } from "../decision";
 import { signedUsd, usd, utcTime } from "../format";
@@ -7,9 +7,9 @@ import type { DecisionRecord, RecordedReceipt } from "../agent/types";
 
 export interface Button {
   text: string;
-  /** Ссылка (только https: Telegram не принимает localhost). */
+  /** Link (https only: Telegram does not accept localhost). */
   url?: string;
-  /** Данные для кнопки-обработчика, например "snooze:houston". */
+  /** Callback data for the button handler, e.g. "snooze:houston". */
   data?: string;
 }
 
@@ -19,13 +19,13 @@ export interface BotMessage {
   kind: MessageKind;
   text: string;
   buttons: Button[];
-  /** Площадка, к которой относится оповещение (для «Snooze 1h»). */
+  /** Site the alert refers to (for "Snooze 1h"). */
   siteId?: string;
 }
 
 export const DECISION_EMOJI: Record<Decision, string> = { mine: "⛏", lease: "⚡", off: "⏻" };
 
-/** Адрес приложения для кнопок; только публичный https-адрес. */
+/** App URL for buttons; public https URL only. */
 export function publicAppUrl(raw: string | undefined): string | null {
   const v = raw?.trim().replace(/\/+$/, "");
   return v && /^https:\/\/[^\s/]+/.test(v) ? v : null;
@@ -36,7 +36,7 @@ function money(amount: number, unit: string): string {
   return `${signedUsd(amount, digits)}${unit}`;
 }
 
-/** Выгода решения коротко: «+$136/h vs. mining», «saves $119/h», «+$0.79/day». */
+/** Decision gain, short: «+$136/h vs. mining», «saves $119/h», «+$0.79/day». */
 export function gainPhrase(r: Pick<DecisionRecord, "decision" | "gainVsMiningPerHour" | "profitPerHour">, vsMining = false): string {
   if (!r.decision) return "";
   const hourly = (r.decision === "mine" ? r.profitPerHour : r.gainVsMiningPerHour) ?? 0;
@@ -83,7 +83,7 @@ function siteButtons(r: DecisionRecord, appUrl: string | null, extra: Button[] =
   return [...b, ...extra, { text: "Receipts", data: `receipts:${r.siteId}` }];
 }
 
-/** 🔄 Смена решения (приходит само). */
+/** 🔄 Decision change (sent automatically). */
 export function changeAlert(r: DecisionRecord, appUrl: string | null): BotMessage {
   const lines = [
     `🔄 ${r.siteName}: ${r.previous ? DECISION_LABEL[r.previous] : "—"} → ${r.decision ? DECISION_LABEL[r.decision] : "on hold"}`,
@@ -99,7 +99,7 @@ export function changeAlert(r: DecisionRecord, appUrl: string | null): BotMessag
   };
 }
 
-/** ⚠️ Поставщик цены не ответил по площадке. */
+/** ⚠️ The price provider did not respond for the site. */
 export function providerAlert(r: DecisionRecord, last: DecisionRecord | null): BotMessage {
   const lastText = last?.decision ? `Last call (${utcTime(last.hour)}): ${DECISION_LABEL[last.decision]}.` : "No earlier call.";
   return {
@@ -145,12 +145,12 @@ export function noSitesMessage(): BotMessage {
 }
 
 export interface NowInput {
-  /** Последнее решение по каждой площадке, в порядке площадок. */
+  /** Latest decision for each site, in site order. */
   records: DecisionRecord[];
   now: Date;
   spentUsd: number;
   limitUsd: number;
-  /** Текст после /now, например «Houston». */
+  /** Text after /now, e.g. "Houston". */
   query?: string;
   appUrl: string | null;
 }
@@ -162,7 +162,7 @@ function nowLine(r: DecisionRecord, now: Date): string {
   return `${emoji} ${r.siteName} — ${decisionText(r)} · ${tail}${old}`;
 }
 
-/** Ответ на /now: все площадки или одна (по части названия). */
+/** Reply to /now: all sites or one (by partial name). */
 export function nowMessage(input: NowInput): BotMessage {
   const { records, now, appUrl } = input;
   if (records.length === 0) {
@@ -201,7 +201,7 @@ function receiptLine(x: RecordedReceipt): string {
     .join(" · ");
 }
 
-/** Кнопка «Receipts»: список чеков последнего решения. */
+/** "Receipts" button: list of receipts for the latest decision. */
 export function receiptsMessage(r: DecisionRecord): BotMessage {
   const lines = [`Receipts · ${r.siteName} · ${utcTime(r.hour)} UTC · testnet`, ...r.receipts.map(receiptLine)];
   const links = r.receipts.filter((x) => x.status === "verified" && x.proofUrl?.startsWith("https://"));
@@ -213,7 +213,7 @@ export function receiptsMessage(r: DecisionRecord): BotMessage {
   };
 }
 
-/** /now целиком: площадки + записи агента → ответ (нет площадок, нет записей, все, одна). */
+/** Full /now: sites + agent entries → reply (no sites, no entries, all, one). */
 export function nowReply(input: {
   sites: { id: string; name: string }[];
   decisions: DecisionRecord[];

@@ -1,4 +1,4 @@
-// Клиент Telegraph Engine: платит x402 (Sepolia USDC), ведёт журнал в data/ledger.jsonl и режет дневной лимит.
+// Telegraph Engine client: pays via x402 (Sepolia USDC), keeps a ledger in data/ledger.jsonl and enforces the daily limit.
 import { x402Client, wrapFetchWithPayment, x402HTTPClient } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm/exact/client";
 import { privateKeyToAccount } from "viem/accounts";
@@ -24,7 +24,7 @@ function spentToday() {
 
 export async function ask(intent, params) {
   const payload = intent === null ? { query: params } : { intent, params };
-  if (spentToday() + 0.01 > LIMIT_USD) throw new Error(`Дневной лимит $${LIMIT_USD} исчерпан`);
+  if (spentToday() + 0.01 > LIMIT_USD) throw new Error(`Daily limit of $${LIMIT_USD} reached`);
   const res = await pay(URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
   const body = await res.json().catch(() => null);
   let receipt = null;

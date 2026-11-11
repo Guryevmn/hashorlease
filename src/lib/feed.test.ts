@@ -18,21 +18,21 @@ const entry = (over: Partial<FeedEntry> = {}): FeedEntry => ({
 });
 const k = (e: FeedEntry) => markKey(e.siteId, e.hour);
 
-describe("лента: отметки оператора", () => {
-  it("без отметки упущенное не считается", () => {
+describe("feed: operator marks", () => {
+  it("nothing is counted as missed without a mark", () => {
     const [r] = resolveFeed([entry()], {});
     expect(r.status).toBe("not-marked");
     expect(r.missedUsd).toBe(0);
   });
 
-  it("Did something else: упущено (совет − сделанное) × МВт", () => {
+  it("Did something else: missed (advice − done) × MW", () => {
     const e = entry();
     const [r] = resolveFeed([e], { [k(e)]: { kind: "other", actual: "mine" } });
     expect(r.status).toBe("other");
     expect(r.missedUsd).toBe(100); // (20 − 10) × 10
   });
 
-  it("Followed и Skip не дают упущенного; Skip не считается отмеченным", () => {
+  it("Followed and Skip give no missed gain; Skip does not count as marked", () => {
     const a = entry({ hour: "2026-11-08T13:00:00.000Z" });
     const b = entry({ hour: "2026-11-08T12:00:00.000Z" });
     const rows = resolveFeed([a, b], { [k(a)]: { kind: "followed" }, [k(b)]: { kind: "skip" } });
@@ -41,24 +41,24 @@ describe("лента: отметки оператора", () => {
     expect(s).toMatchObject({ markedHours: 1, followedHours: 1, skippedHours: 1, missedUsd: 0, gainedUsd: 100 });
   });
 
-  it("часы «keep as is» никогда не считаются упущенными", () => {
+  it("\"keep as is\" hours are never counted as missed", () => {
     const e = entry({ keepAsIs: true });
     expect(resolveFeed([e], { [k(e)]: { kind: "other", actual: "mine" } })[0].missedUsd).toBe(0);
   });
 
-  it("паузы лимита не отмечаются и не входят в счёт", () => {
+  it("limit pauses are not marked and not counted", () => {
     const e = entry({ advice: null, options: null });
     const rows = resolveFeed([e], { [k(e)]: { kind: "followed" } });
     expect(rows[0].status).toBe("paused");
     expect(summarizeFeed(rows).totalHours).toBe(0);
   });
 
-  it("совет «Off» и действие «Mine»: упущено столько, сколько стоило майнить в убыток", () => {
+  it("advice \"Off\" and action \"Mine\": missed equals what mining at a loss cost", () => {
     const e = entry({ advice: "off", options: { mine: -12, lease: null, off: 0 } });
     expect(resolveFeed([e], { [k(e)]: { kind: "other", actual: "mine" } })[0].missedUsd).toBe(120);
   });
 
-  it("группировка по дням: день без отметок помечен как не отмеченный", () => {
+  it("grouping by day: a day without marks is flagged as not marked", () => {
     const a = entry({ hour: "2026-11-08T13:00:00.000Z" });
     const b = entry({ hour: "2026-11-07T13:00:00.000Z" });
     const days = groupByDay(resolveFeed([a, b], { [k(a)]: { kind: "other", actual: "off" } }));
@@ -69,13 +69,13 @@ describe("лента: отметки оператора", () => {
   });
 });
 
-describe("хранение отметок", () => {
+describe("mark storage", () => {
   const mem = () => {
     const m = new Map<string, string>();
     return { getItem: (x: string) => m.get(x) ?? null, setItem: (x: string, v: string) => void m.set(x, v) };
   };
 
-  it("сохраняет и читает, снятие отметки удаляет её", () => {
+  it("saves and reads, clearing a mark removes it", () => {
     const st = mem();
     const e = entry();
     saveMarks(st, withMarks({}, { [k(e)]: { kind: "followed" } }));
@@ -84,7 +84,7 @@ describe("хранение отметок", () => {
     expect(loadMarks(st)).toEqual({});
   });
 
-  it("повреждённые данные не ломают приложение", () => {
+  it("corrupted data does not break the app", () => {
     const st = mem();
     st.setItem(MARKS_KEY, "{oops");
     expect(loadMarks(st)).toEqual({});

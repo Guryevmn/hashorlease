@@ -17,7 +17,7 @@ export default function SitesPage() {
     setBusy(true);
     await ds.loadDemoSites?.();
     setBusy(false);
-    // Из просмотра ?state=empty выходим на обычный вид, иначе список остался бы пустым.
+    // Leave the ?state=empty preview and return to the normal view, otherwise the list would stay empty.
     if (state === "empty") router.push("/");
     else bump();
   }

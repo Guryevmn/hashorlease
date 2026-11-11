@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { hashpriceUsdPerPhDay } from "./market";
 
 describe("hashpriceUsdPerPhDay", () => {
-  it("считает $ за PH/s в день: 144 блока × награда × курс / хешрейт", () => {
+  it("computes $ per PH/s per day: 144 blocks × reward × price / hashrate", () => {
     // 144 × 3.152 BTC × $74 358 / 969 000 PH/s ≈ $34.8
     expect(hashpriceUsdPerPhDay({ btcUsd: 74358, hashratePhs: 969_000, avgRewardBtc: 3.152 })).toBeCloseTo(34.83, 1);
   });
 
-  it("растёт вместе с курсом и падает с хешрейтом", () => {
+  it("rises with the price and falls with the hashrate", () => {
     const base = { btcUsd: 70000, hashratePhs: 900_000, avgRewardBtc: 3.2 };
     expect(hashpriceUsdPerPhDay({ ...base, btcUsd: 80000 })).toBeGreaterThan(hashpriceUsdPerPhDay(base));
     expect(hashpriceUsdPerPhDay({ ...base, hashratePhs: 1_000_000 })).toBeLessThan(hashpriceUsdPerPhDay(base));

@@ -42,7 +42,7 @@ function SpendBody({
   onSave,
 }: {
   s: SpendState;
-  /** Лимит задан на сервере (.env): в интерфейсе только показываем. */
+  /** Limit is set on the server (.env): the UI only displays it. */
   serverLimit: boolean;
   onSave: (v: { limitUsd: number; stopAtLimit: boolean; alertAtPct: number }) => Promise<void>;
 }) {

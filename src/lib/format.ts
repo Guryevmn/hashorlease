@@ -1,4 +1,4 @@
-// Форматирование чисел и времени для интерфейса (всё в UTC).
+// Number and time formatting for the UI (all in UTC).
 
 import { DECISION_LABEL, type Decision } from "./decision";
 

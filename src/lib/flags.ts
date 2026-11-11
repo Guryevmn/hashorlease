@@ -9,7 +9,7 @@ const ZONE_FLAG: Record<string, string> = {
   BE: "🇧🇪",
 };
 
-/** Флаг страны площадки по зоне рынка; у тарифа без привязки к стране флага нет. */
+/** Flag of the site's country by market zone; a tariff with no country has no flag. */
 export function siteFlag(site: Pick<Site, "kind" | "nodeId">): string | null {
   if (site.kind !== "grid" || !site.nodeId) return null;
   if (ZONE_FLAG[site.nodeId]) return ZONE_FLAG[site.nodeId];
