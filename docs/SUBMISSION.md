@@ -1,5 +1,7 @@
 # Hash or Lease — submission draft (NOT submitted)
 
+> **Newer materials (2026-11-12):** the current application text, video script and demo plan are in [`docs/submission/`](submission/); where they differ from this file, they win.
+
 For the owner: below are the English texts for the hackathon site form, in the order of rules section 8
 ("What to submit by December 1": https://hackathon.telegraphprotocol.com/rules, checked 2026-11-10), a screenshot list, the video script and demo risks.
 Submission deadline: **1 December 2026, 23:59 UTC** (14 November is a progress check, not a deadline).
