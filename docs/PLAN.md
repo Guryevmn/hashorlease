@@ -1,114 +1,114 @@
-# Hash or Lease — план на Telegraph Hackathon Season II
+# Hash or Lease — plan for Telegraph Hackathon Season II
 
-Статус на 2026-11-10: приложение, ежечасный агент, бот (без токена), docs/JUDGE.md и docs/SUBMISSION.md есть; тестовый кошелёк работает, платные запросы на testnet идут. Кода в открытом доступе и демо-ссылки нет. Независимая оценка Fable 5.2 (`~/Documents/Claude/fable52-hackathon/CRITERIA.md`): ≈41–49/100 сейчас, ≈65–75 к 1 дек при выполнении плана ниже (порог 70). Прежняя оценка «66–84» оптимистична: пользователи (10) и рост (20) почти нулевые.
+Status as of 2026-11-10: the app, the hourly agent, the bot (no token yet), docs/JUDGE.md and docs/SUBMISSION.md exist; the test wallet works and paid testnet requests go through. There is no public code and no demo link yet. Independent assessment by Fable 5.2 (`~/Documents/Claude/fable52-hackathon/CRITERIA.md`): ≈41–49/100 now, ≈65–75 by Dec 1 if the plan below is executed (threshold 70). The earlier estimate of "66–84" is optimistic: users (10) and growth (20) are almost zero.
 
-## 1. Цель
+## 1. Goal
 
-Занять место в треке Apps & Agents (excellence $700/$350/$150) и/или взять verified delivery ($225 × 8),
-миссия 12 «Mining and Power». Проходной порог по баллам — 70.
+Place in the Apps & Agents track (excellence $700/$350/$150) and/or earn verified delivery ($225 × 8),
+mission 12 "Mining and Power". Passing score threshold — 70.
 
-## 2. Продукт
+## 2. Product
 
-**Hash or Lease** — каждый час для каждой площадки майнера решение: «Майнить» / «Сдать под ИИ» / «Выключить»,
-с суммой в $ и чеком Telegraph под каждой входной цифрой. Это пример №1 миссии («The allocation agent»).
+**Hash or Lease** — every hour, for each miner site, a decision: "Mine" / "Lease to AI" / "Switch off",
+with a dollar amount and a Telegraph receipt under every input figure. This is example #1 of the mission ("The allocation agent").
 
-Пользователь: оператор майнинговой фермы / хостинга (Техас и другие рынки США с почасовой ценой).
-Вторичный: русскоязычные майнеры с фиксированным тарифом — режим «мой тариф».
+User: operator of a mining farm / hosting facility (Texas and other US markets with hourly pricing).
+Secondary: Russian-speaking miners on a flat tariff — "my tariff" mode.
 
-### Экраны (MVP)
-1. **Площадки** — список; у каждой решение на текущий час, выгода в $/ч, время обновления.
-2. **Площадка** — разбор решения: доход от майнинга, цена электричества, ставка аренды под ИИ, итог;
-   у каждой цифры чек (сервис, поставщик, время, цена запроса, ссылка на подтверждение).
-3. **Лента «что было бы»** — история решений по часам и упущенная выгода, когда совету не последовали.
-4. **Расходы** — сколько потрачено на запросы, лимит в день, остановка при превышении.
-5. **Добавить площадку** — узел энергосистемы (например ERCOT Houston hub) или «мой тариф»,
-   мощность флота (PH/s), потребление (МВт), КПД (J/TH), ставка аренды под ИИ ($/МВт·ч).
-6. **Telegram-бот** — оповещение при смене решения, команда «/now» по площадке.
+### Screens (MVP)
+1. **Sites** — a list; each site shows the decision for the current hour, the gain in $/h, and the update time.
+2. **Site** — the decision breakdown: mining revenue, electricity price, AI lease rate, result;
+   every figure has a receipt (service, provider, time, request price, link to the proof).
+3. **"What if" feed** — hourly decision history and the gain missed when the advice was not followed.
+4. **Spend** — how much was spent on requests, the daily limit, and a stop when it is exceeded.
+5. **Add a site** — a grid node (for example ERCOT Houston hub) or "my tariff",
+   fleet capacity (PH/s), consumption (MW), efficiency (J/TH), AI lease rate ($/MWh).
+6. **Telegram bot** — an alert when the decision changes, a "/now" command per site.
 
-### Логика решения (на МВт·ч)
-- майнинг: доход = hashprice($/PH/день) × PH/s на МВт / 24 − цена электричества;
-- аренда под ИИ: ставка контракта − цена электричества − накладные (если ставка «за всё», электричество не вычитать — поле в настройках);
-- выключить: 0 (и, если есть, оплата за снижение нагрузки);
-- выбрать максимум; при близких значениях (< порога) — «оставить как есть», чтобы не дёргать оборудование.
+### Decision logic (per MWh)
+- mining: revenue = hashprice ($/PH/day) × PH/s per MW / 24 − electricity price;
+- AI lease: contract rate − electricity price − overhead (if the rate is "all-in", do not subtract electricity — a setting field);
+- switch off: 0 (plus demand-response payment, if any);
+- pick the maximum; when values are close (< threshold) — "keep as is", so the equipment isn't jerked around.
 
-## 3. Данные из сети Telegraph (проверено по бесплатному списку, docs/research/intents.json)
+## 3. Data from the Telegraph network (checked against the free list, docs/research/intents.json)
 
-| Сервис | Майнеров | Вход | Что даёт |
+| Service | Miners | Input | What it gives |
 |---|---|---|---|
-| MINING_HASHPRICE_VERIFY_GENERAL | 27 | `block_height` (число) | $ за PH/s в день при текущей сложности и комиссиях |
-| GRID_POWER_PRICE_GENERAL | 26 | `node_or_zone` + `interval_start` (RFC 3339 с часовым поясом) | текущая (LMP) и day-ahead цена у оператора |
-| WEB_SEARCH_GENERAL | 26 | текст | рыночные ставки аренды GPU/ИИ (ориентир) |
-| DATACENTER_TELEMETRY_VERIFY_GENERAL | 12 | площадка | PUE, температура, генератор (вторая очередь) |
-| CRYPTO_PRICE_USD | 53 | монета | курс BTC (для перепроверки) |
+| MINING_HASHPRICE_VERIFY_GENERAL | 27 | `block_height` (number) | $ per PH/s per day at current difficulty and fees |
+| GRID_POWER_PRICE_GENERAL | 26 | `node_or_zone` + `interval_start` (RFC 3339 with time zone) | current (LMP) and day-ahead price from the operator |
+| WEB_SEARCH_GENERAL | 26 | text | market GPU/AI lease rates (a rough guide) |
+| DATACENTER_TELEMETRY_VERIFY_GENERAL | 12 | site | PUE, temperature, generator (second phase) |
+| CRYPTO_PRICE_USD | 53 | coin | BTC price (for cross-checking) |
 
-API: `GET https://devnode.telegraphprotocol.com/engine/v1/intents` (бесплатно),
-`POST https://devnode.telegraphprotocol.com/engine/v1/ask` (платно, ~$0.01, USDC через x402, тестовая сеть).
+API: `GET https://devnode.telegraphprotocol.com/engine/v1/intents` (free),
+`POST https://devnode.telegraphprotocol.com/engine/v1/ask` (paid, ~$0.01, USDC via x402, test network).
 
-**Результат первых платных запросов (9 ноя, Sepolia, 9 запросов по $0,01; журнал `data/ledger.jsonl`, клиент `scripts/telegraph.mjs`):**
-- оплата x402 работает; ответ приходит с `signal_hash`, чеком (транзакция Sepolia) и `field_status` по каждому полю; формат тела: `{"intent","params"}` или `{"query"}`;
-- hashprice: числа `null` (`missing`), приходит только номер блока; другой вход даёт статистику пулов и общий хешрейт (~814 EH/s);
-- ERCOT (HB_HOUSTON, HB_WEST): цена `null`; движок каждый раз выбирает майнера PREFLIGHT (CAISO), а не ERCOT-майнера Pecos, так что маршрутизировать на него нельзя;
-- вывод: на devnode Telegraph даёт чек и доказательство, но не цифры → цифры берём из публичных источников (mempool.space, ERCOT), а Telegraph используем для проверки и чека.
+**Result of the first paid requests (Nov 9, Sepolia, 9 requests at $0.01; log `data/ledger.jsonl`, client `scripts/telegraph.mjs`):**
+- x402 payment works; the response comes with a `signal_hash`, a receipt (Sepolia transaction) and a `field_status` for every field; body format: `{"intent","params"}` or `{"query"}`;
+- hashprice: the numbers are `null` (`missing`), only the block number comes back; a different input gives pool statistics and total hashrate (~814 EH/s);
+- ERCOT (HB_HOUSTON, HB_WEST): the price is `null`; each time the engine picks the PREFLIGHT miner (CAISO) rather than the ERCOT miner Pecos, so requests cannot be routed to it;
+- conclusion: on devnode Telegraph provides a receipt and proof but not the numbers → we take the numbers from public sources (mempool.space, ERCOT) and use Telegraph for verification and the receipt.
 
-**Было открыто (частично закрыто выше):**
-- какие регионы реально отдаёт GRID_POWER_PRICE (ERCOT точно в примере; PJM/CAISO/Европа — ?);
-- формат ответа и чека (receipt) — что показывать в интерфейсе;
-- задержка и стабильность ответов.
+**Was open (partly closed above):**
+- which regions GRID_POWER_PRICE really serves (ERCOT is certainly in the example; PJM/CAISO/Europe — ?);
+- the response and receipt format — what to show in the interface;
+- latency and stability of responses.
 
-**Пробел сети:** нет сервиса со ставками аренды мощности под ИИ → ставку вводит оператор, WEB_SEARCH — только ориентир.
+**Network gap:** there is no service with AI power-lease rates → the operator enters the rate, WEB_SEARCH is only a guide.
 
-## 4. Требования хакатона, которые проверят (docs/research/rules.txt)
+## 4. Hackathon requirements that will be checked (docs/research/rules.txt)
 
-Судья должен суметь: **запустить** с новым входом → **проверить** результат → **посмотреть** реальный запрос Telegraph
-и доказательство оплаты → **сломать** (разумный сбой) → **воспроизвести** по инструкции.
-Плюс: лимиты расходов, обработка ошибок, ключи не в коде; честно указать сеть (testnet) и что проверено;
-**звезда на github.com/telegraphprotocol/bounties**; автономная покупка между программами (агент сам платит за запросы).
+A judge must be able to: **run** it with a new input → **verify** the result → **see** a real Telegraph request
+and the proof of payment → **break** it (a reasonable failure) → **reproduce** it from the instructions.
+Plus: spend limits, error handling, keys not in code; state the network honestly (testnet) and what was verified;
+**a star on github.com/telegraphprotocol/bounties**; autonomous program-to-program purchasing (the agent pays for requests itself).
 
-Баллы (порог 70): техника 35 (минимум 24), коммерция 25, пользователи 10, использование сети 5,
-воспроизводимость 5, рост 20. Оценка: см. статус выше; решают открытый код, публичные записи в разные дни, сторонние пользователи.
+Scoring (threshold 70): technique 35 (minimum 24), commerce 25, users 10, network use 5,
+reproducibility 5, growth 20. Assessment: see the status above; open code, public posts on different days, and third-party users decide it.
 
-## 5. Этапы и даты (UTC)
+## 5. Phases and dates (UTC)
 
-- **Э0. Подготовка, 8–10 ноя** — пользователь: регистрация на хакатоне (выбрать Apps & Agents, миссия 12), «да» на тестовый кошелёк.
-  Исполнитель: каркас приложения на выдуманных данных, описание экранов для Figma.
-- **Э1. Первый запрос, 11–13 ноя** — тестовый кошелёк, один платный запрос hashprice + цена ERCOT Houston,
-  ответ и чек на экране. Узнать, какие регионы есть. ⚠️ Всё с кошельком — только после «да» пользователя.
-- **14 ноя — проверка интеграции** (не отбор): показать работающий запрос или что блокирует.
-- **Э2. Ядро, 15–20 ноя** — логика решения, все 5 экранов, ежечасный агент с лимитом расходов,
-  история решений, Telegram-бот. 20 ноя — публичный показ прогресса.
-- **Э3. Пользователи, 21–27 ноя** — 5–15 реальных пользователей (майнинговые чаты, Discord Telegraph),
-  сбор отзывов и цифр; режим «мой тариф». Публикации — только с «да» пользователя.
-- **Э4. Сдача, 28–30 ноя** — README с инструкцией, сценарий «сломать», видео-демо, честное описание сети,
-  звезда на репозитории bounties. Отправка формы — сам пользователь или с его «да».
-- **1 дек 23:59 UTC** — крайний срок.
+- **P0. Preparation, Nov 8–10** — user: hackathon registration (pick Apps & Agents, mission 12), a "yes" for the test wallet.
+  Executor: an app skeleton on made-up data, screen descriptions for Figma.
+- **P1. First request, Nov 11–13** — test wallet, one paid hashprice request + ERCOT Houston price,
+  the response and receipt on screen. Find out which regions are available. ⚠️ Anything involving the wallet — only after the user's "yes".
+- **Nov 14 — integration check** (not a cut): show a working request or what blocks it.
+- **P2. Core, Nov 15–20** — decision logic, all 5 screens, the hourly agent with a spend limit,
+  decision history, Telegram bot. Nov 20 — public progress showcase.
+- **P3. Users, Nov 21–27** — 5–15 real users (mining chats, Telegraph Discord),
+  collect feedback and numbers; "my tariff" mode. Publications — only with the user's "yes".
+- **P4. Submission, Nov 28–30** — README with instructions, a "break it" scenario, demo video, an honest description of the network,
+  a star on the bounties repository. Submitting the form — the user, or with their "yes".
+- **Dec 1, 23:59 UTC** — deadline.
 
-## 6. Стек (предложение, утвердить в Э0)
+## 6. Stack (proposal, to be approved in P0)
 
-Next.js (веб-приложение + серверные функции для агента), SQLite/файл для истории, grammY для бота,
-x402-клиент из документации Telegraph (docs.telegraphprotocol.com). Деплой — бесплатный хостинг, только с «да» пользователя.
+Next.js (web app + server functions for the agent), SQLite/a file for history, grammY for the bot,
+an x402 client from the Telegraph docs (docs.telegraphprotocol.com). Deployment — free hosting, only with the user's "yes".
 
-## 7. Границы
+## 7. Boundaries
 
-- Без «да» пользователя: не регистрироваться, не подключать/создавать кошельки, не делать платные запросы,
-  не публиковать, не отправлять формы, не ставить зависимости в систему (в папку проекта — можно).
-- Ключи и секреты у пользователя не просить; в код и git не класть (`.env` в `.gitignore`).
-- `~/Documents/Claude Bot` не трогать.
+- Without the user's "yes": do not register, do not connect/create wallets, do not make paid requests,
+  do not publish, do not submit forms, do not install dependencies system-wide (into the project folder — fine).
+- Do not ask the user for keys and secrets; do not put them in code or git (`.env` is in `.gitignore`).
+- Do not touch `~/Documents/Claude Bot`.
 
-## 8. Обновление 2026-11-10: сроки и что требует «да»
+## 8. Update 2026-11-10: deadlines and what needs a "yes"
 
-**Сроки (сверено по docs/research/rules.txt:37–38, 174, 184):** финальная подача — **1 дек 23:59 UTC**. 14 нояб — проверка хода (показать первый запрос/попытку/помеху), не дедлайн и не отсев. 20 нояб — публичный показ прогресса.
+**Deadlines (checked against docs/research/rules.txt:37–38, 174, 184):** final submission — **Dec 1, 23:59 UTC**. Nov 14 — progress check (show the first request/attempt/blocker), not a deadline and not a cut. Nov 20 — public progress showcase.
 
-**Без «да» пользователя (можно делать сразу):**
-- исправить ошибку в JUDGE (лимит `=0`, не `0.01`), объяснить всплеск журнала, сверить цены электричества — задача 15223;
-- обновить SUBMISSION.md; добавить тест лимита расходов;
-- подготовить посты и текст сообщения в Discord (черновики, без отправки);
-- пробы WEB_SEARCH / GRID_POWER_PRICE на CAISO — только в рамках уже данного «да» на тестовые запросы и дневного лимита (по цене центы).
+**Without the user's "yes" (can be done right away):**
+- fix the error in JUDGE (limit `=0`, not `0.01`), explain the ledger spike, cross-check electricity prices — task 15223;
+- update SUBMISSION.md; add a spend-limit test;
+- prepare posts and the Discord message text (drafts, not sent);
+- WEB_SEARCH / GRID_POWER_PRICE probes on CAISO — only within the already-given "yes" for test requests and the daily limit (costs cents).
 
-**Только с «да»:** открыть репозиторий/первый коммит; выложить демо; публикации (3 записи в разные дни), Discord/X; агент на 2–3 суток (≈$0.24/день тестовых); токен бота; поиск и приглашение сторонних пользователей; отправка заявки.
+**Only with a "yes":** open the repository/first commit; publish the demo; publications (3 posts on different days), Discord/X; the agent running for 2–3 days (≈$0.24/day of test funds); the bot token; finding and inviting third-party users; submitting the application.
 
-**Этапы:**
-- 10–13 нояб: исправления; решение «открыть код и демо?» (даёт воспроизводимость и рост); сообщение о помехе (пустые ответы hashprice/ERCOT) для 14 нояб.
-- 14 нояб: показ хода. Как именно — уточнить в Discord (на сайте не сказано).
-- 15–23 нояб: агент на 2–3 суток, первая публичная запись, 20 нояб показ; сверка цен и формулировка галочки аренды (в UI — отдельная малая задача).
-- 21–27 нояб: 3–5 сторонних людей по инструкции; 2-я и 3-я записи в разные дни.
-- 28 нояб – 1 дек: перечитать разделы 6 и 8 правил на сайте, финальная проверка (число тестов), видео, отправка с «да».
+**Phases:**
+- Nov 10–13: fixes; decision on "open the code and demo?" (gives reproducibility and growth); a blocker note (empty hashprice/ERCOT responses) for Nov 14.
+- Nov 14: progress showcase. How exactly — to be clarified in Discord (the site doesn't say).
+- Nov 15–23: the agent for 2–3 days, the first public post, Nov 20 showcase; price cross-check and wording of the lease checkbox (in the UI — a separate small task).
+- Nov 21–27: 3–5 third-party people following the instructions; the 2nd and 3rd posts on different days.
+- Nov 28 – Dec 1: re-read sections 6 and 8 of the rules on the site, final check (test count), video, submission with a "yes".
