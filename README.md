@@ -6,6 +6,8 @@ A web app and an hourly agent for Telegraph Hackathon Season II, Mission 12 "Min
 Once an hour, for each miner site: **Mine / Lease to AI / Switch off**, the amount in $, and a receipt for every input number.
 Plan: `docs/PLAN.md`, screens: `docs/screens.md`, submission draft: `docs/SUBMISSION.md`.
 
+Live demo (invented data, no wallet, no real calls): https://hashorlease.vercel.app · simulated day: https://hashorlease.vercel.app/demo-day
+
 ## Quick start
 
 ```

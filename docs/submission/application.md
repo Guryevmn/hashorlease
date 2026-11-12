@@ -18,7 +18,7 @@ Rules checked on 2026-11-12: https://hackathon.telegraphprotocol.com/rules (sect
 | Track | Apps & Agents |
 | Mission | 12 — Mining and Power (example build 01, "The allocation agent") |
 | Intents | Bought every hour: `CRYPTO_PRICE_USD`. Probed, paid, returned empty values on the devnode: `MINING_HASHPRICE_VERIFY_GENERAL`, `GRID_POWER_PRICE_GENERAL` |
-| Working / reviewer-access link | https://github.com/Guryevmn/hashorlease · reviewer guide: `docs/JUDGE.md` · hosted demo: `[URL, if deployed]` |
+| Working / reviewer-access link | https://github.com/Guryevmn/hashorlease · reviewer guide: `docs/JUDGE.md` · hosted demo (invented data): https://hashorlease.vercel.app |
 | GitHub username that starred `telegraphprotocol/bounties` | `Guryevmn` |
 | Team / contact | `[name, email or Telegram/Discord handle]` |
 | Network | Testnet only: Telegraph devnode + Ethereum Sepolia (test USDC) |
@@ -79,7 +79,7 @@ The data for a whole fleet costs about $0.24 a day at testnet prices — one $0.
 
 ### A7. Short public summary
 
-> **Hash or Lease** (Mission 12, Mining and Power) is an hourly allocation agent for Bitcoin miners. For every site it calls Mine, Lease to AI or Switch off, in dollars per hour, and shows where each input came from. The agent buys the BTC price through Telegraph with x402 on testnet, stops at a daily spend limit, and refuses to make a call without a fresh receipt. Hashprice and power prices still come from public sources, because those Intents returned empty values on the devnode — the raw answers are in the repo. Try it in five minutes with no wallet: https://github.com/Guryevmn/hashorlease. Reviewer guide: `docs/JUDGE.md`. If you run a mining site, we would like to hear what the call gets wrong: `[contact]`.
+> **Hash or Lease** (Mission 12, Mining and Power) is an hourly allocation agent for Bitcoin miners. For every site it calls Mine, Lease to AI or Switch off, in dollars per hour, and shows where each input came from. The agent buys the BTC price through Telegraph with x402 on testnet, stops at a daily spend limit, and refuses to make a call without a fresh receipt. Hashprice and power prices still come from public sources, because those Intents returned empty values on the devnode — the raw answers are in the repo. Try it with no wallet: https://hashorlease.vercel.app (invented data) or https://github.com/Guryevmn/hashorlease. Reviewer guide: `docs/JUDGE.md`. If you run a mining site, we would like to hear what the call gets wrong: `[contact]`.
 >
 > Updates: `[link 1, date]` · `[link 2, date]` · `[link 3, date]` · Tutorial: `[link]` · Demo video: `[link]` · Independent testing: `[links, if any]`
 
