@@ -107,6 +107,7 @@ npm run agent -- --mode=live --once --fresh    # skip the cached snapshot — to
 - `src/lib/bot/` — bot texts (`messages.ts`), subscribers (`chats.ts`), sending (`notify.ts`). Entry point: `scripts/bot.ts`.
 - `scripts/register-ts.mjs` — wires up `@/…` paths when running `.ts` scripts through Node.
 - `src/app/api/` — server routes: `live/*` (snapshot, price series, spend, sites), `agent/*` (agent state and its decisions).
+- Fonts: no web font is shipped (Apple's licence forbids hosting SF on websites). The page asks for the system font (`-apple-system`/`system-ui`): on Apple devices that is SF Pro, which picks Text or Display and sets its own tracking by size, so `globals.css` leaves tracking at `normal` there (`--tr-*` variables); Segoe UI / Roboto / Helvetica Neue get small manual values.
 
 ## Known simplifications
 
