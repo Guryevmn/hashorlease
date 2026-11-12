@@ -102,15 +102,29 @@ describe("runCycle", () => {
     expect(b.messages).toHaveLength(0);
   });
 
-  it("Telegraph unavailable: no decisions; when it returns, a message and decisions again", async () => {
+  it("Telegraph unavailable: no decisions; the alert only on the second failure in a row; when it returns, a message and decisions again", async () => {
     const store = memoryStore();
+    const first = await runCycle(deps(store, snap("error")));
+    expect(first.run.ok).toBe(false);
+    expect(first.run.decided).toBe(0);
+    expect(first.messages).toHaveLength(0);
     const down = await runCycle(deps(store, snap("error")));
-    expect(down.run.ok).toBe(false);
-    expect(down.run.decided).toBe(0);
     expect(down.messages.map((m) => m.kind)).toEqual(["network"]);
+    const again = await runCycle(deps(store, snap("error")));
+    expect(again.messages).toHaveLength(0);
     const back = await runCycle(deps(store, snap("default")));
     expect(back.run.decided).toBe(3);
     expect(back.messages.map((m) => m.kind)).toEqual(["network-back"]);
+  });
+
+  it("a single failed cycle followed by success sends nothing at all", async () => {
+    const store = memoryStore();
+    const a = await runCycle(deps(store, snap("error")));
+    const b = await runCycle(deps(store, snap("default")));
+    expect([...a.messages, ...b.messages]).toHaveLength(0);
+    expect(b.run.decided).toBe(3);
+    const c = await runCycle(deps(store, snap("error")));
+    expect(c.messages).toHaveLength(0);
   });
 
   it("an exception while building the snapshot does not crash the cycle: pause with a reason", async () => {

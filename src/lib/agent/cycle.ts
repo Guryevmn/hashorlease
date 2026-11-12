@@ -35,6 +35,9 @@ export interface CycleResult {
   messages: BotMessage[];
 }
 
+/** Failed network cycles in a row before the user is alerted. */
+const NETWORK_ALERT_AFTER = 2;
+
 const hourOf = (d: Date) => {
   const h = new Date(d);
   h.setUTCMinutes(0, 0, 0);
@@ -194,12 +197,20 @@ export async function runCycle(deps: CycleDeps): Promise<CycleResult> {
     messages.push(limitAlert(before.limitUsd, deps.appUrl ?? null));
     alerts.limitAlertDay = day;
   }
-  if (pause?.kind === "network" && !alerts.networkDown) {
-    messages.push(networkAlert("sources" in pause ? "market data" : "Telegraph"));
-    alerts.networkDown = true;
-  } else if (!pause && snapshot && alerts.networkDown) {
-    messages.push(networkBackAlert());
-    alerts.networkDown = false;
+  // A single failed network cycle is retried quietly (the agent retries after 10 min); the alert needs two in a row.
+  if (pause?.kind === "network") {
+    alerts.networkFails = (alerts.networkFails ?? 0) + 1;
+    if (snapshot?.hashprice.receipt.source && snapshot.hashprice.receipt.status === "unavailable") log(`network pause (${alerts.networkFails} in a row): ${snapshot.hashprice.receipt.source}`);
+    if (alerts.networkFails >= NETWORK_ALERT_AFTER && !alerts.networkDown) {
+      messages.push(networkAlert("sources" in pause ? "market data" : "Telegraph"));
+      alerts.networkDown = true;
+    }
+  } else if (!pause && snapshot) {
+    alerts.networkFails = 0;
+    if (alerts.networkDown) {
+      messages.push(networkBackAlert());
+      alerts.networkDown = false;
+    }
   }
 
   store.appendDecisions(decisions);
