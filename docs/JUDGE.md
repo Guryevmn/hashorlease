@@ -160,7 +160,7 @@ Without a token the agent prints the alerts it would have sent (`alert (bot not 
 - Real money, mainnet, real customers: none. No operator has used the app yet; the sites in live mode are examples.
 - Telegraph hashprice and ERCOT power intents returned empty numbers on the devnode, so hashprice is computed by us and power comes from Energy-Charts (Europe). US (ERCOT) sites work only in demo mode.
 - AI lease rates are operator input; the Telegraph `WEB_SEARCH` "market guide" is shown only in demo mode.
-- The Telegram bot is implemented and its messages are tested, but it has **not** been run against Telegram (no token yet).
+- The Telegram bot is implemented, its messages are tested, and it runs as @hashorlease_bot (1 subscriber); delivery of a message to Telegram has **not** been verified yet (status of 12 Nov).
 - **No call has changed in live operation** (power stayed at $189–610/MWh, far above mining revenue), so the change alert has not fired live. The change of call is demonstrated only on the demo day, with invented prices.
 - The app has no login; the site API and "Refresh now" (throttled to once per 2 minutes, capped by the daily limit) are meant for a local or single-operator install, not a public deployment.
 - History hours before the agent started are recomputed from past day-ahead prices with today's mining income; only hours tagged "Agent call" were decided live.

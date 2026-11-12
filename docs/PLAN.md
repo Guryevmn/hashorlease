@@ -1,6 +1,6 @@
 # Hash or Lease — plan for Telegraph Hackathon Season II
 
-Status as of 2026-11-10: the app, the hourly agent, the bot (no token yet), docs/JUDGE.md and docs/SUBMISSION.md exist; the test wallet works and paid testnet requests go through. There is no public code and no demo link yet. Independent assessment by Fable 5.2 (`~/Documents/Claude/fable52-hackathon/CRITERIA.md`): ≈41–49/100 now, ≈65–75 by Dec 1 if the plan below is executed (threshold 70). The earlier estimate of "66–84" is optimistic: users (10) and growth (20) are almost zero.
+Status as of 2026-11-10: the app, the hourly agent, the bot (runs as @hashorlease_bot since 12 Nov), docs/JUDGE.md and docs/SUBMISSION.md exist; the test wallet works and paid testnet requests go through. The code is public (https://github.com/Guryevmn/hashorlease, MIT) and the demo is hosted at https://hashorlease.vercel.app (updated 12 Nov). Independent assessment by Fable 5.2 (`~/Documents/Claude/fable52-hackathon/CRITERIA.md`): ≈41–49/100 now, ≈65–75 by Dec 1 if the plan below is executed (threshold 70). The earlier estimate of "66–84" is optimistic: users (10) and growth (20) are almost zero.
 
 ## 1. Goal
 

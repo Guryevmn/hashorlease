@@ -5,7 +5,7 @@
 For the owner: below are the English texts for the hackathon site form, in the order of rules section 8
 ("What to submit by December 1": https://hackathon.telegraphprotocol.com/rules, checked 2026-11-10), a screenshot list, the video script and demo risks.
 Submission deadline: **1 December 2026, 23:59 UTC** (14 November is a progress check, not a deadline).
-Nothing has been submitted or published. Fields in `[brackets]` are filled in by the owner. Before submitting, go through the "Needed from you" items at the end.
+The application has not been submitted. The code and demo are public, and progress post A was published in Discord `#hackathon` on 12 Nov 19:52 MSK. Fields in `[brackets]` are filled in by the owner. Before submitting, go through the "Needed from you" items at the end.
 
 ---
 
@@ -16,7 +16,7 @@ Nothing has been submitted or published. Fields in `[brackets]` are filled in by
 - **Mission:** 12 — Mining and Power (example build 1, "The allocation agent")
 - **Intents used:** `CRYPTO_PRICE_USD` (bought on every cycle); `MINING_HASHPRICE_VERIFY_GENERAL`, `GRID_POWER_PRICE_GENERAL` (probed, returned empty values on the devnode)
 - **Team / contact:** `[name, email]`
-- **Working or reviewer-access link:** `[public repo URL]` · `[hosted demo URL, if any]`
+- **Working or reviewer-access link:** https://github.com/Guryevmn/hashorlease · https://hashorlease.vercel.app (invented data)
 - **GitHub username that starred telegraphprotocol/bounties:** `[username]`
 - **Network:** testnet only — Telegraph devnode + Ethereum Sepolia (test USDC)
 
@@ -58,7 +58,7 @@ Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo
 - **Hourly agent without a browser** (`npm run agent`): buys data, decides for all sites, writes history to disk, sends Telegram alerts when a call changes.
 - **No receipt, no call:** if Telegraph is unreachable or the spend limit is hit, the hour is recorded as "Paused" with the reason instead of a guess.
 - **History the operator can argue with:** hour-by-hour calls; the operator marks what they actually did, and missed gain is counted only for marked hours.
-- **Telegram bot** (grammY): change alerts, `/now`. *(Implemented and its messages are tested; not yet run against Telegram — no bot token.)*
+- **Telegram bot** (grammY): change alerts, `/now`. *(Implemented, its messages are tested, and it runs as @hashorlease_bot; delivery of a message to Telegram not yet verified — 12 Nov.)*
 
 **How it uses Telegraph.**
 - The agent calls the Telegraph Engine (`POST /engine/v1/ask` on the devnode) and pays per request with **x402** in test USDC on **Ethereum Sepolia**. No human approves the payment: this is a machine-to-machine purchase.
@@ -78,7 +78,7 @@ Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo
 - **Testnet only.** No real money, no mainnet transactions, no customers. No operator has used it; the live sites are examples.
 - **One input is bought through Telegraph** (BTC price). Hashprice is computed by us; power prices are free public European day-ahead data (Energy-Charts), not ERCOT. US sites run on demo data only.
 - **The AI lease rate is typed in by the operator.** The `WEB_SEARCH` market guide exists only in demo mode; there is no market comparison in live mode yet.
-- **The agent has run single cycles on one evening (2026-11-09), not for days** `[update after a multi-day run]`.
+- **The agent has run since 2026-11-10 18:00 UTC:** 47 of 48 hourly slots by 2026-11-12 17:00 UTC, longest unbroken streak 44 hours, one gap (14:00 UTC on 12 Nov). Recounted from `data/agent/live/runs.jsonl` on 12 Nov 17:35 UTC; recount on submission day.
 - **History before the agent started** is recomputed from past power prices with today's hashprice; only hours tagged "Agent call" were decided live.
 - **No login.** Built for one operator on their own machine, not for a public server.
 - **Telegram bot** is implemented and its messages are tested, but it has not been run against Telegram `[update after the first real run]`.
@@ -113,7 +113,7 @@ Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo
 - Example agent purchase: Sepolia tx `0x1c3bc795d2cf6d7eb66949a98ebf173d2f59545b7023597f5d363a48829a76df` (2026-11-09 19:57 UTC), one-command check in `docs/JUDGE.md` §4.
 - Agent runs and decisions with receipts: `docs/evidence/agent-runs.jsonl`, `docs/evidence/agent-decisions.jsonl` (copies of `data/agent/live/`).
 - Raw answers of the mission Intents that returned empty values: `docs/evidence/first-hashprice.json`, `docs/evidence/second-queries.json`.
-- Tests: `npm test` (79 tests: decision logic, agent cycle, bot messages, site storage, spend limit, request rate).
+- Tests: `npm test` (94 tests in 11 files: decision logic, agent cycle, bot messages, site storage, spend limit, request rate).
 - Screenshots: `docs/shots/sites.png`, `docs/shots/site-detail-receipt.png`.
 
 **Evidence map (for us, not part of the form):**
@@ -157,7 +157,7 @@ To capture before submitting (`npm start`, 1280×900 window):
 - [ ] The "Can't reach Telegraph" banner (scenario from JUDGE.md §5).
 - [ ] Terminal with the agent log (`npm run agent -- --once`).
 - [ ] The transaction page on sepolia.etherscan.io.
-- [ ] Telegram: a call-change alert and `/now` — after the bot token is connected.
+- [ ] Telegram: a call-change alert and `/now` — the bot runs (@hashorlease_bot); delivery to a subscriber still to verify.
 
 ## 10. Demo video, 2–3 minutes
 
@@ -197,15 +197,15 @@ Recommendation: record scene by scene and use the finished recording for the dem
 **One line:** every hour, for every site — mine, lease the power to AI or switch off, in dollars per hour, with a source under every number.
 **Telegraph:** the agent pays for the BTC price itself (x402, test USDC on Sepolia, $0.01 per request, about $0.24 a day). We tried to buy hashprice and ERCOT prices — the payment went through but the values were empty; so we compute hashprice ourselves and take electricity from an open European source.
 **Spend safety:** daily limit checked before payment, one payment at a time, $0.02 cap, test coin only.
-**Limitations:** testnet only, no users, one number is bought through Telegraph, the lease rate is entered by the operator, the agent has run only in single cycles, the bot has not been run in real Telegram.
+**Limitations:** testnet only, no users, one number is bought through Telegraph, the lease rate is entered by the operator, the agent has run since 10 Nov (47 of 48 hourly slots by 12 Nov 17:00 UTC), the bot runs (@hashorlease_bot) but delivery of messages to Telegram is not verified yet.
 
 ## 13. Needed from you before submitting
 
-- [ ] Contact, links to the code and demo, GitHub username (fields in `[brackets]`).
-- [ ] Star on github.com/telegraphprotocol/bounties — handled by another session.
-- [ ] First git commit and publishing the code (judges need access to the code) — your decision.
-- [ ] Telegram bot token (create with @BotFather, put in `.env` as `HASHORLEASE_BOT_TOKEN`) — if we want to show the bot.
-- [ ] Decide where to show the demo: locally on your machine or hosted online (hosting only with your "yes").
+- [x] Links to the code and demo are filled in (public repo, https://hashorlease.vercel.app). [ ] Contact and GitHub username (fields in `[brackets]`).
+- [x] Star on github.com/telegraphprotocol/bounties is in place (account Guryevmn, checked 12 Nov).
+- [x] The code is published: public repository, MIT licence.
+- [x] Telegram bot token is in `.env`; the bot runs as @hashorlease_bot.
+- [x] The demo is hosted: https://hashorlease.vercel.app (invented data, marked on screen).
 - [ ] Record the video (or assign a session to record it) and give a "yes" to publish.
 - [ ] Links to public progress updates and showcase permissions (section 8).
 - [ ] Submitting the form — yourself or with your "yes".

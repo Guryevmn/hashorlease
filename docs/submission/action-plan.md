@@ -1,6 +1,6 @@
 # Hash or Lease — план действий до сдачи и готовые тексты
 
-Составлено 2026-11-12. Ничего не опубликовано и не отправлено: каждый пост — только после «да» владельца.
+Составлено 2026-11-12, обновлено по сверке `reality-check.md` (12.11, 17:25 UTC). Пост А отправлен владельцем 12.11 в 19:52 МСК в `#hackathon` (ветка в `#showcase` — в 19:50 МСК); остальные посты — только после «да» владельца.
 Формат показов уточнён по Discord, подробности и цитаты — `docs/submission/discord-findings.md`.
 
 ## План простыми словами
@@ -9,11 +9,10 @@
 
 | Когда | Что | Кто | Нужно от владельца |
 |---|---|---|---|
-| **Чт 12 нояб, вечер** | Решить по заметке для 14 ноября (текст ниже, А) | владелец | «да» / правки |
-| **Пт 13 нояб** | Опубликовать заметку в Discord-канал `#hackathon`, приложить 2 скриншота | сессия по «да» | «да» на публикацию |
+| **Чт 12 нояб, вечер** | Заметка А (текст ниже) опубликована 12.11 в 19:52 МСК в `#hackathon` — сделано | владелец | — |
 | **Пт 14 нояб** | Проверка интеграции. Следить за ответом организаторов на наш вопрос (ERCOT и хешпрайс пустые) | сессия | — |
-| до 15 нояб | Токен Telegram-бота (шаги — в `demo-plan.md`, пункт 3) | владелец | вставить токен в `.env`, написать «токен вставил» |
-| до 17 нояб | Решить: выложить демо в интернет на выдуманных данных (уже есть: hashorlease.vercel.app) | владелец | «да/нет» |
+| ~~до 15 нояб~~ | Токен Telegram-бота — сделано: токен вставлен, бот работает (@hashorlease_bot) | — | проверить, что бот доставляет сообщение подписчику |
+| ~~до 17 нояб~~ | Демо на выдуманных данных выложено: https://hashorlease.vercel.app — сделано | — | — |
 | 19 нояб | Репетиция показа без интернета (видео + демо-режим) | сессия | — |
 | **Пт 20 нояб** | «Community showcase»: ветка в форуме `#showcase` (текст Б) + пост в X (текст В) | сессия по «да» | «да» на публикацию, решить, где ещё публиковать |
 | 21–27 нояб | Найти 3–5 человек, которые реально попробуют; они оставляют публичный след | владелец + сессия | имена знакомых, «да» на приглашения |
@@ -30,14 +29,15 @@
 - Публичные посты дают баллы (до 20 из 100), нужно минимум 3 на разные даты: 14 ноября, 20 ноября и ~26 ноября. В постах про хакатон нужна пометка об участии и призах; в X — тег `@Telegraphprotoc`.
 
 **Что готово сейчас (проверено 12 ноября, 10:27 UTC):**
-- [x] Агент работает; подряд 41 час с покупкой каждый час, с 10 ноября 18:00 UTC; платежи на Sepolia. Всего в журнале 169 платных запросов на $1.36 тестовых денег (часть — разработка).
+- [x] Агент работает: 47 из 48 часовых слотов с 10.11 18:00 UTC по 12.11 17:00 UTC, подряд 44 часа (10.11 18:00 → 12.11 13:00), единственный пропуск — 14:00 UTC 12.11 (совпал с перезагрузкой Mac), затем серия идёт заново (15, 16, 17 = 3 ч); платежи на Sepolia. Всего 142 платных запроса на $1.42 тестовых денег (часть — разработка). Пересчитано скриптом 12.11, 17:35 UTC.
 - [x] Живое решение за это время ни разу не менялось (мир с ценой электричества $189–610/МВт·ч). Мы об этом честно говорим и показываем «Демо-день» как симуляцию.
 - [x] Тексты 14 и 20 ноября, сценарий ролика, текст заявки — в этой папке.
-- [ ] Бот Telegram не проверен в настоящем Telegram (нет токена).
+- [x] Бот работает: @hashorlease_bot запущен, в `bot-chats.json` 1 подписчик. [ ] Доставку сообщения в Telegram ещё не проверяли.
+- [x] Код публичный (MIT), демо выложено: https://hashorlease.vercel.app.
 - [ ] Сторонних пользователей ноль.
-- [ ] Свежие журналы агента не лежат в репозитории (в `docs/evidence/` только 9 ноября): нужна отправка на GitHub, только с «да».
+- [ ] Свежие журналы агента не лежат в репозитории (в `docs/evidence/` только 9 ноября); этот план и другие свежие документы — только в локальной ветке: нужна отправка на GitHub, только с «да».
 
-**Риск по нашему интенту:** участник NFT KING написал (12 ноября), что компараторы `GRID_POWER_PRICE` с 3 ноября висят в «pending». Ответа организаторов нет. У нас та же проблема с пустыми значениями, поэтому наш вопрос в заметке 14 ноября уместен.
+**Риск по нашему интенту:** участник NFT KING написал (12 ноября), что компараторы `GRID_POWER_PRICE` с 3 ноября висят в «pending»; организатор Ahmed Ali ответил ему 12.11 в 14:28 МСК, что эти семейства не будут поддержаны («не нужны для основного пути»). Нам организаторы не отвечали, вопросов к нам нет. Наша проблема — пустые значения у `GRID_POWER_PRICE` и хешпрайса, это не то же самое, поэтому наш вопрос в заметке уместен.
 
 **Чего я не знаю:** будет ли у 20 ноября живой созвон (на сайте и в Discord об этом не сказано; если появится объявление, поменяем формат); во сколько UTC закрывается приём заметок 14 ноября (нигде не указано).
 
@@ -48,12 +48,12 @@
 ### А. 14 ноября — Discord, канал `#hackathon`
 
 Вложения: `docs/shots/site-detail-receipt.png`, `docs/shots/sites.png`.
-Перед публикацией обновить число часов (сейчас 41).
+**Опубликовано 12.11 в 19:52 МСК (текст ниже — как отправлен).**
 
 > **Hash or Lease — Mission 12, Mining and Power (Apps & Agents)**
 > Hourly allocation call per mining site: Mine / Lease to AI / Switch off, with a receipt under every input.
 >
-> **Integration: working.** An hourly agent buys `CRYPTO_PRICE_USD` from the devnode over x402 (test USDC, Ethereum Sepolia) with no human in the loop, and makes no call without a fresh receipt. It has run 41 hours in a row at one purchase per hour. Example payment: https://sepolia.etherscan.io/tx/0x1c3bc795d2cf6d7eb66949a98ebf173d2f59545b7023597f5d363a48829a76df
+> **Integration: working.** An hourly agent buys `CRYPTO_PRICE_USD` from the devnode over x402 (test USDC, Ethereum Sepolia) with no human in the loop, and makes no call without a fresh receipt. It has run since Nov 10, 18:00 UTC: 45 hourly runs in 46 hours, one purchase each, the longest unbroken streak is 44 hours. Example payment: https://sepolia.etherscan.io/tx/0x1c3bc795d2cf6d7eb66949a98ebf173d2f59545b7023597f5d363a48829a76df
 >
 > **Blocker.** `MINING_HASHPRICE_VERIFY_GENERAL` and `GRID_POWER_PRICE_GENERAL` (`HB_HOUSTON`, `HB_WEST`) settle and return receipts, but the value fields are `null` / `missing`. The hashprice request is routed to a pool-statistics miner, the ERCOT requests to a CAISO grid miner. Raw answers are in the repo under `docs/evidence/`. Until this changes we compute hashprice ourselves and use public European day-ahead prices, and label both on screen as not bought via Telegraph.
 >
@@ -61,7 +61,7 @@
 >
 > Repo and reviewer guide: https://github.com/Guryevmn/hashorlease (`docs/JUDGE.md`). Demo mode runs in five minutes, no wallet. Testnet only. Hackathon entry, Season II.
 
-(Перед публикацией проверить: ссылка на репозиторий открывается публично; число часов актуально.)
+(Опубликовано 12.11 в 19:52 МСК — текст выше не менять. Репозиторий публичный, проверено 12.11.)
 
 ### Б. 20 ноября — форум `#showcase`, новая ветка
 
@@ -69,7 +69,7 @@
 
 > **What it is.** An hourly agent for Bitcoin miners. For each site it calls Mine / Lease to AI / Switch off, shows the gain in $/h, and puts a source under every input number: a Telegraph receipt, a labelled public source, or your own input.
 >
-> **Telegraph, for real.** The agent pays for `CRYPTO_PRICE_USD` itself over x402 (test USDC, Sepolia), one cent an hour for all sites, and stops at a daily limit. No fresh receipt, no call — it logs a pause. Running for `[N]` hours in a row. Example payment: `[Sepolia link]`.
+> **Telegraph, for real.** The agent pays for `CRYPTO_PRICE_USD` itself over x402 (test USDC, Sepolia), one cent an hour for all sites, and stops at a daily limit. No fresh receipt, no call — it logs a pause. Running since Nov 10, 18:00 UTC: 47 of 48 hourly slots had a purchase (the longest unbroken streak is 44 hours; the one gap, 14:00 UTC on Nov 12, was a Mac restart). `[recount on the day from runs.jsonl]` Example payment: `[Sepolia link]`.
 >
 > **Simulated day (demo data, not live).** In our live week the call never changed, because power was too expensive for mining. So there is a simulated day on an invented site where the call changes twice, each time with the reason: `/demo-day` in the repo (https://hashorlease.vercel.app/demo-day). `[screenshot or short video]`
 >
@@ -91,13 +91,13 @@
 
 ## Что нужно решить владельцу
 
-1. **Заметка для 14 ноября** (текст А) — публиковать завтра (13 ноября) в `#hackathon`? Рекомендую «да»: это и отметка прогресса, и первое из трёх обновлений.
+1. ~~**Заметка для 14 ноября** (текст А)~~ — опубликована 12.11 в 19:52 МСК в `#hackathon`; это первое из трёх обновлений.
 2. **Ветка в `#showcase`** 20 ноября и **пост в X** — согласен ли, и есть ли аккаунт X для постов?
 3. **Вопрос организаторам** про пустые значения: он уже внутри текста А, отдельно писать не нужно.
-4. **Токен бота** и **выкладка демо** (сроки в таблице).
+4. ~~**Токен бота** и **выкладка демо**~~ — сделано (бот @hashorlease_bot работает, демо https://hashorlease.vercel.app).
 5. **Отправка свежих журналов на GitHub** — «да» до 20 ноября.
 
 ## Технические детали
 
-- Источники чисел: `data/agent/live/runs.jsonl` (подряд 41 час: 2026-11-10T18:00Z — 2026-11-12T10:00Z; 8 пауз: 7 вечером 9 ноября (дневной лимит и недоступность Telegraph во время ранних тестов) и одна 11 ноября 21:00Z), `data/ledger.jsonl` (169 записей, $1.36).
+- Источники чисел (пересчитано скриптом 12.11, 17:35 UTC): `data/agent/live/runs.jsonl` (47 из 48 слотов 10.11 18:00 — 12.11 17:00 UTC; подряд 44 ч, пропуск 12.11 14:00 UTC; пауза 17:00 UTC 12.11 была короткой, повтор в 17:11 прошёл), `data/ledger.jsonl` (175 записей, из них платных 142 на $1.42).
 - Ссылки на репозиторий, hashorlease.vercel.app и транзакцию Sepolia не открывал заново; перед публикацией проверить.
