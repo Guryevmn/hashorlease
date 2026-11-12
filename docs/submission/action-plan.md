@@ -29,7 +29,7 @@
 - Публичные посты дают баллы (до 20 из 100), нужно минимум 3 на разные даты: 14 ноября, 20 ноября и ~26 ноября. В постах про хакатон нужна пометка об участии и призах; в X — тег `@Telegraphprotoc`.
 
 **Что готово сейчас (проверено 12 ноября, 10:27 UTC):**
-- [x] Агент работает: 47 из 48 часовых слотов с 10.11 18:00 UTC по 12.11 17:00 UTC, подряд 44 часа (10.11 18:00 → 12.11 13:00), единственный пропуск — 14:00 UTC 12.11 (совпал с перезагрузкой Mac), затем серия идёт заново (15, 16, 17 = 3 ч); платежи на Sepolia. Всего 142 платных запроса на $1.42 тестовых денег (часть — разработка). Пересчитано скриптом 12.11, 17:35 UTC.
+- [x] Агент работает: 47 из 48 часовых слотов с 10.11 18:00 UTC по 12.11 17:00 UTC, подряд 44 часа (10.11 18:00 → 12.11 13:00), единственный пропуск — 14:00 UTC 12.11 (совпал с перезагрузкой Mac), затем серия идёт заново (15, 16, 17 = 3 ч); платежи на Sepolia. Всего 142 платных запроса на $1.42 тестовых денег (часть — разработка). Пересчитано скриптом 12.11, 17:35 UTC; на 20:36 UTC того же дня — 49 из 50, подряд 44 (затем 5), 145 запросов на $1.45, 95 тестов (см. текст Б).
 - [x] Живое решение за это время ни разу не менялось (мир с ценой электричества $189–610/МВт·ч). Мы об этом честно говорим и показываем «Демо-день» как симуляцию.
 - [x] Тексты 14 и 20 ноября, сценарий ролика, текст заявки — в этой папке.
 - [x] Бот работает: @hashorlease_bot запущен, в `bot-chats.json` 1 подписчик. [ ] Доставку сообщения в Telegram ещё не проверяли.
@@ -63,21 +63,53 @@
 
 (Опубликовано 12.11 в 19:52 МСК — текст выше не менять. Репозиторий публичный, проверено 12.11.)
 
-### Б. 20 ноября — форум `#showcase`, новая ветка
+### Б. 20 ноября — форум `#showcase`, обновление в нашей ветке
 
-Категория: **Apps & Agents**. Заголовок: `Hash or Lease (Mission 12): mine, lease to AI or switch off — with a receipt per number`
+Не новая ветка: **ответ в ветке, созданной 12.11** (там же лежит пост А), чтобы обновления шли одной лентой. Заголовок не нужен. Публиковать только с «да» владельца; числа в `[…]` заполнить в день публикации (команда ниже), до этого текст не отправлять.
 
-> **What it is.** An hourly agent for Bitcoin miners. For each site it calls Mine / Lease to AI / Switch off, shows the gain in $/h, and puts a source under every input number: a Telegraph receipt, a labelled public source, or your own input.
+**Как пересчитать числа за минуту** (из корня проекта; только чтение, ничего не платит):
+
+```
+export PATH=$(ls -d ~/.local/share/node-v22.*/bin | head -1):$PATH
+node scripts/recount.mjs          # слоты, пропуски, серия, платные запросы, $
+npm test                          # число тестов (строка Tests)
+```
+
+Что куда подставить: `[SLOTS]` = «Слотов», `[DECIDED]` = «с решением», `[LONGEST]` = «Самая длинная серия», `[CURRENT]` = «текущая серия», `[PAID]` и `[USD]` = «Платных запросов», `[TESTS]` = число из `npm test`, `[DATE]` = дата и час пересчёта UTC. Если появился новый пропуск — упомянуть его так же прямо, как пропуск 12.11. Слово «подряд» относить только к `[LONGEST]` и `[CURRENT]`, не ко всем слотам.
+
+**Пересчёт 12.11, 20:36 UTC (для сверки скрипта, не для публикации):** слотов 50 (с 10.11 18:00 по 12.11 19:00 UTC), с решением и покупкой 49, пропуск один — 12.11 14:00 UTC; самая длинная серия 44 ч, текущая 5 ч; платных запросов 145 на $1.45 тестовых (часть — разработка); `npm test` 95 из 95. На 17:35 UTC скрипт давал 47 из 48 — совпадает с постом А и со сверкой.
+
+**English (для публикации):**
+
+> **Update, Nov 20 — Hash or Lease (Mission 12)**
 >
-> **Telegraph, for real.** The agent pays for `CRYPTO_PRICE_USD` itself over x402 (test USDC, Sepolia), one cent an hour for all sites, and stops at a daily limit. No fresh receipt, no call — it logs a pause. Running since Nov 10, 18:00 UTC: 47 of 48 hourly slots had a purchase (the longest unbroken streak is 44 hours; the one gap, 14:00 UTC on Nov 12, was a Mac restart). `[recount on the day from runs.jsonl]` Example payment: `[Sepolia link]`.
+> Short progress note since the Nov 12 post. Numbers recounted from our own logs on `[DATE]` UTC.
 >
-> **Simulated day (demo data, not live).** In our live week the call never changed, because power was too expensive for mining. So there is a simulated day on an invented site where the call changes twice, each time with the reason: `/demo-day` in the repo (https://hashorlease.vercel.app/demo-day). `[screenshot or short video]`
+> **Telegraph, for real.** The hourly agent buys `CRYPTO_PRICE_USD` over x402 (test USDC, Sepolia); one purchase covers all sites, and it stops at a daily limit. With no fresh receipt it makes no call and logs a pause. Since Nov 10, 18:00 UTC: `[DECIDED]` of `[SLOTS]` hourly slots have a decided call with a purchase. One slot is missing: 14:00 UTC on Nov 12, when the Mac running the agent was restarted. The longest unbroken streak is `[LONGEST]` hours; the current one is `[CURRENT]`. `[Add one line if there is a new gap.]` Paid requests in the ledger: `[PAID]` for $`[USD]` of test money, including our own development tests. Example payment: https://sepolia.etherscan.io/tx/0x1c3bc795d2cf6d7eb66949a98ebf173d2f59545b7023597f5d363a48829a76df
 >
-> **What is not done.** Only one input is bought through Telegraph. Hashprice and ERCOT intents came back empty (raw answers in `docs/evidence/`). No operator has used it yet. Testnet only.
+> **A simulated day (demo data, not live).** In our live run the call has not changed once: power was far too expensive for mining. So there is a simulated day on an invented site (Solar Ridge) where the call changes twice, each time with the reason and the alert text: https://hashorlease.vercel.app/demo-day. It runs the same agent cycle on invented prices; nothing is requested or paid. `[screenshot or short clip, captioned "demo data"]`
 >
-> **Where we need help.** (1) A miner that returns hashprice and ERCOT hub prices on the devnode. (2) Two or three people who run mining hardware or hosting to tell us what the call gets wrong. (3) Anyone to follow `docs/JUDGE.md` and tell us where it breaks.
+> **What is still not done.** Only one input is bought through Telegraph. The hashprice and ERCOT intents came back empty for us (raw answers in `docs/evidence/`), so hashprice is computed by us and power comes from a public European source, both labelled on screen. No operator has used it yet. Testnet only; `[TESTS]` automated tests pass.
 >
-> Repo: https://github.com/Guryevmn/hashorlease · Demo (invented data): https://hashorlease.vercel.app
+> **Where we would like help.** (1) A miner or a parameter form that returns hashprice and ERCOT hub prices on the devnode. (2) Two or three people who run mining hardware or hosting to tell us what the call gets wrong. (3) Anyone willing to follow `docs/JUDGE.md` (about five minutes, no wallet) and tell us where it breaks.
+>
+> Repo: https://github.com/Guryevmn/hashorlease · Demo (invented data): https://hashorlease.vercel.app · Hackathon entry, Season II.
+
+**Русский перевод (для владельца, не публиковать):**
+
+> **Обновление, 20 ноября — Hash or Lease (миссия 12)**
+>
+> Короткий отчёт после поста от 12 ноября. Числа пересчитаны по нашим журналам на `[DATE]` UTC.
+>
+> **Telegraph по-настоящему.** Агент каждый час сам покупает `CRYPTO_PRICE_USD` через x402 (тестовые USDC, Sepolia); одна покупка закрывает все площадки, есть дневной лимит. Нет свежего чека — решения нет, агент записывает паузу. С 10.11, 18:00 UTC: в `[DECIDED]` из `[SLOTS]` часовых слотов есть решение и покупка. Одного слота нет: 14:00 UTC 12.11, когда перезагружали Mac с агентом. Самая длинная серия без пропусков — `[LONGEST]` ч, текущая — `[CURRENT]` ч. `[Добавить строку, если появился новый пропуск.]` Платных запросов в журнале: `[PAID]` на $`[USD]` тестовых денег, включая наши тесты при разработке. Пример платежа: ссылка на Etherscan.
+>
+> **Симулированный день (демо-данные, не живое).** В живой работе решение ни разу не менялось: электричество слишком дорогое для майнинга. Поэтому есть выдуманный день на выдуманной площадке (Solar Ridge), где решение меняется дважды — каждый раз с причиной и текстом уведомления. Тот же цикл агента, на выдуманных ценах; ничего не запрашивается и не оплачивается. `[скриншот или короткий ролик с подписью «demo data»]`
+>
+> **Что ещё не сделано.** Через Telegraph покупается только один вход. Запросы про хешпрайс и ERCOT вернули пустые значения (сырые ответы в `docs/evidence/`), поэтому хешпрайс считаем сами, а цена электричества — из открытого европейского источника; оба помечены на экране. Ни один оператор пока не пользовался. Только тестовая сеть; `[TESTS]` автотестов проходят.
+>
+> **Где нужна помощь.** (1) Майнер или форма параметров, которые на devnode возвращают хешпрайс и цены ERCOT. (2) Два-три человека с майнинг-железом или хостингом, которые скажут, в чём решение ошибается. (3) Кто-нибудь, кто пройдёт `docs/JUDGE.md` (около пяти минут, кошелёк не нужен) и скажет, где ломается.
+
+**Перед публикацией проверить:** (1) числа пересчитаны скриптом в день публикации; (2) ссылки открываются (`curl -sIL` — 200); (3) пока нет реальных пользователей — фразу «No operator has used it yet» оставить; если появится человек, оставивший публичный след, писать только то, что он сам написал, со ссылкой; (4) демо-день везде подписан «demo data».
 
 ### В. Пост в X (≈20 ноября; нужен аккаунт владельца и его «да»)
 
@@ -99,5 +131,5 @@
 
 ## Технические детали
 
-- Источники чисел (пересчитано скриптом 12.11, 17:35 UTC): `data/agent/live/runs.jsonl` (47 из 48 слотов 10.11 18:00 — 12.11 17:00 UTC; подряд 44 ч, пропуск 12.11 14:00 UTC; пауза 17:00 UTC 12.11 была короткой, повтор в 17:11 прошёл), `data/ledger.jsonl` (175 записей, из них платных 142 на $1.42).
+- Источники чисел (пересчитано скриптом 12.11, 17:35 UTC): `data/agent/live/runs.jsonl` (47 из 48 слотов 10.11 18:00 — 12.11 17:00 UTC; подряд 44 ч, пропуск 12.11 14:00 UTC; пауза 17:00 UTC 12.11 была короткой, повтор в 17:11 прошёл), `data/ledger.jsonl` (175 записей, из них платных 142 на $1.42). Пересчёт одной командой: `node scripts/recount.mjs` (на 12.11, 20:36 UTC: 178 записей, платных 145 на $1.45; `npm test` — 95).
 - Ссылки на репозиторий, hashorlease.vercel.app и транзакцию Sepolia не открывал заново; перед публикацией проверить.
