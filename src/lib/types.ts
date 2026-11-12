@@ -5,9 +5,10 @@ import type { Decision, DecisionResult } from "./decision";
 
 /**
  * Status of the receipt on a number. "public" — a number from a free public source (not Telegraph):
- * no payment receipt, only a link to the source.
+ * no payment receipt, only a link to the source. "demo" — an invented number of the demo day (src/lib/demo/day.ts):
+ * no request, no receipt; it can back a call only in the agent's demo mode.
  */
-export type ReceiptStatus = "verified" | "stale" | "unavailable" | "input" | "public";
+export type ReceiptStatus = "verified" | "stale" | "unavailable" | "input" | "public" | "demo";
 
 /**
  * Telegraph receipt. The exact format will be known after the first paid request (E1),

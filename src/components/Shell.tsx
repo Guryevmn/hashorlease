@@ -18,9 +18,13 @@ const NAV = [
 export function Shell({ children }: { children: ReactNode }) {
   const { state, bump } = useData();
   const pathname = usePathname();
-  const status = useAsync((ds) => ds.getStatus());
+  // The demo day is invented data even when the rest of the app runs live. It asks for no status either:
+  // in live mode the status reads the market snapshot, which can cost a paid request.
+  const demoDay = pathname.startsWith("/demo-day");
+  const status = useAsync((ds) => (demoDay ? Promise.resolve(undefined) : ds.getStatus()), [demoDay]);
   const [dismissed, setDismissed] = useState(false);
   const s = status.data;
+  const demo = demoDay || (s ? s.demo : !LIVE);
   // A limit banner dismissed today ("Dismiss" / "Resume tomorrow") does not come back on navigation; in the ?state=limit preview it is always visible.
   useEffect(() => setDismissed(state === "default" && limitAcknowledged()), [state, status.data]);
 
@@ -30,7 +34,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="header-inner">
           <AppLink href="/" className="logo">Hash or Lease</AppLink>
           <span className="badge testnet" title="Testnet · no real money">Testnet · no real money</span>
-          {(s ? s.demo : !LIVE) && <span className="badge demo">Demo data</span>}
+          {demo && <span className="badge demo">Demo data</span>}
           <nav className="nav" aria-label="Main">
             {NAV.map((n) => {
               const active = n.href === "/" ? pathname === "/" || pathname.startsWith("/sites") : pathname.startsWith(n.href);
@@ -42,13 +46,19 @@ export function Shell({ children }: { children: ReactNode }) {
               );
             })}
           </nav>
-          <AppLink href="/spend" className={`spent num ${s?.limitReached ? "over" : ""}`}>
-            {s ? `Spent today ${usd(s.spentUsd)} / ${usd(s.limitUsd)}` : <Skel w={150} />}
-          </AppLink>
+          {!demoDay && (
+            <AppLink href="/spend" className={`spent num ${s?.limitReached ? "over" : ""}`}>
+              {s ? `Spent today ${usd(s.spentUsd)} / ${usd(s.limitUsd)}` : <Skel w={150} />}
+            </AppLink>
+          )}
         </div>
       </header>
       <div className="demo-strip" role="note">
-        {(s ? !s.demo : LIVE) ? (
+        {demoDay ? (
+          <>
+            <b>Demo day</b> — invented site and prices, simulated hours. No Telegraph requests, no receipts, no real calls.
+          </>
+        ) : !demo ? (
           <>
             <b>Live data</b> · BTC price via Telegraph (testnet), network stats and day-ahead power prices from public sources.
           </>

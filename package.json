@@ -9,6 +9,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "agent": "node --import ./scripts/register-ts.mjs scripts/agent.ts",
+    "demo:day": "node --import ./scripts/register-ts.mjs scripts/demo-day.ts",
     "bot": "node --import ./scripts/register-ts.mjs scripts/bot.ts"
   },
   "dependencies": {

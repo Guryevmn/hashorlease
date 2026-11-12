@@ -7,6 +7,7 @@ import type { MarketSnapshot, Receipt, Site, SiteReport } from "../types";
 import { changeAlert, limitAlert, networkAlert, networkBackAlert, providerAlert, type BotMessage } from "../bot/messages";
 import { lastDecided, type AgentStore } from "./store";
 import type { AgentMode, AlertState, DecisionRecord, RecordedReceipt, RunRecord } from "./types";
+import { whyText } from "./why";
 
 export interface SpendInfo {
   spentUsd: number;
@@ -74,11 +75,13 @@ function pausedRecord(base: Omit<DecisionRecord, "status" | "decision" | "keepAs
 }
 
 /** Why no decisions can be issued this hour at all (for all sites), or null. */
-function globalPause(s: MarketSnapshot): { kind: "limit" | "network"; reason: string } | null {
+function globalPause(s: MarketSnapshot, mode: AgentMode): { kind: "limit" | "network"; reason: string } | null {
   const network = { kind: "network" as const, reason: "Paused · no fresh Telegraph receipt (Telegraph unavailable)" };
   // Network is down and the cache holds an old snapshot: an old receipt is not treated as fresh.
   if (s.networkDown) return network;
   if (s.hashprice.receipt.status === "verified") return null;
+  // Invented demo-day numbers count only in demo mode: in live or mock they never yield a call.
+  if (mode === "demo" && s.hashprice.receipt.status === "demo") return null;
   if (s.limitReached || (s.hashprice.receipt.status === "stale" && /limit/i.test(s.hashprice.receipt.source ?? ""))) {
     return { kind: "limit", reason: "Paused · daily limit" };
   }
@@ -125,7 +128,7 @@ export async function runCycle(deps: CycleDeps): Promise<CycleResult> {
   }
 
   const pause = snapshot
-    ? globalPause(snapshot)
+    ? globalPause(snapshot, mode)
     : error && sites.length > 0
       ? { kind: "network" as const, reason: "Paused · market data sources unavailable", sources: true }
       : null;
@@ -152,9 +155,12 @@ export async function runCycle(deps: CycleDeps): Promise<CycleResult> {
 
     const rep = buildSiteReport({ ...site, lastDecision: last?.decision ?? null }, snapshot);
     const withInputs = { ...base, powerPrice: rep.inputs.power.value, receipts: receiptsOf(rep) };
-    if (!rep.result || !rep.result.ok) {
-      const kind = site.paused ? "site-paused" : rep.inputs.power.value === null ? "provider" : "invalid";
-      const reason = rep.pausedReason ?? (rep.result && !rep.result.ok ? rep.result.errors.join("; ") : "Paused");
+    const demoLeak = mode !== "demo" && rep.inputs.power.receipt.status === "demo";
+    if (demoLeak || !rep.result || !rep.result.ok) {
+      const kind = demoLeak ? "invalid" : site.paused ? "site-paused" : rep.inputs.power.value === null ? "provider" : "invalid";
+      const reason = demoLeak
+        ? "Paused · demo number can't back a real call"
+        : (rep.pausedReason ?? (rep.result && !rep.result.ok ? rep.result.errors.join("; ") : "Paused"));
       const rec = pausedRecord(withInputs, reason, kind);
       decisions.push(rec);
       if (kind === "provider" && !(alerts.providerDown ?? []).includes(site.id)) {
@@ -172,6 +178,7 @@ export async function runCycle(deps: CycleDeps): Promise<CycleResult> {
       decision: o.chosen,
       keepAsIs: o.keepAsIs,
       changed: last !== null && o.chosen !== last.decision,
+      why: whyText(o, rep.inputs.power.value, last),
       options: o.options,
       chosenUsdPerMwh: o.chosenUsdPerMwh,
       gainVsMiningPerHour: o.gainVsMiningPerHour,

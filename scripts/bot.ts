@@ -1,6 +1,7 @@
 // Hash or Lease Telegram bot (grammY): /start subscribes to alerts, /now shows the current decision, /stop unsubscribes.
 // Decision-change alerts are sent by the hourly agent (npm run agent) to those who subscribed here.
 // The bot makes no paid requests: /now reads the agent's latest entries from data/agent/<mode>/.
+// /demo replays the simulated demo day (invented prices, every message marked as demo) into the chat that asked.
 //
 //   npm run bot        # needs HASHORLEASE_BOT_TOKEN in .env; the bot does not start without it
 
@@ -13,7 +14,8 @@ import { mockSeedSites } from "@/lib/data/mock";
 import { readSites } from "@/lib/live/sites";
 import { dailyLimitUsd, spentTodayUsd } from "@/lib/live/telegraph";
 import { readChats, snooze, subscribe, unsubscribe, writeChats } from "@/lib/bot/chats";
-import { nowReply, publicAppUrl, receiptsMessage, startMessage, type BotMessage } from "@/lib/bot/messages";
+import { demoDayReplay, nowReply, publicAppUrl, receiptsMessage, startMessage, type BotMessage } from "@/lib/bot/messages";
+import { demoSiteLine, simulateDemoDay } from "@/lib/demo/day";
 import { keyboardOf } from "@/lib/bot/notify";
 
 if (existsSync(".env")) process.loadEnvFile(".env");
@@ -55,6 +57,17 @@ bot.command("now", async (ctx) => {
   await ctx.reply(m.text, m.opts);
 });
 
+bot.command("demo", async (ctx) => {
+  // Computed in memory: nothing is bought and nothing is written to the agent's journal.
+  const day = await simulateDemoDay({ appUrl });
+  const replay = demoDayReplay({ siteName: day.site.name, siteLine: demoSiteLine(day.site), decisions: day.decisions, appUrl });
+  for (const [i, message] of replay.entries()) {
+    if (i > 0) await new Promise((r) => setTimeout(r, 2500));
+    const m = send(message);
+    await ctx.reply(m.text, m.opts);
+  }
+});
+
 bot.callbackQuery(/^snooze:(.+)$/, async (ctx) => {
   if (!ctx.chat) return void (await ctx.answerCallbackQuery());
   const chats = readChats();
@@ -79,5 +92,6 @@ await bot.api.setMyCommands([
   { command: "now", description: "Current call for every site (or /now Houston)" },
   { command: "start", description: "Turn on alerts" },
   { command: "stop", description: "Turn off alerts" },
+  { command: "demo", description: "Demo data: replay a simulated day where the call changes" },
 ]);
 await bot.start({ onStart: (me) => log(`running as @${me.username}`) });

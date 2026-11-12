@@ -100,6 +100,16 @@ export default function SitesPage() {
       <div style={{ marginTop: 16 }}>
         <AppLink href="/sites/new" className="btn primary">+ Add place</AppLink>
       </div>
+
+      <AppLink href="/demo-day" className="card demo-entry" aria-label="Demo day: watch a call change over a simulated day">
+        <span>
+          <b>See a call change</b> <span className="badge demo">Demo data</span>
+          <span className="muted small" style={{ display: "block", marginTop: 4 }}>
+            A simulated day on an invented site: Lease to AI → Mine → Lease to AI, with the reason for every hour.
+          </span>
+        </span>
+        <span className="chev" aria-hidden>›</span>
+      </AppLink>
     </>
   );
 }

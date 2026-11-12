@@ -29,6 +29,7 @@ npm start          # run the built app
 npm test           # tests (vitest)
 npm run typecheck  # type check
 npm run agent      # hourly agent (see below)
+npm run demo:day   # demo data: a simulated day on which the call changes (see "Demo day")
 npm run bot        # Telegram bot (needs a token, see below)
 ```
 
@@ -42,7 +43,20 @@ Screen states on demo data: add `?state=…` to the address of any screen (links
 
 ## Screens
 
-Places (`/`), site (`/sites/<id>`), edit site (`/sites/<id>/edit`), History (`/feed`), Usage (`/spend`), Add place (`/sites/new`).
+Places (`/`), site (`/sites/<id>`), edit site (`/sites/<id>/edit`), History (`/feed`), Usage (`/spend`), Add place (`/sites/new`), Demo day (`/demo-day`).
+
+## Demo day
+
+In the live run no call has changed yet (power stayed far above what mining earns), so the moment a call flips is shown on **demo data**: one invented site, one invented day of prices, 24 simulated hours through the same agent cycle. The call goes Lease to AI → Mine at 11:00 and back at 16:00, each time with the reason.
+
+```
+npm run demo:day                 # 24 simulated hours, 5 s each (2 minutes); journal → data/agent/demo/
+npm run demo:day -- --speed=0    # all at once (seconds per simulated hour, 0–60)
+```
+
+- Screen `/demo-day` ("See a call change" on Places): Play, hour-by-hour tape with reasons, highlighted changes, bot alert preview, journal record. Bot: `/demo`.
+- No network, no wallet, no Telegraph request, nothing sent to Telegram. Every number has the receipt status `demo`, every record `"mode":"demo"`, the journal has its own folder; the agent refuses demo numbers in live mode.
+- The numbers, what they were checked against, and a sample journal: [docs/demo-day/](docs/demo-day/README.md).
 
 ## Hourly agent
 
@@ -58,12 +72,12 @@ npm run agent -- --mode=live --once --fresh    # skip the cached snapshot — to
 
 - The default mode comes from `NEXT_PUBLIC_DATA_MODE`. A second agent instance in the same mode will not start.
 - Rule: **no fresh Telegraph receipt, no decision.** If the limit is reached, or Telegraph or the price provider is unavailable, the hour is recorded as a pause with the reason; an alert is sent once per state change. After a failure it retries in 10 minutes.
-- Where it is stored: `data/agent/<mode>/decisions.jsonl` (the decision per site per hour, with receipts), `runs.jsonl` (cycle summary), `alerts.json` (what has already been reported). Not in git.
+- Where it is stored: `data/agent/<mode>/decisions.jsonl` (the decision per site per hour, with receipts and a one-line `why`), `runs.jsonl` (cycle summary), `alerts.json` (what has already been reported). Not in git.
 - On screen: Usage → "Hourly agent" card; History → hours tagged "Agent call".
 
 ## Telegram bot
 
-`npm run bot` (grammY): `/start` subscribes to alerts, `/now` or `/now Leipzig` shows the current decision, `/stop` unsubscribes, plus the "Snooze 1h" and "Receipts" buttons. The bot buys nothing: `/now` reads the agent's latest records. Decision-change alerts are sent by the agent.
+`npm run bot` (grammY): `/start` subscribes to alerts, `/now` or `/now Leipzig` shows the current decision, `/stop` unsubscribes, `/demo` replays the simulated demo day (marked as demo data), plus the "Snooze 1h" and "Receipts" buttons. A change alert says why the call changed ("Why: power price rose from … to …"). The bot buys nothing: `/now` reads the agent's latest records. Decision-change alerts are sent by the agent.
 
 - Needs a token from @BotFather in `.env`: `HASHORLEASE_BOT_TOKEN=…`. **Without it the bot does not start** and says what to do. The app and the agent work without the bot (the agent logs what it would have sent).
 - The variable has its own name, not `TELEGRAM_BOT_TOKEN`: the machine may hold another bot's token, and the app must not pick it up.
@@ -89,6 +103,7 @@ npm run agent -- --mode=live --once --fresh    # skip the cached snapshot — to
 - `src/lib/data/` — the `DataSource` interface and two sources: `mock.ts` (demo) and `live.ts` (server). Screens work only through it.
 - `src/lib/live/` — Telegraph client with the limit (`telegraph.ts`), market snapshot (`market.ts`), server-side sites (`sites.ts`), spend (`spend.ts`).
 - `src/lib/agent/` — agent cycle (`cycle.ts`, dependencies are passed in from outside so it can be tested), storage (`store.ts`), per-mode assembly (`runner.ts`). Entry point: `scripts/agent.ts`.
+- `src/lib/agent/why.ts` — the one-line reason for a call. `src/lib/demo/day.ts` — the demo day: invented site and price profile, run through the same cycle. Entry point: `scripts/demo-day.ts`; screen: `src/components/DemoDayView.tsx`.
 - `src/lib/bot/` — bot texts (`messages.ts`), subscribers (`chats.ts`), sending (`notify.ts`). Entry point: `scripts/bot.ts`.
 - `scripts/register-ts.mjs` — wires up `@/…` paths when running `.ts` scripts through Node.
 - `src/app/api/` — server routes: `live/*` (snapshot, price series, spend, sites), `agent/*` (agent state and its decisions).
@@ -106,6 +121,7 @@ npm run agent -- --mode=live --once --fresh    # skip the cached snapshot — to
 - The agent decides only from the snapshot of the current UTC hour: when running every hour, that is one purchase per hour.
 - The Telegram bot has not been run with a real token.
 - Time in the demo is fixed: 8 Nov 2026, 14:04 UTC.
+- No call has changed in live operation yet. The change of call is shown on the demo day (`/demo-day`): invented prices on an invented site, chosen so that the power price crosses the break-even point; it is not evidence of live behaviour.
 
 ## License
 

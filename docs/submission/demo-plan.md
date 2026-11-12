@@ -1,6 +1,7 @@
 # Hash or Lease — demo plan
 
 > **Резюме для владельца (по-русски).** План трёх показов: 14 ноября (проверка хода), 20 ноября (показ сообществу) и 2–8 декабря, когда жюри само запускает проект по инструкции — это и есть главный «показ». Для каждого: что показать по шагам и что делать, если сеть или бот подведут.
+> Добавлен «Демо-день» (12 ноября): выдуманная площадка, на которой решение за сутки меняется дважды. Его показываем на показе 20 ноября и в ролике — всегда со словами «это демо-данные», потому что в живой работе решение пока не менялось.
 > Сайт хакатона не говорит, куда и в каком виде приносить показ 14 и 20 ноября — это нужно узнать в Discord до 13 ноября. Раздел **«Нужно от пользователя»** в конце написан по-русски, со сроками.
 
 Status: plan. Nothing has been posted, published or submitted.
@@ -58,9 +59,9 @@ Two consequences. First, **there is no pitch in front of a jury**: the entry is 
 
 **Goal:** working progress, plus a clear ask. Prepare both formats; use the one the organisers announce.
 
-### Format A — live, 4 minutes, screen share
+### Format A — live, about 4.5 minutes, screen share
 
-Open beforehand: the app in live mode (tab 1), a Sepolia transaction page (tab 2), a terminal, the demo video as a local file.
+Open beforehand: the app in live mode (tab 1), a Sepolia transaction page (tab 2), the demo day `/demo-day` (tab 3, already set to "Day in 24 s"), a terminal, the demo video as a local file.
 
 | Step | Time | Do | Say |
 |---|---|---|---|
@@ -68,14 +69,26 @@ Open beforehand: the app in live mode (tab 1), a Sepolia transaction page (tab 2
 | 2 | 0:30–1:15 | Open Leipzig Hub → options → "Where the numbers come from" | "Three options in dollars per megawatt-hour and the formula. Each number says where it came from." |
 | 3 | 1:15–2:00 | Click ✓ on Mining revenue → receipt → tab 2 | "This one is bought through Telegraph over x402: provider, time, one cent of test USDC, settled on Sepolia. Power is a public source and is labelled so." |
 | 4 | 2:00–2:40 | Usage → "Hourly agent" card and paid requests | "No one clicks 'buy'. The agent has run `[N]` hours, one purchase an hour, under a daily limit. No fresh receipt — no call; it logs a pause." |
-| 5 | 2:40–3:20 | Terminal: `npm run agent -- --mode=mock --once --state=limit` | "Here is the limit on demo data: it stops before paying." *(Say "demo data" out loud.)* |
-| 6 | 3:20–4:00 | Repo page, `docs/JUDGE.md` | "What we need: a miner that returns hashprice and ERCOT prices — those Intents come back empty for us. And two or three people who run mining hardware to tell us what the call gets wrong. Five minutes to run, no wallet." |
+| 5 | 2:40–3:15 | Tab 3, **Demo day** → **Play the day**. Let it run to 11:00 (green "Call changed: Lease to AI → Mine") and 16:00 (purple "Mine → Lease to AI"); pause, scroll to the highlighted rows and the bot preview. | "In our live week no call changed — power was too expensive for mining. So here is a simulated day on demo data: invented prices, same agent. Midday dip — mine. Evening ramp — back to the lease. Every hour has a reason, and this is the alert the bot sends." *(Say "demo data" out loud.)* |
+| 6 | 3:15–3:50 | Terminal: `npm run agent -- --mode=mock --once --state=limit` | "And the limit, also on demo data: it stops before paying." |
+| 7 | 3:50–4:30 | Repo page, `docs/JUDGE.md` | "What we need: a miner that returns hashprice and ERCOT prices — those Intents come back empty for us. And two or three people who run mining hardware to tell us what the call gets wrong. Five minutes to run, no wallet." |
 
-Step 5 uses demo data on purpose: the real limit run takes longer and adds a paused hour to the live history. Nothing in this run-through pays.
+Step 6 uses demo data on purpose: the real limit run takes longer and adds a paused hour to the live history. Step 5 uses demo data because there is no live change of call to show. Nothing in this run-through pays. If time is cut to 3 minutes, drop step 6, not step 5.
+
+**How to show the demo day (step 5), exactly:**
+
+1. Before the showing: open `/demo-day`, click **Day in 24 s**. Leave the page on the finished day (it opens that way).
+2. On air: click **Play the day**. The clock restarts at 00:00 and moves one hour a second.
+3. At 11:00 the note turns green — "Call changed: Lease to AI → Mine". Say the reason from the screen: power fell to $21, under the $30 break-even line on the chart.
+4. At 16:00 the note turns purple — "Call changed: Mine → Lease to AI". Click **Pause**.
+5. Scroll down: **Hour by hour** (two highlighted rows, a reason on every row, two "Keep as is" hours where the gap was under $5), then **What the Telegram bot sends**.
+6. If asked "is this real?" — no: the yellow strip says so, `docs/demo-day/README.md` lists what the numbers were checked against, and the real calls are on Places.
+
+The same without a browser: `npm run demo:day -- --speed=1`. In Telegram, once the bot has a token: `/demo`.
 
 ### Format B — written post
 
-The 14 November text, updated: hours run, what changed since, a link to the video or 3–4 screenshots (Places, receipt, Usage, History), and the same two asks as step 6. This is the second of the three updates.
+The 14 November text, updated: hours run, what changed since, a link to the video or 3–5 screenshots (Places, receipt, Usage, History, and the demo day captioned "simulated day, demo data"), and the same two asks as step 7. This is the second of the three updates.
 
 ### Fallback ladder for a live showing
 
@@ -83,7 +96,8 @@ The 14 November text, updated: hours run, what changed since, a link to the vide
 |---|---|
 | The app shows "Can't reach Telegraph" | Do not fix it on air. Say: "This is the rule working — no fresh receipt, no call," show the banner and the "Outdated" badges, and continue from step 4. |
 | A site shows "Paused" because the power source is rate-limited | Show another site; the fixed-tariff site does not depend on it. |
-| The internet connection drops | Switch to the recorded video. If there is no video yet: demo mode (`npm start` without live mode) — and say plainly that the numbers are invented. |
+| The internet connection drops | Switch to the recorded video. If there is no video yet: demo mode (`npm start` without live mode) — and say plainly that the numbers are invented. The demo day (step 5) needs no network at all and can still be shown. |
+| The demo day page does not open | Terminal: `npm run demo:day -- --speed=1` — the same day, both alerts, 24 seconds. |
 | The Mac or the app will not start | Show the two screenshots in `docs/shots/` and the Sepolia link from a phone. |
 | The Telegram bot is silent or not set up | Skip it. The bot is not part of the run-through until it has been run against Telegram for a day. |
 | Someone asks why only one input is bought through Telegraph | The straight answer: the two mission Intents return empty values on the devnode; raw answers are in the repo; the screen labels every source. |
@@ -111,7 +125,7 @@ This is the showing that is scored. A reviewer needs to: run it with a new input
 
 Found while preparing these materials; each one is a decision for the owner or the project head, not something this document changes.
 
-1. **The live call never changes.** In 28 cycles all three example sites kept the same call: with power at $189–610/MWh, mining never wins. A viewer sees "Lease / Switch off / Keep as is" and never "Mine", and the change alert has never fired live. *Suggested:* add one example site whose call does flip during a day — for instance a site on a fixed tariff near break-even, or with a lease rate that excludes power. It makes the video, the bot and the history much more convincing.
+1. **The live call never changes.** In 28 cycles all three example sites kept the same call: with power at $189–610/MWh, mining never wins. A viewer sees "Lease / Switch off / Keep as is" and never "Mine", and the change alert has never fired live. *Addressed on 12 November (owner's decision) with the demo day:* an invented site and an invented day of prices on which the call changes twice — screen `/demo-day`, `npm run demo:day`, bot `/demo`, details in `docs/demo-day/README.md`. *What remains true:* it is a simulation. The live call has still not changed, the application says so (B6, B7), and the demo day must never be shown or described as live data.
 2. **One of five inputs is bought through Telegraph.** Telegraph integration is worth only 5 points, but technical quality (35, minimum 24) is judged with "mainnet readiness" in mind. *Suggested:* the cheap `WEB_SEARCH` probe for lease-rate comparables and the CAISO probe for `GRID_POWER_PRICE`, both already in the project queue — each success turns a "Public source" label into a receipt.
 3. **No outside users** — 10 points for adoption and up to 4 of the growth points depend on an independent person doing something. See item 4 in the list below.
 4. **`docs/SUBMISSION.md` is partly out of date** (test count, "single cycles on one evening"). `application.md` in this folder is the current text.
@@ -209,5 +223,6 @@ Found while preparing these materials; each one is a decision for the owner or t
 
 - [x] Код открыт: github.com/Guryevmn/hashorlease.
 - [x] Обязательная звезда на репозитории bounties стоит (проверено 12 ноября).
-- [x] Агент работает и платит сам; 79 автоматических проверок проходят.
+- [x] Агент работает и платит сам; 94 автоматические проверки проходят.
+- [x] «Демо-день» готов: выдуманная площадка, решение за сутки меняется дважды, с причиной; экран, запуск в терминале, команда бота `/demo` (в настоящем Telegram не проверялась — нужен токен, пункт 3).
 - [ ] Регистрация на хакатоне — в очереди проекта отмечена как незавершённая; подтверди, что она пройдена и выбраны Apps & Agents и миссия 12.

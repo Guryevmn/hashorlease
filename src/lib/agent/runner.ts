@@ -12,7 +12,8 @@ import { agentDir, createFileStore } from "./store";
 import type { AgentMode } from "./types";
 
 export interface RunnerOptions {
-  mode: AgentMode;
+  /** The demo day has its own runner (src/lib/demo/day.ts). */
+  mode: Exclude<AgentMode, "demo">;
   /** Mock only: simulate a failure (provider-error, error, limit). */
   state?: MockState;
   log?: (line: string) => void;

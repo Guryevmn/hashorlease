@@ -43,10 +43,18 @@ Expected output (real log from 2026-11-09):
 
 The Usage screen then shows an "Hourly agent" card with the last run. Without `--once` the agent keeps running and repeats every hour at hh:01 UTC (retry in 10 minutes after a failure; `Ctrl+C` stops it; a second copy refuses to start).
 
+**See a call change (demo data, 30 seconds).** In our live run no call has changed yet, so this is shown on an invented site with an invented day of prices, run through the same agent cycle:
+
+```
+npm run demo:day -- --speed=0
+```
+
+It prints 24 simulated hours with the reason for each, and the two bot alerts (`Lease to AI → Mine` at 11:00, `Mine → Lease to AI` at 16:00, each with a `Why:` line). In the app: Places → **See a call change**, or `/demo-day` → **Play the day**. Nothing is requested, paid or sent; every number is marked `demo` and the journal goes to its own folder `data/agent/demo/`. What the numbers were checked against: [docs/demo-day/README.md](demo-day/README.md).
+
 Checks:
 
 ```
-npm test            # 79 tests: decision logic, agent cycle, bot messages, site storage, spend limit, request rate
+npm test            # 94 tests: decision logic, agent cycle, demo day, bot messages, site storage, spend limit, request rate
 npm run typecheck
 npm run build
 ```
@@ -131,7 +139,7 @@ All UI states can also be previewed on demo data from the footer links or with `
 ## 6. Telegram bot (optional)
 
 `npm run bot` (grammY) needs `HASHORLEASE_BOT_TOKEN` from @BotFather in `.env`.
-`/start` subscribes the chat to alerts, `/now` (or `/now Leipzig`) shows the current call per place, `/stop` unsubscribes.
+`/start` subscribes the chat to alerts, `/now` (or `/now Leipzig`) shows the current call per place, `/stop` unsubscribes, `/demo` replays the simulated demo day (every message marked 🧪 demo data).
 The hourly agent sends "🔄 Leipzig Hub: Mine → Lease to AI …" when a call changes, plus limit / provider / Telegraph-down alerts, once per state change.
 The bot never pays: `/now` reads the agent's last records. Message texts are covered by tests (`src/lib/bot/messages.test.ts`).
 Without a token the agent prints the alerts it would have sent (`alert (bot not configured, not sent): …`).
@@ -143,7 +151,8 @@ Without a token the agent prints the alerts it would have sent (`alert (bot not 
 - The daily limit stops purchases before payment (live runs with limits $0.50 and $0.01 while $0.92–0.93 was spent: 0 payments, all places paused; on 2026-11-10 `DAILY_SPEND_LIMIT_USD=0` on a clean copy with an empty ledger and no wallet key: 0 payments, all places paused; unit test `src/lib/live/telegraph.test.ts`).
 - Telegraph unreachable → no call, banner and alerts, no payment.
 - All screens in demo and live mode open without console errors (68 demo + 17 live automated browser checks, desktop and a 390 px phone viewport).
-- `npm test` (79 tests), `npm run typecheck`, `npm run build` pass.
+- `npm test` (94 tests as of 2026-11-12), `npm run typecheck`, `npm run build` pass.
+- Demo day (2026-11-12): `npm run demo:day` and the `/demo-day` screen show two changes of call on invented prices; desktop and a 390 px phone viewport, no console errors. This verifies the mechanism, not live behaviour.
 
 **Network:** testnet only — Telegraph devnode + Ethereum Sepolia (test USDC). Nothing ran on mainnet.
 
@@ -152,5 +161,6 @@ Without a token the agent prints the alerts it would have sent (`alert (bot not 
 - Telegraph hashprice and ERCOT power intents returned empty numbers on the devnode, so hashprice is computed by us and power comes from Energy-Charts (Europe). US (ERCOT) sites work only in demo mode.
 - AI lease rates are operator input; the Telegraph `WEB_SEARCH` "market guide" is shown only in demo mode.
 - The Telegram bot is implemented and its messages are tested, but it has **not** been run against Telegram (no token yet).
+- **No call has changed in live operation** (power stayed at $189–610/MWh, far above mining revenue), so the change alert has not fired live. The change of call is demonstrated only on the demo day, with invented prices.
 - The app has no login; the site API and "Refresh now" (throttled to once per 2 minutes, capped by the daily limit) are meant for a local or single-operator install, not a public deployment.
 - History hours before the agent started are recomputed from past day-ahead prices with today's mining income; only hours tagged "Agent call" were decided live.

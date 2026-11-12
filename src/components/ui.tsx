@@ -48,6 +48,7 @@ const STATUS_TITLE: Record<Receipt["status"], string> = {
   unavailable: "Unavailable: showing the last known value",
   input: "Your input",
   public: "Public source, not bought via Telegraph",
+  demo: "Demo number: invented, no request and no receipt",
 };
 
 /** Telegraph receipt next to a number: a small icon beside the figure, details on tap (popover; bottom sheet on phone). */
@@ -93,6 +94,8 @@ export function ReceiptChip({ receipt, now }: { receipt: Receipt; now: string })
             </div>
             {r.status === "input" ? (
               <p className="small muted" style={{ margin: 0 }}>You entered this number yourself, so there is no Telegraph receipt for it.</p>
+            ) : r.status === "demo" ? (
+              <p className="small muted" style={{ margin: 0 }}>Invented number for the demo day. Nothing was requested or paid, so there is no receipt.</p>
             ) : (
               <dl>
                 {r.service && (<><dt>Service</dt><dd><code>{r.service}</code></dd></>)}

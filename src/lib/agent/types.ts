@@ -3,7 +3,8 @@
 import type { Decision } from "../decision";
 import type { ReceiptStatus } from "../types";
 
-export type AgentMode = "live" | "mock";
+/** "demo" — the simulated demo day (invented prices, src/lib/demo/day.ts); its journal lives in its own folder. */
+export type AgentMode = "live" | "mock" | "demo";
 
 export interface RecordedReceipt {
   /** What the figure is: "Mining income", "Power price". */
@@ -30,6 +31,8 @@ export interface DecisionRecord {
   status: "ok" | "paused";
   /** Why paused (for the feed and the bot). */
   reason?: string;
+  /** Why this call, in one line: what moved and by how much (for the journal, the bot and the demo day). */
+  why?: string;
   /** Pause type, for alerts. */
   pauseKind?: "limit" | "network" | "provider" | "site-paused" | "invalid";
   decision: Decision | null;

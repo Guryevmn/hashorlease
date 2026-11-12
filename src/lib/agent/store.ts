@@ -1,4 +1,5 @@
 // Agent storage on disk: data/agent/<mode>/decisions.jsonl, runs.jsonl, alerts.json. Not in git.
+// Each mode has its own folder: the demo day (data/agent/demo/) never writes into the live journal.
 
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -58,6 +59,21 @@ export function createFileStore(dir: string): AgentStore {
       writeFileSync(f("alerts.json.tmp"), JSON.stringify(state));
       renameSync(f("alerts.json.tmp"), f("alerts.json"));
     },
+  };
+}
+
+/** Store in memory: for the demo-day simulation and tests (nothing touches the disk). */
+export function createMemoryStore(): AgentStore {
+  const decisions: DecisionRecord[] = [];
+  const runs: RunRecord[] = [];
+  let alerts: AlertState = {};
+  return {
+    readDecisions: () => [...decisions],
+    appendDecisions: (rows) => void decisions.push(...rows),
+    readRuns: () => [...runs],
+    appendRun: (run) => void runs.push(run),
+    readAlerts: () => ({ ...alerts }),
+    writeAlerts: (state) => void (alerts = state),
   };
 }
 

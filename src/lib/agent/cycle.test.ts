@@ -72,6 +72,10 @@ describe("runCycle", () => {
     expect(change?.siteId).toBe("houston");
     expect(change?.text.split("\n")[0]).toBe("🔄 Houston Hub: Mine → Lease to AI");
     expect(second.run.changes).toEqual([{ siteId: "houston", siteName: "Houston Hub", from: "mine", to: "lease" }]);
+    // The journal and the alert carry the reason for the change.
+    const rec = second.decisions.find((d) => d.siteId === "houston")!;
+    expect(rec.why).toMatch(/Lease to AI now beats Mine by \$\d/);
+    expect(change?.text.split("\n")[1]).toBe(`Why: ${rec.why}`);
   });
 
   it("provider failure: site paused, one alert, the rest decided", async () => {

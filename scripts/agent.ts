@@ -37,7 +37,7 @@ if (modeArg !== "live" && modeArg !== "mock") {
   console.error(`--mode must be "live" or "mock", got "${modeArg}"`);
   process.exit(2);
 }
-const mode: AgentMode = modeArg;
+const mode: Exclude<AgentMode, "demo"> = modeArg; // the demo day has its own script: npm run demo:day
 const state = parseMockState(args.get("state"));
 const SIMULATED = ["provider-error", "error", "limit"];
 if (args.has("state") && (mode !== "mock" || !SIMULATED.includes(state))) {

@@ -74,7 +74,7 @@ The data for a whole fleet costs about $0.24 a day at testnet prices — one $0.
 - **Purchased intelligence and outcome** — the agent buys `CRYPTO_PRICE_USD` (BTC/USD); the outcome is one allocation call per site per hour: `docs/evidence/agent-decisions.jsonl`, with the receipt attached to every call. Cycle summaries: `docs/evidence/agent-runs.jsonl`.
 - **A payment anyone can check** — Sepolia tx `0x1c3bc795d2cf6d7eb66949a98ebf173d2f59545b7023597f5d363a48829a76df`, the agent's own purchase on 2026-11-09 19:57 UTC. One-command check without trusting us: `docs/JUDGE.md` §4.
 - **Raw answers of the mission Intents that came back empty** — `docs/evidence/first-hashprice.json`, `docs/evidence/second-queries.json`.
-- **Tests** — `npm test`: 79 tests in 9 files (decision logic, agent cycle, bot messages, site storage, spend limit, request rate). `npm run typecheck` passes.
+- **Tests** — `npm test`: 94 tests in 11 files (decision logic, agent cycle, demo day, bot messages, site storage, spend limit, request rate). `npm run typecheck` passes.
 - **Screens** — `docs/shots/sites.png`, `docs/shots/site-detail-receipt.png`.
 
 ### A7. Short public summary
@@ -164,8 +164,8 @@ One purchase covers every site and is reused for 30 minutes by the app and the a
 - **Continuous operation.** From 10 November 18:00 UTC to 11 November 20:00 UTC the agent made a call for every site in 27 consecutive hours: 28 cycles, 28 purchases, $0.28, 84 site-hour calls, each stored with its receipt. A cycle takes 15–44 seconds.
 - **The pause rule, observed live.** At 21:00 UTC on 11 November Telegraph returned no fresh receipt. The agent recorded all three sites as "Paused · no fresh Telegraph receipt" and paid nothing.
 - **The limit, verified.** With `DAILY_SPEND_LIMIT_USD=0` on a clean install the agent attempts no payment and pauses every site; the same is covered by a unit test.
-- **What the calls were.** Throughout the run, day-ahead power stayed between $189 and $610/MWh in the two zones, against mining revenue of $57–74/MWh. So the calls held steady: Leipzig Hub (20 MW, all-in lease contract) — Lease to AI; Silesia Farm (12 MW) — Switch off; the fixed-tariff rig — Keep as is. **No call has changed yet in live operation**; call changes and their alerts are exercised by the tests and in demo mode. The power prices are real: Energy-Charts reports a DE-LU day-ahead average of €317/MWh for 11 November.
-- **Tests.** 79 automated tests in 9 files pass; typecheck passes (run on 2026-11-12).
+- **What the calls were.** Throughout the run, day-ahead power stayed between $189 and $610/MWh in the two zones, against mining revenue of $57–74/MWh. So the calls held steady: Leipzig Hub (20 MW, all-in lease contract) — Lease to AI; Silesia Farm (12 MW) — Switch off; the fixed-tariff rig — Keep as is. **No call has changed yet in live operation**; call changes and their alerts are exercised by the tests and shown on the demo day (`/demo-day`, `npm run demo:day`): an invented site and invented prices, marked as demo data on screen, in the bot and in the journal. The power prices are real: Energy-Charts reports a DE-LU day-ahead average of €317/MWh for 11 November.
+- **Tests.** 94 automated tests in 11 files pass; typecheck passes (run on 2026-11-12).
 - **A finding for the network.** Paid probes of `MINING_HASHPRICE_VERIFY_GENERAL` and `GRID_POWER_PRICE_GENERAL` (ERCOT hubs) settle and return receipts with empty values. Raw answers and the routing we observed are documented in the repo, so the next Mission 12 builder does not have to pay to rediscover it.
 
 ### B7. Limitations
@@ -173,7 +173,7 @@ One purchase covers every site and is reused for 30 minutes by the app and the a
 - **Testnet only.** No real money, no mainnet transactions, no customers. No operator has used it; the live sites are examples.
 - **One input is bought through Telegraph** — the BTC price. Hashprice is computed by us; power prices are free public European day-ahead data, not ERCOT. US sites exist only in demo mode.
 - **The AI lease rate is typed in by the operator.** The `WEB_SEARCH` market guide exists only in demo mode.
-- **The calls did not change during the live run** (see B6), so the change alert has not fired in live operation.
+- **The calls did not change during the live run** (see B6), so the change alert has not fired in live operation. A change of call can be seen only on the demo day, which uses invented prices (`docs/demo-day/README.md`).
 - **The Telegram bot is implemented and its messages are tested, but it has not been run against Telegram.** `[update after the first real run]`
 - **History before the agent started** is recomputed from past power prices with today's hashprice; only hours tagged "Agent call" were decided live.
 - **No login.** Built for one operator on their own machine, not as a public service.
@@ -210,7 +210,7 @@ The agent is still running, so these grow. Re-read them from the files the day y
 | Unplanned pauses | 1 (11 Nov 21:00 UTC) | `runs.jsonl` (`ok: false`) |
 | Call changes in live operation | 0 | `decisions.jsonl` (`changed: true`) |
 | Power price range in the run | $189–610/MWh | `decisions.jsonl` (`powerPrice`) |
-| Tests | 79 in 9 files | `npm test` |
+| Tests | 94 in 11 files | `npm test` |
 | Bot run against Telegram | no | — |
 | Outside users | 0 | — |
 
@@ -218,7 +218,7 @@ The agent is still running, so these grow. Re-read them from the files the day y
 
 | Fact | Check (11–12 Nov) |
 |---|---|
-| 79 tests pass, typecheck passes | ran `npm test` and `npm run typecheck` |
+| 94 tests pass, typecheck passes | ran `npm test` and `npm run typecheck` |
 | BTC price is the only paid input | `src/lib/live/market.ts` (`telegraphBtcPrice`) |
 | Hashprice formula | `src/lib/live/market.ts` (`hashpriceUsdPerPhDay`) |
 | Power from Energy-Charts, five zones | `src/lib/live/market.ts` (`downloadSeries`), `src/lib/live/catalog.ts` |
@@ -239,7 +239,7 @@ Scoring (rules §6): technical 35 (minimum 24), commercial 25, independent adopt
 
 ### Differences from `docs/SUBMISSION.md` and `docs/research/`
 
-- `SUBMISSION.md` §4 says "77 automated tests"; the real number is 79 (its §6 already says 79).
+- `SUBMISSION.md` §4 says "77 automated tests"; the real number is now 94 (its §6 says 79).
 - `SUBMISSION.md` says the agent "has run single cycles on one evening"; it has since run 27 hours in a row.
 - `SUBMISSION.md` §10 says the rules "ask for" a fixed order in the video. The rules only suggest a "useful flow"; the requirement is 2–5 minutes showing the real input, the result and the Telegraph integration.
 - `docs/research/rules.txt` is cut off in the middle of section 5; sections 5–10 were re-read on the site. The scoring numbers in `docs/PLAN.md` §4 match the site.

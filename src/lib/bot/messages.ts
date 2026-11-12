@@ -13,7 +13,7 @@ export interface Button {
   data?: string;
 }
 
-export type MessageKind = "change" | "provider" | "limit" | "network" | "network-back" | "now" | "start" | "no-sites" | "receipts";
+export type MessageKind = "change" | "provider" | "limit" | "network" | "network-back" | "now" | "start" | "no-sites" | "receipts" | "demo";
 
 export interface BotMessage {
   kind: MessageKind;
@@ -60,6 +60,7 @@ const paidReceipts = (r: DecisionRecord) => r.receipts.filter((x) => (x.costUsd 
 const publicReceipts = (r: DecisionRecord) => r.receipts.filter((x) => x.status === "public");
 
 function receiptsLine(r: DecisionRecord, withLatest = false): string {
+  if (r.mode === "demo") return "Demo data · no Telegraph receipts";
   const paid = paidReceipts(r);
   const pub = publicReceipts(r).length;
   const latest = r.receipts
@@ -85,18 +86,22 @@ function siteButtons(r: DecisionRecord, appUrl: string | null, extra: Button[] =
 
 /** 🔄 Decision change (sent automatically). */
 export function changeAlert(r: DecisionRecord, appUrl: string | null): BotMessage {
+  const demo = r.mode === "demo";
   const lines = [
+    demo ? `🧪 Demo data · simulated ${utcTime(r.hour)} UTC` : null,
     `🔄 ${r.siteName}: ${r.previous ? DECISION_LABEL[r.previous] : "—"} → ${r.decision ? DECISION_LABEL[r.decision] : "on hold"}`,
+    r.why ? `Why: ${r.why}` : null,
     `${gainPhrase(r, true)} · ${r.chosenUsdPerMwh !== null ? usd(r.chosenUsdPerMwh) : "—"}/MWh`,
     `Power ${r.powerPrice !== null ? usd(r.powerPrice) : "—"} · Hashprice ${r.hashprice !== null ? usd(r.hashprice) : "—"}/PH/day`,
     receiptsLine(r),
-  ];
-  return {
-    kind: "change",
-    siteId: r.siteId,
-    text: lines.join("\n"),
-    buttons: siteButtons(r, appUrl, [{ text: "Snooze 1h", data: `snooze:${r.siteId}` }]),
-  };
+  ].filter((x): x is string => x !== null);
+  // The demo site exists only on the demo-day screen: no breakdown, receipts or snooze for it.
+  const buttons = demo
+    ? appUrl
+      ? [{ text: "Open demo day", url: `${appUrl}/demo-day` }]
+      : []
+    : siteButtons(r, appUrl, [{ text: "Snooze 1h", data: `snooze:${r.siteId}` }]);
+  return { kind: "change", siteId: r.siteId, text: lines.join("\n"), buttons };
 }
 
 /** ⚠️ The price provider did not respond for the site. */
@@ -135,6 +140,7 @@ export function startMessage(appUrl: string | null): BotMessage {
       "/now — the current call for every site",
       "/now Houston — one site",
       "/stop — stop alerts",
+      "/demo — replay a simulated day where the call changes (demo data)",
     ].join("\n"),
     buttons: appUrl ? [{ text: "Open app", url: appUrl }] : [],
   };
@@ -194,6 +200,7 @@ export function nowMessage(input: NowInput): BotMessage {
 function receiptLine(x: RecordedReceipt): string {
   const at = x.fetchedAt ? `${utcTime(x.fetchedAt)} UTC` : "time n/a";
   if (x.status === "input") return `${x.label} · your input (no receipt)`;
+  if (x.status === "demo") return `${x.label} · demo number (invented, no receipt)`;
   if (x.status === "public") return `${x.label} · ${x.service ?? "public data"} · ${x.provider ?? "public source"} · ${at} · free public source`;
   if (x.status === "unavailable") return `${x.label} · ${x.service ?? "—"} · unavailable`;
   return [x.service ?? x.label, x.provider ?? "—", at, usd(x.costUsd ?? 0, 3), x.hash ?? "no hash", x.status === "stale" ? "stale" : null]
@@ -234,4 +241,41 @@ export function nowReply(input: {
     .filter((r): r is DecisionRecord => !!r)
     .map((r) => ({ ...r, siteName: input.sites.find((s) => s.id === r.siteId)!.name }));
   return nowMessage({ records, now: input.now, spentUsd: input.spentUsd, limitUsd: input.limitUsd, query: input.query, appUrl: input.appUrl });
+}
+
+/** Stretches of the day with the same call: "00:00–11:00 ⚡ Lease to AI". */
+export function daySegments(decisions: DecisionRecord[]): string[] {
+  const out: { from: string; to: number; text: string }[] = [];
+  for (const r of [...decisions].sort((a, b) => a.hour.localeCompare(b.hour))) {
+    const text = r.decision ? `${DECISION_EMOJI[r.decision]} ${DECISION_LABEL[r.decision]}` : "⏸ on hold";
+    const end = new Date(r.hour).getTime() + 3600_000;
+    const last = out[out.length - 1];
+    if (last && last.text === text && last.to === new Date(r.hour).getTime()) last.to = end;
+    else out.push({ from: r.hour, to: end, text });
+  }
+  return out.map((s) => {
+    const to = utcTime(new Date(s.to).toISOString());
+    return `${utcTime(s.from)}–${to === "00:00" ? "24:00" : to} ${s.text}`;
+  });
+}
+
+/** Reply to /demo: the simulated demo day replayed into the chat — intro, every change alert, the day at a glance. */
+export function demoDayReplay(input: { siteName: string; siteLine: string; decisions: DecisionRecord[]; appUrl: string | null }): BotMessage[] {
+  const changes = input.decisions.filter((r) => r.status === "ok" && r.changed);
+  const button = input.appUrl ? [{ text: "Open demo day", url: `${input.appUrl}/demo-day` }] : [];
+  const intro: BotMessage = {
+    kind: "demo",
+    text: [
+      "🧪 Demo day — invented prices, no Telegraph requests, no receipts.",
+      `${input.siteName} · ${input.siteLine}`,
+      `One simulated day, hour by hour. The call changes ${changes.length} ${changes.length === 1 ? "time" : "times"}; here is what I would send.`,
+    ].join("\n"),
+    buttons: [],
+  };
+  const summary: BotMessage = {
+    kind: "demo",
+    text: ["🧪 Demo day at a glance (simulated, UTC)", ...daySegments(input.decisions), "Real calls: /now"].join("\n"),
+    buttons: button,
+  };
+  return [intro, ...changes.map((r) => changeAlert(r, input.appUrl)), summary];
 }

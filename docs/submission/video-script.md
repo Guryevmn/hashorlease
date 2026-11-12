@@ -1,13 +1,14 @@
 # Hash or Lease — demo video script
 
-> **Резюме для владельца (по-русски).** Сценарий ролика на 2 минуты 35 секунд: 9 кадров, для каждого — что на экране и что говорим. Правила требуют ролик от 2 до 5 минут, поэтому короче 2:00 делать нельзя — запас заложен.
-> Два кадра можно закрыть готовыми снимками из `docs/shots/`, остальные семь нужно записать с живого приложения; список — в конце. Запись одного кадра стоит 1 цент тестовых денег.
+> **Резюме для владельца (по-русски).** Сценарий ролика на 2 минуты 59 секунд: 10 кадров, для каждого — что на экране и что говорим. Правила требуют ролик от 2 до 5 минут, поэтому короче 2:00 делать нельзя — запас заложен.
+> Новый кадр 8 — «Демо-день»: на выдуманной площадке за сутки решение меняется дважды (сдать под ИИ → майнить → снова сдать), и видно, почему. В кадре и в тексте прямо сказано, что это демо-данные: в живой работе решение пока ни разу не менялось.
+> Два кадра можно закрыть готовыми снимками из `docs/shots/`, остальные восемь нужно записать с приложения; список — в конце. Запись одного кадра с покупкой стоит 1 цент тестовых денег; кадр «Демо-день» бесплатный.
 
 Status: draft. Nothing has been recorded or published.
 
 **What the rules require** (https://hackathon.telegraphprotocol.com/rules §8, checked 2026-11-12): "a 2–5 minute video or accessible equivalent showing the real input, result, and Telegraph integration"; screen recordings are fine. The rules suggest — but do not require — this flow: problem → Telegraph request → intelligence and provider evidence → observed cost → completed result → how to try it. The script follows it.
 
-**Format:** screen recording, 1280×900 window, live mode on testnet. English voiceover, about 255 words — unhurried at this length. Burn in English captions: they make the video an "accessible equivalent" and carry it if the sound is off.
+**Format:** screen recording, 1280×900 window, live mode on testnet (shot 8 is demo data and says so). English voiceover, about 315 words — unhurried at this length. Burn in English captions: they make the video an "accessible equivalent" and carry it if the sound is off.
 
 **One rule for the narrator:** read the numbers that are on screen on recording day. The numbers below are from 9–11 November and will differ.
 
@@ -24,10 +25,13 @@ Status: draft. Nothing has been recorded or published.
 | 5 | 1:15–1:28 | Close the receipt. Hover the globe icon next to **Power price**: "Public source, not bought via Telegraph". | "The power price is a free public source, and it is labelled that way. We don't dress it up as a Telegraph purchase." |
 | 6 | 1:28–1:50 | Terminal, clean prompt: `npm run agent -- --once --fresh`. The log prints the cycle line, three sites with receipts, `paid requests 1`. Cut the wait. Then **Usage** → the "Hourly agent" card and the "Paid requests" table. | "And nobody clicks 'buy'. An agent wakes up every hour, pays Telegraph itself over x402, decides for every site, and logs the receipts. It has run `[27]` hours in a row, for about a cent an hour." |
 | 7 | 1:50–2:10 | Terminal: `DAILY_SPEND_LIMIT_USD=0 npm run agent -- --mode=live --once --fresh`. The log shows "⛔ Daily spend limit reached" and "Paused · daily limit" for each site, `paid requests 0`. Then **History**: the hour marked "Paused · daily limit". | "Its budget is hard-capped. At the daily limit it stops before paying. And with no fresh receipt it makes no call — it records a pause, not a guess." |
-| 8 | 2:10–2:22 | **Places → + Add place**: pick France, type 500 PH/s, 10 MW, 20 J/TH, **Add place**. The new site opens with its call. Speed up the typing ×2. | "Adding your own site takes a minute: zone, megawatts, hashrate, lease rate." |
-| 9 | 2:22–2:35 | End card on a plain background: **Hash or Lease** · `github.com/Guryevmn/hashorlease` · "Reviewer guide: docs/JUDGE.md" · "Testnet only: Telegraph devnode + Ethereum Sepolia" · "Mission 12 — Mining and Power". | "Everything here runs on testnet — no real money, no customers yet. Clone the repo and it runs in five minutes, no wallet needed. Reviewer steps are in docs/JUDGE.md." |
+| 8 | 2:10–2:34 | **Demo day** (`/demo-day`; from Places: "See a call change"). The yellow strip "Demo day — invented site and prices…" must be in frame. Choose **Day in 24 s**, click **Play the day**. The clock runs from 00:00; at **11:00** the green note "Call changed: Lease to AI → Mine" appears, at **16:00** the purple "Call changed: Mine → Lease to AI". Pause at 16:00, scroll to **Hour by hour** (two highlighted rows with the reason) and to **What the Telegram bot sends** (the alert with the "Why:" line). Cut the quiet hours so the shot is 24 s. | "In our live week no call changed — power was too expensive. So this is a simulated day, marked as demo data: invented prices, the same agent. At eleven a midday dip makes mining win. At four the evening ramp flips it back to the lease — and the alert says why." |
+| 9 | 2:34–2:46 | **Places → + Add place**: pick France, type 500 PH/s, 10 MW, 20 J/TH, **Add place**. The new site opens with its call. Speed up the typing ×2. | "Adding your own site takes a minute: zone, megawatts, hashrate, lease rate." |
+| 10 | 2:46–2:59 | End card on a plain background: **Hash or Lease** · `github.com/Guryevmn/hashorlease` · "Reviewer guide: docs/JUDGE.md" · "Testnet only: Telegraph devnode + Ethereum Sepolia" · "Mission 12 — Mining and Power". | "Everything here runs on testnet — no real money, no customers yet. Clone the repo and it runs in five minutes, no wallet needed. Reviewer steps are in docs/JUDGE.md." |
 
-Total: 2:35. Do not cut below 2:05 — the minimum is 2:00.
+Total: 2:59. Do not cut below 2:05 — the minimum is 2:00. If the video has to be shorter, shot 9 (Add place) goes first; shot 8 stays, because it is the only place where a call changes.
+
+**Shot 8 is demo data, and the video must say so twice:** the yellow strip and the "Demo data" badge stay in frame, and the voiceover says "simulated day, marked as demo data". Do not cut that sentence, do not crop the strip, and do not place shot 8 before shot 4 (the real receipt): real first, simulated after. On that day the numbers are fixed, so the lines can be read as written: 11:00 — power fell from $28 to $21/MWh; 16:00 — power rose from $33 to $124/MWh.
 
 **The `[27]` in shot 6** is the number of consecutive hours the agent decided as of 11 November. On recording day, say the real number from the "Hourly agent" card or the run log. If the run was interrupted, say "for more than a day" only if that is true, or drop the sentence.
 
@@ -47,13 +51,16 @@ All in live mode, same window size, same day if possible, so the numbers match b
 | R6 | Usage: agent card and paid requests (shot 6) | browser | free |
 | R7 | Terminal: the limit run (shot 7) | `DAILY_SPEND_LIMIT_USD=0 npm run agent -- --mode=live --once --fresh` | free — no payment is attempted |
 | R8 | History with the paused hour (shot 7) | browser, right after R7 | free |
-| R9 | Add place, France (shot 8) | browser; delete the test site afterwards (⋯ Menu → Delete) | free |
-| R10 | End card (shot 9) | a still image | free |
-| R11 | Voiceover | one take per shot, or a synthetic voice from this script | — |
+| R9 | Demo day (shot 8) | browser, `/demo-day` → "Day in 24 s" → "Play the day"; pause at 16:00, scroll to the tape and the bot preview. Works in live and in demo mode, makes no requests. For a still: `/demo-day?hour=16` | free |
+| R10 | Add place, France (shot 9) | browser; delete the test site afterwards (⋯ Menu → Delete) | free |
+| R11 | End card (shot 10) | a still image | free |
+| R12 | Voiceover | one take per shot, or a synthetic voice from this script | — |
 
 **Already available as stills:** `docs/shots/sites.png` (shot 1) and `docs/shots/site-detail-receipt.png` (shot 4). They are from 9 November and show "Spent today $0.92 / $1.50"; a fresh recording is better, the stills are the fallback.
 
-**Optional tenth shot, only after the bot has run in real Telegram:** a phone with the change alert and `/now`, 8–10 seconds, placed after shot 6 with the line "When a call changes, it tells you in Telegram." Do not include it before then: the bot has not been run against Telegram.
+**Optional insert in shot 8, only after the bot has run in real Telegram:** a phone with the `/demo` replay — the intro "🧪 Demo day — invented prices…", the two change alerts and the day at a glance — 6–8 seconds over the line "and the alert says why", instead of the on-screen preview. Do not include it before then: the bot has not been run against Telegram. A real (not demo) change alert can be shown only if one has actually fired by recording day.
+
+**Terminal alternative for shot 8:** `npm run demo:day -- --speed=1` prints the same day in 24 seconds with both alerts; the first line of the output says "DEMO DATA".
 
 ---
 
@@ -68,4 +75,4 @@ All in live mode, same window size, same day if possible, so the numbers match b
 
 ## What the video deliberately does not claim
 
-No users, no mainnet, no ERCOT, no "all inputs through Telegraph". Shot 5 says outright that the power price is not a Telegraph purchase, and shot 9 says "no customers yet". This matches `application.md` and the "accurate claims" requirement in rules §5.
+No users, no mainnet, no ERCOT, no "all inputs through Telegraph", no "the call changed in live operation" — shot 8 is a simulation and is called one. Shot 5 says outright that the power price is not a Telegraph purchase, and shot 9 says "no customers yet". This matches `application.md` and the "accurate claims" requirement in rules §5.
