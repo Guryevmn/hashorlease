@@ -35,16 +35,33 @@
   --t-sub: 15px;    --lh-sub: 20px;     /* Subhead: labels, tables */
   --t-cap: 13px;    --lh-cap: 16px;     /* Caption: badges, small print */
   --radius: var(--r2);
+  /* Tracking per scale step. Fallback fonts (Segoe UI, Roboto...) only: mild, 0 for small text.
+     Apple devices: the system font tightens itself by size (SF Pro, Apple HIG "Tracking values":
+     13px -6, 15px -16, 17px -26, 19px -24, 24px +3, 30px +14, 36px +10 per 1/1000 em),
+     so the block below resets everything to normal; a manual value would be added on top. */
+  --tr-large: -0.01em;
+  --tr-title1: -0.005em;
+  --tr-title2: 0;
+  --tr-head: 0;
+  --tr-body: 0;
+  --tr-sub: 0;
+  --tr-cap: 0;
+}
+/* WebKit (Safari, every iOS browser) has this keyword: the system font is SF Pro with optical sizing and tracking. */
+@supports (font: -apple-system-body) {
+  :root { --tr-large: normal; --tr-title1: normal; --tr-title2: normal; --tr-head: normal; --tr-body: normal; --tr-sub: normal; --tr-cap: normal; }
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* -apple-system / system-ui pick SF Pro Text or Display by size on their own; SF cannot be named or hosted on the web. */
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-optical-sizing: auto;
   background: var(--bg);
   color: var(--text);
   font-size: var(--t-body);
   line-height: var(--lh-body);
-  letter-spacing: -0.011em;
+  letter-spacing: var(--tr-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -52,19 +69,19 @@ a { color: inherit; text-decoration: none; }
 button, input, select { font: inherit; letter-spacing: inherit; color: inherit; }
 button { cursor: pointer; }
 h1, h2, h3 { margin: 0; text-wrap: balance; }
-h1 { font-size: var(--t-title1); line-height: var(--lh-title1); font-weight: 700; letter-spacing: -0.021em; }
-h2 { font-size: var(--t-head); line-height: var(--lh-head); font-weight: 600; letter-spacing: -0.022em; }
+h1 { font-size: var(--t-title1); line-height: var(--lh-title1); font-weight: 700; letter-spacing: var(--tr-title1); }
+h2 { font-size: var(--t-head); line-height: var(--lh-head); font-weight: 600; letter-spacing: var(--tr-head); }
 p { margin: 0; }
-.num { font-variant-numeric: tabular-nums; }
+.num, .hero .big, .decision, .gain, .stat .v, .option .v, .brow .v, .demo-time, .spent, .market, table { font-variant-numeric: tabular-nums; }
 .muted { color: var(--muted); }
-.small { font-size: var(--t-sub); line-height: var(--lh-sub); letter-spacing: -0.006em; }
-.tiny { font-size: var(--t-cap); line-height: var(--lh-cap); letter-spacing: 0; }
+.small { font-size: var(--t-sub); line-height: var(--lh-sub); letter-spacing: var(--tr-sub); }
+.tiny { font-size: var(--t-cap); line-height: var(--lh-cap); letter-spacing: var(--tr-cap); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Layout shell */
 .header { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10; }
 .header-inner { max-width: 960px; margin: 0 auto; padding: var(--s2) var(--s4); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); }
-.logo { font-weight: 700; font-size: var(--t-head); line-height: var(--lh-head); letter-spacing: -0.022em; }
+.logo { font-weight: 700; font-size: var(--t-head); line-height: var(--lh-head); letter-spacing: var(--tr-head); }
 .nav { display: flex; gap: var(--s1); flex: 1 1 auto; flex-wrap: wrap; }
 .nav a { padding: var(--s2) var(--s3); border-radius: var(--r1); color: var(--muted); font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 500; }
 .nav a[aria-current="page"] { background: var(--off-bg); color: var(--text); font-weight: 600; }
@@ -107,7 +124,7 @@ p { margin: 0; }
 .market { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); padding: var(--s3) var(--s4); background: #fff; border: 1px solid var(--line); border-radius: var(--r2); margin-bottom: var(--s5); align-items: center; font-size: var(--t-sub); line-height: var(--lh-sub); }
 .market b { font-weight: 700; }
 .hero { margin-bottom: var(--s5); }
-.hero .big { font-size: var(--t-large); line-height: var(--lh-large); font-weight: 700; letter-spacing: -0.022em; }
+.hero .big { font-size: var(--t-large); line-height: var(--lh-large); font-weight: 700; letter-spacing: var(--tr-large); }
 
 /* Site cards */
 .site-card { display: block; }
@@ -115,12 +132,12 @@ p { margin: 0; }
 .site-head { display: flex; justify-content: space-between; gap: var(--s3); align-items: flex-start; }
 .site-title { min-width: 0; }
 .pill { padding: var(--s2) var(--s3); font-size: var(--t-sub); line-height: var(--lh-sub); flex: none; }
-.decision { display: inline-flex; align-items: center; gap: var(--s2); font-size: var(--t-title2); line-height: var(--lh-title2); font-weight: 700; letter-spacing: -0.02em; margin: var(--s3) 0 var(--s1); }
+.decision { display: inline-flex; align-items: center; gap: var(--s2); font-size: var(--t-title2); line-height: var(--lh-title2); font-weight: 700; letter-spacing: var(--tr-title2); margin: var(--s3) 0 var(--s1); }
 .decision.mine { color: var(--mine); }
 .decision.lease { color: var(--lease); }
 .decision.off { color: var(--off); }
 .decision svg { flex: none; }
-.gain { font-size: var(--t-head); line-height: var(--lh-head); font-weight: 600; letter-spacing: -0.022em; }
+.gain { font-size: var(--t-head); line-height: var(--lh-head); font-weight: 600; letter-spacing: var(--tr-head); }
 .chev { color: var(--muted); font-size: var(--t-title2); line-height: var(--lh-head); }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: var(--s2); }
 
@@ -197,7 +214,7 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 /* Feed */
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3); }
 @media (max-width: 640px) { .stats { gap: var(--s2); } .stats .card { padding: var(--s3); } .stat .v { font-size: var(--t-head); line-height: var(--lh-head); } }
-.stat .v { font-size: var(--t-title2); line-height: var(--lh-title2); font-weight: 700; letter-spacing: -0.02em; }
+.stat .v { font-size: var(--t-title2); line-height: var(--lh-title2); font-weight: 700; letter-spacing: var(--tr-title2); }
 .day-head { margin: var(--s5) 0 var(--s2); font-weight: 600; display: flex; justify-content: space-between; }
 .feed-row { display: grid; grid-template-columns: 52px 1fr auto; gap: var(--s1) var(--s3); padding: var(--s3) 0; border-top: 1px solid var(--line); align-items: center; }
 .feed-row.paused { color: var(--muted); }
@@ -263,7 +280,7 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 .demo-entry { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); margin-top: var(--s5); }
 .demo-entry:hover { border-color: #b8c0cc; }
 .demo-clock { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--s3); margin-top: var(--s3); }
-.demo-time { font-size: var(--t-large); line-height: var(--lh-large); font-weight: 700; letter-spacing: -0.022em; }
+.demo-time { font-size: var(--t-large); line-height: var(--lh-large); font-weight: 700; letter-spacing: var(--tr-large); }
 .change-note { display: flex; flex-direction: column; gap: var(--s1); margin: var(--s2) 0 var(--s3); padding: var(--s3); border-radius: var(--r1); }
 .change-note.mine { background: var(--mine-bg); box-shadow: inset 4px 0 0 var(--mine); }
 .change-note.lease { background: var(--lease-bg); box-shadow: inset 4px 0 0 var(--lease); }
