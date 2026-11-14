@@ -191,7 +191,7 @@ async function buildSnapshot(): Promise<{ snapshot: MarketSnapshot; fx: number }
         service: "CRYPTO_PRICE_USD",
         fetchedAt: now.toISOString(),
         costUsd: 0,
-        source: `${tg.limit ? "Daily limit reached" : "Telegraph unavailable"} — BTC price from mempool.space`,
+        source: `${tg.limit ? "Daily limit reached" : `Telegraph unavailable (${tg.error.slice(0, 160)})`} — BTC price from mempool.space`,
       }),
     };
   }

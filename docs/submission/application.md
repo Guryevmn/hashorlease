@@ -18,7 +18,7 @@ Rules checked on 2026-11-12: https://hackathon.telegraphprotocol.com/rules (sect
 | Track | Apps & Agents |
 | Mission | 12 — Mining and Power (example build 01, "The allocation agent") |
 | Intents | Bought every hour: `CRYPTO_PRICE_USD`. Probed, paid, returned empty values on the devnode: `MINING_HASHPRICE_VERIFY_GENERAL`, `GRID_POWER_PRICE_GENERAL` |
-| Working / reviewer-access link | https://github.com/Guryevmn/hashorlease · reviewer guide: `docs/JUDGE.md` · hosted demo (invented data): https://hashorlease.vercel.app |
+| Working / reviewer-access link | https://github.com/Guryevmn/hashorlease · reviewer guide: `docs/JUDGE.md` · hosted demo: https://hashorlease.vercel.app (invented data, marked on screen) |
 | GitHub username that starred `telegraphprotocol/bounties` | `Guryevmn` |
 | Team / contact | `[name, email or Telegram/Discord handle]` |
 | Network | Testnet only: Telegraph devnode + Ethereum Sepolia (test USDC) |
@@ -42,7 +42,7 @@ Operators of Bitcoin mining sites who can also sell their power capacity to AI c
 Mine-or-lease is decided today in spreadsheets and phone calls and revisited rarely. Hash or Lease makes the call every hour, per site, in dollars — and keeps the evidence for each one: which number came from where, when, and what it cost. When a call turns out wrong, the operator can show exactly what it was based on.
 
 **What does it do today?**
-On testnet it runs end to end. An hourly agent buys the BTC price through Telegraph by itself (x402, test USDC on Sepolia), combines it with public Bitcoin network data and day-ahead power prices for five European zones, and records a call for every site with its receipts. A web app shows the call, the three options in $/MWh, the receipts, the hour-by-hour history and the spend. The agent ran 27 consecutive hours on 10–11 November for about one cent an hour; it stops before paying when the daily limit is reached, and it makes no call when it has no fresh Telegraph receipt.
+On testnet it runs end to end. An hourly agent buys the BTC price through Telegraph by itself (x402, test USDC on Sepolia), combines it with public Bitcoin network data and day-ahead power prices for five European zones, and records a call for every site with its receipts. A web app shows the call, the three options in $/MWh, the receipts, the hour-by-hour history and the spend. The agent has run since 10 November 18:00 UTC (47 of 48 hourly slots by 12 November 17:00 UTC, the longest unbroken streak 44 hours) for about one cent an hour; it stops before paying when the daily limit is reached, and it makes no call when it has no fresh Telegraph receipt.
 
 **Why would someone adopt it?**
 The data for a whole fleet costs about $0.24 a day at testnet prices — one $0.01 purchase per hour covers every site — while on our 20 MW example site, at the lease rate we assumed, the call beat mining by $5,000–$10,000 per hour during the run. It needs no integration with the operator's hardware: enter fleet size, power draw and lease rate, get a call. No operator has used it yet; this is our reasoning, not customer evidence.
@@ -79,7 +79,7 @@ The data for a whole fleet costs about $0.24 a day at testnet prices — one $0.
 
 ### A7. Short public summary
 
-> **Hash or Lease** (Mission 12, Mining and Power) is an hourly allocation agent for Bitcoin miners. For every site it calls Mine, Lease to AI or Switch off, in dollars per hour, and shows where each input came from. The agent buys the BTC price through Telegraph with x402 on testnet, stops at a daily spend limit, and refuses to make a call without a fresh receipt. Hashprice and power prices still come from public sources, because those Intents returned empty values on the devnode — the raw answers are in the repo. Try it with no wallet: https://hashorlease.vercel.app (invented data) or https://github.com/Guryevmn/hashorlease. Reviewer guide: `docs/JUDGE.md`. If you run a mining site, we would like to hear what the call gets wrong: `[contact]`.
+> **Hash or Lease** (Mission 12, Mining and Power) is an hourly allocation agent for Bitcoin miners. For every site it calls Mine, Lease to AI or Switch off, in dollars per hour, and shows where each input came from. The agent buys the BTC price through Telegraph with x402 on testnet, stops at a daily spend limit, and refuses to make a call without a fresh receipt. Hashprice and power prices still come from public sources, because those Intents returned empty values on the devnode — the raw answers are in the repo. Try it in five minutes with no wallet: https://github.com/Guryevmn/hashorlease. Reviewer guide: `docs/JUDGE.md`. If you run a mining site, we would like to hear what the call gets wrong: `[contact]`.
 >
 > Updates: `[link 1, date]` · `[link 2, date]` · `[link 3, date]` · Tutorial: `[link]` · Demo video: `[link]` · Independent testing: `[links, if any]`
 
@@ -160,8 +160,8 @@ One purchase covers every site and is reused for 30 minutes by the app and the a
 
 ### B6. Evidence (testnet; facts as of 2026-11-11 21:06 UTC)
 
-- **Autonomous purchases.** 122 paid Telegraph requests, $1.22 in test USDC, each with a Sepolia settlement: 94 on 9 November (mostly development, including a burst caused by a bug we then fixed — explained line by line in `docs/JUDGE.md`, "What is in the ledger"), 7 on 10 November, 21 on 11 November. Every request since 10 November was made by the hourly agent.
-- **Continuous operation.** From 10 November 18:00 UTC to 11 November 20:00 UTC the agent made a call for every site in 27 consecutive hours: 28 cycles, 28 purchases, $0.28, 84 site-hour calls, each stored with its receipt. A cycle takes 15–44 seconds.
+- **Autonomous purchases.** 142 paid Telegraph requests, $1.42 in test USDC (recounted 12 Nov 17:35 UTC), each with a Sepolia settlement: 94 on 9 November (mostly development, including a burst caused by a bug we then fixed — explained line by line in `docs/JUDGE.md`, "What is in the ledger"), 7 on 10 November, 24 on 11 November, 17 on 12 November. Every request since 10 November was made by the hourly agent.
+- **Continuous operation.** From 10 November 18:00 UTC to 12 November 17:00 UTC the agent made a call for every site in 47 of 48 hourly slots; the longest unbroken streak is 44 hours (to 12 November 13:00 UTC). The one gap, 14:00 UTC on 12 November, coincided with a restart of the host Mac (inferred from indirect data). Each call is stored with its receipt (recounted 12 Nov 17:35 UTC; the earlier count of 84 site-hour calls was as of 11 Nov 21:06 UTC). A cycle takes 15–44 seconds.
 - **The pause rule, observed live.** At 21:00 UTC on 11 November Telegraph returned no fresh receipt. The agent recorded all three sites as "Paused · no fresh Telegraph receipt" and paid nothing.
 - **The limit, verified.** With `DAILY_SPEND_LIMIT_USD=0` on a clean install the agent attempts no payment and pauses every site; the same is covered by a unit test.
 - **What the calls were.** Throughout the run, day-ahead power stayed between $189 and $610/MWh in the two zones, against mining revenue of $57–74/MWh. So the calls held steady: Leipzig Hub (20 MW, all-in lease contract) — Lease to AI; Silesia Farm (12 MW) — Switch off; the fixed-tariff rig — Keep as is. **No call has changed yet in live operation**; call changes and their alerts are exercised by the tests and shown on the demo day (`/demo-day`, `npm run demo:day`): an invented site and invented prices, marked as demo data on screen, in the bot and in the journal. The power prices are real: Energy-Charts reports a DE-LU day-ahead average of €317/MWh for 11 November.
@@ -174,7 +174,7 @@ One purchase covers every site and is reused for 30 minutes by the app and the a
 - **One input is bought through Telegraph** — the BTC price. Hashprice is computed by us; power prices are free public European day-ahead data, not ERCOT. US sites exist only in demo mode.
 - **The AI lease rate is typed in by the operator.** The `WEB_SEARCH` market guide exists only in demo mode.
 - **The calls did not change during the live run** (see B6), so the change alert has not fired in live operation. A change of call can be seen only on the demo day, which uses invented prices (`docs/demo-day/README.md`).
-- **The Telegram bot is implemented and its messages are tested, but it has not been run against Telegram.** `[update after the first real run]`
+- **The Telegram bot is implemented, its messages are tested, and it runs as @hashorlease_bot (1 subscriber in `bot-chats.json`); delivery of a message to Telegram has not been verified yet.** `[update after the first verified delivery]`
 - **History before the agent started** is recomputed from past power prices with today's hashprice; only hours tagged "Agent call" were decided live.
 - **No login.** Built for one operator on their own machine, not as a public service.
 
@@ -201,11 +201,11 @@ One purchase covers every site and is reused for 30 minutes by the app and the a
 
 The agent is still running, so these grow. Re-read them from the files the day you submit, and copy the three log files from `data/` into `docs/evidence/` first — otherwise reviewers see only 9 November in the repo.
 
-| Claim in the text | Value on 11 Nov 21:06 UTC | Where to re-read it |
+| Claim in the text | Value (rows marked * recounted 12 Nov 17:35 UTC; others as of 11 Nov 21:06 UTC) | Where to re-read it |
 |---|---|---|
-| Paid requests / total spent | 122 / $1.22 | `data/ledger.jsonl` (lines with `cost_usd` > 0) |
-| Paid requests by day | 94 / 7 / 21 | same file, by date |
-| Consecutive decided hours, cycles | 27 hours, 28 cycles | `data/agent/live/runs.jsonl` (`ok: true`) |
+| Paid requests / total spent * | 142 / $1.42 | `data/ledger.jsonl` (lines with `cost_usd` > 0) |
+| Paid requests by day * | 94 / 7 / 24 / 17 | same file, by date |
+| Decided hours, longest streak * | 47 of 48 slots, streak 44 hours | `data/agent/live/runs.jsonl` (`ok: true`) |
 | Site-hour calls in the run | 84 | `data/agent/live/decisions.jsonl` |
 | Unplanned pauses | 1 (11 Nov 21:00 UTC) | `runs.jsonl` (`ok: false`) |
 | Call changes in live operation | 0 | `decisions.jsonl` (`changed: true`) |
@@ -227,7 +227,7 @@ The agent is still running, so these grow. Re-read them from the files the day y
 | 30 requests/min, $0.02 cap, default limit $0.50 | `src/lib/live/telegraph.ts` |
 | Ledger, run and decision counts | counted from `data/ledger.jsonl` and `data/agent/live/*.jsonl` |
 | Power prices are real | Energy-Charts API, DE-LU, 11 Nov: 96 quarter-hour prices, average €316.65/MWh |
-| Repository is public, MIT | GitHub API: `private: false`, last push 11 Nov |
+| Repository is public, MIT | GitHub API: `private: false`, last push 12 Nov (13:26 MSK) |
 | Star on `telegraphprotocol/bounties` | GitHub API: present in `Guryevmn`'s starred list |
 | Mission wording, required Intents | https://hackathon.telegraphprotocol.com/missions/mining-and-power |
 
@@ -240,7 +240,7 @@ Scoring (rules §6): technical 35 (minimum 24), commercial 25, independent adopt
 ### Differences from `docs/SUBMISSION.md` and `docs/research/`
 
 - `SUBMISSION.md` §4 says "77 automated tests"; the real number is now 94 (its §6 says 79).
-- `SUBMISSION.md` says the agent "has run single cycles on one evening"; it has since run 27 hours in a row.
+- `SUBMISSION.md` says the agent "has run single cycles on one evening"; it has since run 47 of 48 hourly slots (longest streak 44 hours, recounted 12 Nov 17:35 UTC).
 - `SUBMISSION.md` §10 says the rules "ask for" a fixed order in the video. The rules only suggest a "useful flow"; the requirement is 2–5 minutes showing the real input, the result and the Telegraph integration.
 - `docs/research/rules.txt` is cut off in the middle of section 5; sections 5–10 were re-read on the site. The scoring numbers in `docs/PLAN.md` §4 match the site.
 - The site still does not say how the 14 November milestone or the 20 November showcase are delivered.

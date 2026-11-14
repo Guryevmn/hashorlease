@@ -84,7 +84,7 @@ npm run agent -- --mode=live --once --fresh    # skip the cached snapshot — to
 - Needs a token from @BotFather in `.env`: `HASHORLEASE_BOT_TOKEN=…`. **Without it the bot does not start** and says what to do. The app and the agent work without the bot (the agent logs what it would have sent).
 - The variable has its own name, not `TELEGRAM_BOT_TOKEN`: the machine may hold another bot's token, and the app must not pick it up.
 - Link buttons ("Open app", "Open breakdown") appear only if `.env` sets a public `APP_URL` with https (Telegram does not accept localhost).
-- Subscribers are stored in `data/bot-chats.json` (not in git). Message texts are covered by tests; the bot has not yet been run against real Telegram.
+- Subscribers are stored in `data/bot-chats.json` (not in git). Message texts are covered by tests; the bot runs as @hashorlease_bot (1 subscriber on 12 Nov), delivery of messages to Telegram has not been verified yet.
 
 ## Live mode
 
@@ -121,7 +121,7 @@ npm run agent -- --mode=live --once --fresh    # skip the cached snapshot — to
 - There is no login: the sites API is designed for a local single-operator install, not for a public server.
 - The agent and the web app are separate processes: they share the market snapshot through a file and pay one at a time through a disk lock.
 - The agent decides only from the snapshot of the current UTC hour: when running every hour, that is one purchase per hour.
-- The Telegram bot has not been run with a real token.
+- The Telegram bot runs as @hashorlease_bot, but delivery of messages to Telegram has not been verified yet.
 - Time in the demo is fixed: 8 Nov 2026, 14:04 UTC.
 - No call has changed in live operation yet. The change of call is shown on the demo day (`/demo-day`): invented prices on an invented site, chosen so that the power price crosses the break-even point; it is not evidence of live behaviour.
 

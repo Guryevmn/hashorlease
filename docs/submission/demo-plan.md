@@ -30,7 +30,7 @@ Two consequences. First, **there is no pitch in front of a jury**: the entry is 
 
 1. **A working autonomous purchase.** The agent's own payment for `CRYPTO_PRICE_USD` on Sepolia — transaction `0x1c3bc795…76df`, link: https://sepolia.etherscan.io/tx/0x1c3bc795d2cf6d7eb66949a98ebf173d2f59545b7023597f5d363a48829a76df
 2. **What the purchase is used for.** Screenshot `docs/shots/site-detail-receipt.png`: the receipt under "Mining revenue" in the site breakdown.
-3. **That it is not a one-off.** The agent's run log: 27 hours in a row on 10–11 November, one purchase an hour `[update the number on the day]`.
+3. **That it is not a one-off.** The agent's run log: 47 of 48 hourly slots from 10 November 18:00 UTC to 12 November 17:00 UTC had a purchase (the longest unbroken streak is 44 hours; one gap, 14:00 UTC on 12 November), one purchase an hour — recounted from `runs.jsonl` on 12 Nov 17:35 UTC `[recount on the day]`.
 4. **The blocker.** `MINING_HASHPRICE_VERIFY_GENERAL` and `GRID_POWER_PRICE_GENERAL` for ERCOT hubs: paid, settled, values empty. Raw answers: `docs/evidence/first-hashprice.json`, `docs/evidence/second-queries.json`.
 5. **One question to the organisers** — the reason to post at all: which request returns hashprice and ERCOT values on the devnode?
 
@@ -68,7 +68,7 @@ Open beforehand: the app in live mode (tab 1), a Sepolia transaction page (tab 2
 | 1 | 0:00–0:30 | Places, live mode | "Hash or Lease, Mission 12. Every hour, for every mining site: mine, lease to AI, or switch off — in dollars." |
 | 2 | 0:30–1:15 | Open Leipzig Hub → options → "Where the numbers come from" | "Three options in dollars per megawatt-hour and the formula. Each number says where it came from." |
 | 3 | 1:15–2:00 | Click ✓ on Mining revenue → receipt → tab 2 | "This one is bought through Telegraph over x402: provider, time, one cent of test USDC, settled on Sepolia. Power is a public source and is labelled so." |
-| 4 | 2:00–2:40 | Usage → "Hourly agent" card and paid requests | "No one clicks 'buy'. The agent has run `[N]` hours, one purchase an hour, under a daily limit. No fresh receipt — no call; it logs a pause." |
+| 4 | 2:00–2:40 | Usage → "Hourly agent" card and paid requests | "No one clicks 'buy'. The agent has run since 10 November: 47 of the first 48 hours, one purchase an hour (recount on the day), under a daily limit. No fresh receipt — no call; it logs a pause." |
 | 5 | 2:40–3:15 | Tab 3, **Demo day** → **Play the day**. Let it run to 11:00 (green "Call changed: Lease to AI → Mine") and 16:00 (purple "Mine → Lease to AI"); pause, scroll to the highlighted rows and the bot preview. | "In our live week no call changed — power was too expensive for mining. So here is a simulated day on demo data: invented prices, same agent. Midday dip — mine. Evening ramp — back to the lease. Every hour has a reason, and this is the alert the bot sends." *(Say "demo data" out loud.)* |
 | 6 | 3:15–3:50 | Terminal: `npm run agent -- --mode=mock --once --state=limit` | "And the limit, also on demo data: it stops before paying." |
 | 7 | 3:50–4:30 | Repo page, `docs/JUDGE.md` | "What we need: a miner that returns hashprice and ERCOT prices — those Intents come back empty for us. And two or three people who run mining hardware to tell us what the call gets wrong. Five minutes to run, no wallet." |
@@ -84,7 +84,7 @@ Step 6 uses demo data on purpose: the real limit run takes longer and adds a pau
 5. Scroll down: **Hour by hour** (two highlighted rows, a reason on every row, two "Keep as is" hours where the gap was under $5), then **What the Telegram bot sends**.
 6. If asked "is this real?" — no: the yellow strip says so, `docs/demo-day/README.md` lists what the numbers were checked against, and the real calls are on Places.
 
-The same without a browser: `npm run demo:day -- --speed=1`. In Telegram, once the bot has a token: `/demo`.
+The same without a browser: `npm run demo:day -- --speed=1`. In Telegram: `/demo` (the bot @hashorlease_bot is running; delivery to a subscriber not yet verified).
 
 ### Format B — written post
 
@@ -99,7 +99,7 @@ The 14 November text, updated: hours run, what changed since, a link to the vide
 | The internet connection drops | Switch to the recorded video. If there is no video yet: demo mode (`npm start` without live mode) — and say plainly that the numbers are invented. The demo day (step 5) needs no network at all and can still be shown. |
 | The demo day page does not open | Terminal: `npm run demo:day -- --speed=1` — the same day, both alerts, 24 seconds. |
 | The Mac or the app will not start | Show the two screenshots in `docs/shots/` and the Sepolia link from a phone. |
-| The Telegram bot is silent or not set up | Skip it. The bot is not part of the run-through until it has been run against Telegram for a day. |
+| The Telegram bot is silent or not set up | Skip it. The bot is running (@hashorlease_bot), but is not part of the run-through until delivery to a subscriber has been verified. |
 | Someone asks why only one input is bought through Telegraph | The straight answer: the two mission Intents return empty values on the devnode; raw answers are in the repo; the screen labels every source. |
 | Someone doubts power at $300–500/MWh | It is the real day-ahead evening peak in DE-LU / PL; `docs/JUDGE.md` §2 has the source link. |
 
@@ -125,7 +125,7 @@ This is the showing that is scored. A reviewer needs to: run it with a new input
 
 Found while preparing these materials; each one is a decision for the owner or the project head, not something this document changes.
 
-1. **The live call never changes.** In 28 cycles all three example sites kept the same call: with power at $189–610/MWh, mining never wins. A viewer sees "Lease / Switch off / Keep as is" and never "Mine", and the change alert has never fired live. *Addressed on 12 November (owner's decision) with the demo day:* an invented site and an invented day of prices on which the call changes twice — screen `/demo-day`, `npm run demo:day`, bot `/demo`, details in `docs/demo-day/README.md`. *What remains true:* it is a simulation. The live call has still not changed, the application says so (B6, B7), and the demo day must never be shown or described as live data.
+1. **The live call never changes.** In all 47 hourly cycles from 10 to 12 November (no call change recorded in `runs.jsonl`) all three example sites kept the same call: with power at $189–610/MWh, mining never wins. A viewer sees "Lease / Switch off / Keep as is" and never "Mine", and the change alert has never fired live. *Addressed on 12 November (owner's decision) with the demo day:* an invented site and an invented day of prices on which the call changes twice — screen `/demo-day`, `npm run demo:day`, bot `/demo`, details in `docs/demo-day/README.md`. *What remains true:* it is a simulation. The live call has still not changed, the application says so (B6, B7), and the demo day must never be shown or described as live data.
 2. **One of five inputs is bought through Telegraph.** Telegraph integration is worth only 5 points, but technical quality (35, minimum 24) is judged with "mainnet readiness" in mind. *Suggested:* the cheap `WEB_SEARCH` probe for lease-rate comparables and the CAISO probe for `GRID_POWER_PRICE`, both already in the project queue — each success turns a "Public source" label into a receipt.
 3. **No outside users** — 10 points for adoption and up to 4 of the growth points depend on an independent person doing something. See item 4 in the list below.
 4. **`docs/SUBMISSION.md` is partly out of date** (test count, "single cycles on one evening"). `application.md` in this folder is the current text.
@@ -151,7 +151,7 @@ Found while preparing these materials; each one is a decision for the owner or t
 
 **Зачем:** это и есть проверка хода, а заодно первое из трёх публичных обновлений, за которые дают баллы. Текст готов выше, в разделе 1. Без твоего «да» ничего не публикуется.
 
-### 3. Токен бота (ключ, по которому Telegram пускает нашего бота) — до 15 ноября
+### 3. Токен бота (ключ, по которому Telegram пускает нашего бота) — СДЕЛАНО: токен вставлен, бот работает (@hashorlease_bot, сверка 12.11); шаги ниже оставлены на случай замены токена
 
 **Зачем:** без него бот не запускается, и его нельзя показать ни в ролике, ни на показе 20 ноября. В настройках на Mac строка для токена уже не пустая (само значение я не смотрел). Если ты его уже вставлял — напиши «токен стоит», и бота можно запускать. Если нет:
 

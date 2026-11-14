@@ -75,6 +75,8 @@ export interface AlertState {
   /** Day (YYYY-MM-DD) for which the limit warning was already sent. */
   limitAlertDay?: string;
   networkDown?: boolean;
+  /** Consecutive cycles that failed on the network; the alert goes out on the second one (the first is retried quietly in 10 min). */
+  networkFails?: number;
   /** Sites for which a provider failure was already reported. */
   providerDown?: string[];
 }
