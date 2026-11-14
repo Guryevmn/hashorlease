@@ -166,3 +166,73 @@ Telegraph flow"; "A supported testnet implementation can qualify."
 Participants post one thread per project ("build log") with categories Apps & Agents / Miners & Providers /
 Evaluators / Social Posts / Tutorials & Guides / Other. Typical post: what it does, live link, GitHub link,
 one real purchase (request, response, Sepolia tx, signal id), missions covered, feedback wanted.
+
+## 14.11.2026 update (read-only, Discord; times MSK)
+
+Read in the shared Chrome: #announcements, #hackathon (from our message to the latest), our #showcase thread.
+Nothing was posted, reacted to, or submitted.
+
+### Organizer announcement, #announcements, 14.11 12:27 (Ahmed Ali, Co-Founder, @everyone)
+https://discord.com/channels/1438396125609463881/1491784041089728743/1571094265361338459
+- "November 14 is here, our first integration milestone for Hackathon Season II! ... 15 commercial missions,
+  three tracks, 29 opportunities to win, and just 17 days until final submissions on December 1."
+- "If you've been working on something, please share it in #showcase ... Share your repo, demo, screenshots or
+  whatever you've got so far. It doesn't have to be finished."
+- "you can participate in ALL THREE tracks ... as long as each submission is a genuine, distinct contribution
+  meeting the rules."
+
+### Follow-up, 14.11 12:28 (same author)
+https://discord.com/channels/1438396125609463881/1491784041089728743/1571094541631619153
+- "If anything is blocking you, post in #hackathon. Whether it's integration, registration, evaluation
+  requirements or anything else, let us know and we'll help."
+- "We need contributions across all three tracks, especially working Miners that can power the missions,
+  evaluation material and adapters to power rankings, and applications that actually use the intelligence and
+  make missions work."
+- Important dates: "November 14: First integration milestone (today)", "November 20: Community showcase
+  (6 days away)", "December 1: Final submissions".
+- Links: missions, rules and judging criteria (anjoman.ai/dashboard/hackathon/season-2/rules), docs
+  (anjoman.ai/docs).
+- "Let's get some work into #showcase today! If you've started, show us what you've got."
+- No further organizer posts in #announcements after 12:28 (last checked ~14.11 14:00 MSK).
+
+### #hackathon, 14.11 (Ahmed Ali)
+- 12:02, https://discord.com/channels/1438396125609463881/1498654113376899112/1571087845978939494:
+  "hey, today is just a checkpoint, to see how much progress has been made or if anyone is stuck anywhere, or
+  need any help."
+- 12:06, .../1571088980857065512, to a user asking "when open submission?": "submissions will be opened near
+  the end, we'll make an announcement." Same message: all three tracks allowed, each a distinct contribution;
+  "add it in #showcase so community can check it out, use it and give feedback"; read the rules, especially
+  judging criteria.
+- A participant (ace, 11:21, .../1571077566796927007) wrote "registration ends today and Dec 1 is the last
+  day for submission". The organizer did not confirm or deny it. Earlier official line (3.11): "There's no
+  separate registration required." Participant "actual deadline is on 1st dec" (12:02, unofficial).
+- 13:41, .../1571112755942137879 (to Diablo): if /engine/v1/ask fails after the x402 payment, "its refunded
+  in the escrow"; see docs "When a Paid Request Fails" (x402 docs). Diablo confirmed the credit shows in
+  effectiveBalance.
+- 04:33 (to Athar): test funds, "you can claim on the faucet on anjoman.ai".
+- 14:00 (to FakeWatch): miner registration with Smart Wallet still fails with a signing error; "i'll update
+  you once its resolved". Another user (borodedamie, 13.11) reports evaluator registration stuck at "checking".
+  Not our path (we are Apps & Agents), but shows platform-side registration problems.
+- "Platform to interact with: anjoman.ai" (14.11 07:23).
+
+### Our posts
+- #showcase thread (12.11 19:50): 1 message, no replies, no reactions, no questions to us (checked 14.11 ~15:15).
+  Our question about ERCOT/hashprice values is still unanswered.
+- #hackathon pointer message (12.11 19:52, .../1570481486019170477): no replies, no reactions. Nobody addressed
+  us in the 14.11 messages.
+
+### Submission form / registration / 20.11 / Anjoman
+- Submission form: not open. Per Ahmed 14.11 12:06, opens "near the end", with an announcement.
+- Registration: no new rule. Registration is only relevant for Miners/Evaluators on anjoman.ai; Apps & Agents
+  need none (official 3.11). The "registration ends today" claim is unverified.
+- 20.11: "Community showcase" (organizer, 14.11 12:28). No format given (no form, no slot booking).
+- Anjoman: the platform for everything (missions, rules, docs, faucet, dashboard). No new rules.
+
+### To do for us
+- Optional, no deadline gate: the checkpoint asks to share progress in #showcase. We already have the thread
+  (12.11) with repo, evidence, one purchase and a blocker. Nothing new is required today.
+- Watch for the "submissions open" announcement; then submit via the form (ask user first).
+- For 20.11: be ready to show; wait for format details.
+
+### Nothing new
+- No new rules, deadlines, or judging changes; Dec 1 final, Nov 20 showcase unchanged.
