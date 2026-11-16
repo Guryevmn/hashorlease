@@ -1,4 +1,4 @@
-// Hash or Lease Telegram bot (grammY): /start subscribes to alerts, /now shows the current decision, /stop unsubscribes.
+// Hash or Lease Telegram bot (grammY): /start subscribes to alerts and shows the current call right away, /now shows the current decision, /stop unsubscribes.
 // Decision-change alerts are sent by the hourly agent (npm run agent) to those who subscribed here.
 // The bot makes no paid requests: /now reads the agent's latest entries from data/agent/<mode>/.
 // /demo replays the simulated demo day (invented prices, every message marked as demo) into the chat that asked.
@@ -14,7 +14,7 @@ import { mockSeedSites } from "@/lib/data/mock";
 import { readSites } from "@/lib/live/sites";
 import { dailyLimitUsd, spentTodayUsd } from "@/lib/live/telegraph";
 import { readChats, snooze, subscribe, unsubscribe, writeChats } from "@/lib/bot/chats";
-import { demoDayReplay, nowReply, publicAppUrl, receiptsMessage, startMessage, type BotMessage } from "@/lib/bot/messages";
+import { demoDayReplay, nowReply, publicAppUrl, receiptsMessage, welcomeReply, type BotMessage } from "@/lib/bot/messages";
 import { demoSiteLine, simulateDemoDay } from "@/lib/demo/day";
 import { keyboardOf } from "@/lib/bot/notify";
 
@@ -43,8 +43,11 @@ const bot = new Bot(token);
 
 bot.command("start", async (ctx) => {
   writeChats(subscribe(readChats(), String(ctx.chat.id), new Date()));
-  const m = send(startMessage(appUrl));
-  await ctx.reply(m.text, m.opts);
+  // Greeting + the current call for every site (same text as /now). Repeated /start does the same.
+  for (const message of welcomeReply({ sites: sites(), decisions: store.readDecisions(), now: new Date(), ...spend(), appUrl })) {
+    const m = send(message);
+    await ctx.reply(m.text, m.opts);
+  }
 });
 
 bot.command("stop", async (ctx) => {

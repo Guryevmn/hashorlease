@@ -10,6 +10,7 @@ import {
   publicAppUrl,
   receiptsMessage,
   startMessage,
+  welcomeReply,
 } from "./messages";
 import { isSnoozed, snooze, subscribe, unsubscribe } from "./chats";
 
@@ -144,6 +145,62 @@ describe("/now", () => {
   it("takes the latest entry per site", () => {
     const later = rec({ at: "2026-11-08T15:01:00.000Z", hour: "2026-11-08T15:00:00.000Z", decision: "mine", gainVsMiningPerHour: 0, profitPerHour: 956 });
     expect(nowReply({ ...base, now: new Date("2026-11-08T15:05:00Z"), decisions: [rec({}), later] }).text.split("\n")[1]).toBe("⛏ Houston Hub — Mine · +$956/h");
+  });
+});
+
+describe("welcome after /start", () => {
+  const base = {
+    sites: [
+      { id: "houston", name: "Houston Hub" },
+      { id: "north-ridge", name: "North Ridge" },
+    ],
+    decisions: [rec({}), north],
+    now: new Date("2026-11-08T14:05:00Z"),
+    spentUsd: 0.42,
+    limitUsd: 1,
+    appUrl: null as string | null,
+  };
+
+  it("greeting, then the same text as /now", () => {
+    const [hello, current, ...rest] = welcomeReply(base);
+    expect(rest).toEqual([]);
+    expect(hello.text.split("\n")[0]).toMatch(/^Alerts are on\./);
+    expect(hello.text).toContain("/stop — stop alerts");
+    expect(current.text).toBe(nowReply(base).text);
+    expect(current.text.split("\n")[1]).toBe("⚡ Houston Hub — Lease to AI · +$136/h");
+  });
+
+  it("a repeated /start gives the same answer", () => {
+    expect(welcomeReply(base)).toEqual(welcomeReply(base));
+  });
+
+  it("no agent entries yet: honest first-call phrase, no repo commands", () => {
+    const m = welcomeReply({ ...base, decisions: [] });
+    expect(m).toHaveLength(2);
+    expect(m[1].text).toBe("The first call will arrive within the next hour.");
+    expect(m[1].text).not.toMatch(/npm run/);
+  });
+
+  it("entries of unknown sites do not count as data", () => {
+    const m = welcomeReply({ ...base, decisions: [rec({ siteId: "elsewhere", siteName: "Elsewhere" })] });
+    expect(m[1].text).toBe("The first call will arrive within the next hour.");
+  });
+
+  it("no sites: only the usual start text", () => {
+    const m = welcomeReply({ ...base, sites: [] });
+    expect(m).toEqual([startMessage(null)]);
+  });
+
+  it("a stale entry shows when it is from; a query after /start is ignored", () => {
+    const old = rec({ hour: "2026-11-08T10:00:00.000Z", at: "2026-11-08T10:01:00.000Z" });
+    const m = welcomeReply({ ...base, decisions: [old], query: "houston" });
+    expect(m[1].text.split("\n")[1]).toBe("⚡ Houston Hub — Lease to AI · +$136/h (as of 10:00 UTC)");
+    expect(m[1].text).toContain("Spent today");
+  });
+
+  it("Open app button only with a public https address", () => {
+    expect(welcomeReply(base)[0].buttons).toEqual([]);
+    expect(welcomeReply({ ...base, appUrl: "https://hol.example" })[0].buttons).toEqual([{ text: "Open app", url: "https://hol.example" }]);
   });
 });
 

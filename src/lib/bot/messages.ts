@@ -220,8 +220,7 @@ export function receiptsMessage(r: DecisionRecord): BotMessage {
   };
 }
 
-/** Full /now: sites + agent entries → reply (no sites, no entries, all, one). */
-export function nowReply(input: {
+interface NowReplyInput {
   sites: { id: string; name: string }[];
   decisions: DecisionRecord[];
   now: Date;
@@ -229,17 +228,25 @@ export function nowReply(input: {
   limitUsd: number;
   query?: string;
   appUrl: string | null;
-}): BotMessage {
-  if (input.sites.length === 0) return noSitesMessage();
+}
+
+/** Latest agent entry for each known site, in site order. */
+function latestRecords(input: Pick<NowReplyInput, "sites" | "decisions">): DecisionRecord[] {
   const latest = new Map<string, DecisionRecord>();
   for (const r of input.decisions) {
     const prev = latest.get(r.siteId);
     if (!prev || r.at >= prev.at) latest.set(r.siteId, r);
   }
-  const records = input.sites
+  return input.sites
     .map((s) => latest.get(s.id))
     .filter((r): r is DecisionRecord => !!r)
     .map((r) => ({ ...r, siteName: input.sites.find((s) => s.id === r.siteId)!.name }));
+}
+
+/** Full /now: sites + agent entries → reply (no sites, no entries, all, one). */
+export function nowReply(input: NowReplyInput): BotMessage {
+  if (input.sites.length === 0) return noSitesMessage();
+  const records = latestRecords(input);
   return nowMessage({ records, now: input.now, spentUsd: input.spentUsd, limitUsd: input.limitUsd, query: input.query, appUrl: input.appUrl });
 }
 
@@ -278,4 +285,31 @@ export function demoDayReplay(input: { siteName: string; siteLine: string; decis
     buttons: button,
   };
   return [intro, ...changes.map((r) => changeAlert(r, input.appUrl)), summary];
+}
+
+/**
+ * Replies to /start (and to a repeated /start): a greeting, then the current call for every site
+ * from the agent's latest entries — the same text as /now. No entries yet → an honest "first call within the hour".
+ * Reads only; sends nothing and buys nothing.
+ */
+export function welcomeReply(input: NowReplyInput): BotMessage[] {
+  // No sites: the usual /start text already says to add one in the app.
+  if (input.sites.length === 0) return [startMessage(input.appUrl)];
+  const greeting: BotMessage = {
+    kind: "start",
+    text: [
+      "Alerts are on. I check every hour whether to mine, lease to AI, or switch off, and write here when a call changes.",
+      "",
+      "/now — the current call for every site",
+      "/now Houston — one site",
+      "/stop — stop alerts",
+      "/demo — replay a simulated day where the call changes (demo data)",
+    ].join("\n"),
+    buttons: input.appUrl ? [{ text: "Open app", url: input.appUrl }] : [],
+  };
+  if (latestRecords(input).length === 0) {
+    return [greeting, { kind: "now", text: "The first call will arrive within the next hour.", buttons: [] }];
+  }
+  // The query is ignored: the welcome always shows every site.
+  return [greeting, nowReply({ ...input, query: undefined })];
 }

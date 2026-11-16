@@ -256,7 +256,7 @@ Spent today: $0.42 of $1.00
 For a single site: add the Mine / Lease / Off lines in $/MWh and "Receipts: 3 · latest 14:00 UTC".
 
 ### Other
-- **/start** — greeting: "I check every hour whether to mine, lease to AI, or switch off. Add a site in the app first." + an "Open app" button.
+- **/start** (and a repeated /start) — two messages: a greeting ("Alerts are on. I check every hour whether to mine, lease to AI, or switch off, and write here when a call changes." + command list + an "Open app" button), then the current call for every site, same text as /now. No agent entries yet → "The first call will arrive within the next hour." No sites at all → the old text "…Add a site in the app first."
 - **While there are no sites:** "No sites yet. Add one in the app to get calls here."
 - **Close call (no alert):** a change without an alert; in /now the line "Mine, keep as is". Optionally a daily digest — a question for the designer.
 - **Provider error:** "⚠️ North Ridge: grid price unavailable. Last call (13:00): Switch off. Retrying in 10 min."
