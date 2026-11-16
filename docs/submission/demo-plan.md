@@ -1,7 +1,7 @@
 # Hash or Lease — demo plan
 
 > **Резюме для владельца (по-русски).** План трёх показов: 14 ноября (проверка хода), 20 ноября (показ сообществу) и 2–8 декабря, когда жюри само запускает проект по инструкции — это и есть главный «показ». Для каждого: что показать по шагам и что делать, если сеть или бот подведут.
-> Добавлен «Демо-день» (12 ноября): выдуманная площадка, на которой решение за сутки меняется дважды. Его показываем на показе 20 ноября и в ролике — всегда со словами «это демо-данные», потому что в живой работе решение пока не менялось.
+> Добавлен «Демо-день» (12 ноября): выдуманная площадка, на которой решение за сутки меняется дважды. Его показываем на показе 20 ноября и в ролике — всегда со словами «это демо-данные», потому что смены «Сдать → Майнить» в живой работе не было ни разу. В живой работе решение менялось дважды (15.11, Silesia Farm: 08:00 и 13:00 UTC) — это показываем отдельно, как настоящее.
 > Сайт хакатона не говорит, куда и в каком виде приносить показ 14 и 20 ноября — это нужно узнать в Discord до 13 ноября. Раздел **«Нужно от пользователя»** в конце написан по-русски, со сроками.
 
 Status: plan. Nothing has been posted, published or submitted.
@@ -30,7 +30,7 @@ Two consequences. First, **there is no pitch in front of a jury**: the entry is 
 
 1. **A working autonomous purchase.** The agent's own payment for `CRYPTO_PRICE_USD` on Sepolia — transaction `0x1c3bc795…76df`, link: https://sepolia.etherscan.io/tx/0x1c3bc795d2cf6d7eb66949a98ebf173d2f59545b7023597f5d363a48829a76df
 2. **What the purchase is used for.** Screenshot `docs/shots/site-detail-receipt.png`: the receipt under "Mining revenue" in the site breakdown.
-3. **That it is not a one-off.** The agent's run log: 47 of 48 hourly slots from 10 November 18:00 UTC to 12 November 17:00 UTC had a purchase (the longest unbroken streak is 44 hours; one gap, 14:00 UTC on 12 November), one purchase an hour — recounted from `runs.jsonl` on 12 Nov 17:35 UTC `[recount on the day]`.
+3. **That it is not a one-off.** The agent's run log: 146 of 147 hourly slots from 10 November 18:00 UTC to 16 November 20:00 UTC had a purchase (the current unbroken streak is 102 hours; one gap, 14:00 UTC on 12 November), one purchase an hour — recounted from `runs.jsonl` on 16 Nov 21:00 UTC `[recount on the day]`.
 4. **The blocker.** `MINING_HASHPRICE_VERIFY_GENERAL` and `GRID_POWER_PRICE_GENERAL` for ERCOT hubs: paid, settled, values empty. Raw answers: `docs/evidence/first-hashprice.json`, `docs/evidence/second-queries.json`.
 5. **One question to the organisers** — the reason to post at all: which request returns hashprice and ERCOT values on the devnode?
 
@@ -39,7 +39,7 @@ Two consequences. First, **there is no pitch in front of a jury**: the entry is 
 > **Hash or Lease — Mission 12, Mining and Power (Apps & Agents)**
 > Hourly allocation call per mining site: Mine / Lease to AI / Switch off, with a receipt under every input.
 >
-> **Integration: working.** An hourly agent buys `CRYPTO_PRICE_USD` from the devnode over x402 (test USDC, Sepolia) with no human in the loop, and makes no call without a fresh receipt. It has run `[27]` hours in a row at one purchase per hour. Example payment: https://sepolia.etherscan.io/tx/0x1c3bc795d2cf6d7eb66949a98ebf173d2f59545b7023597f5d363a48829a76df
+> **Integration: working.** An hourly agent buys `CRYPTO_PRICE_USD` from the devnode over x402 (test USDC, Sepolia) with no human in the loop, and makes no call without a fresh receipt. It has run `[102]` hours in a row at one purchase per hour (146 of 147 hourly slots since Nov 10; count as of 16 Nov 21:00 UTC, `[recount on the day]`). Example payment: https://sepolia.etherscan.io/tx/0x1c3bc795d2cf6d7eb66949a98ebf173d2f59545b7023597f5d363a48829a76df
 >
 > **Blocker.** `MINING_HASHPRICE_VERIFY_GENERAL` and `GRID_POWER_PRICE_GENERAL` (`HB_HOUSTON`, `HB_WEST`) settle and return receipts, but the value fields are `null` / `missing`. The hashprice request is routed to a pool-statistics miner, the ERCOT requests to a CAISO grid miner. Raw answers are in the repo under `docs/evidence/`. Until this changes we compute hashprice ourselves and use public European day-ahead prices, and label both on screen as not bought via Telegraph.
 >
@@ -68,8 +68,8 @@ Open beforehand: the app in live mode (tab 1), a Sepolia transaction page (tab 2
 | 1 | 0:00–0:30 | Places, live mode | "Hash or Lease, Mission 12. Every hour, for every mining site: mine, lease to AI, or switch off — in dollars." |
 | 2 | 0:30–1:15 | Open Leipzig Hub → options → "Where the numbers come from" | "Three options in dollars per megawatt-hour and the formula. Each number says where it came from." |
 | 3 | 1:15–2:00 | Click ✓ on Mining revenue → receipt → tab 2 | "This one is bought through Telegraph over x402: provider, time, one cent of test USDC, settled on Sepolia. Power is a public source and is labelled so." |
-| 4 | 2:00–2:40 | Usage → "Hourly agent" card and paid requests | "No one clicks 'buy'. The agent has run since 10 November: 47 of the first 48 hours, one purchase an hour (recount on the day), under a daily limit. No fresh receipt — no call; it logs a pause." |
-| 5 | 2:40–3:15 | Tab 3, **Demo day** → **Play the day**. Let it run to 11:00 (green "Call changed: Lease to AI → Mine") and 16:00 (purple "Mine → Lease to AI"); pause, scroll to the highlighted rows and the bot preview. | "In our live week no call changed — power was too expensive for mining. So here is a simulated day on demo data: invented prices, same agent. Midday dip — mine. Evening ramp — back to the lease. Every hour has a reason, and this is the alert the bot sends." *(Say "demo data" out loud.)* |
+| 4 | 2:00–2:40 | Usage → "Hourly agent" card and paid requests | "No one clicks 'buy'. The agent has run since 10 November: 146 of 147 hours by 16 November, one purchase an hour (recount on the day), under a daily limit. No fresh receipt — no call; it logs a pause." |
+| 5 | 2:40–3:15 | Tab 3, **Demo day** → **Play the day**. Let it run to 11:00 (green "Call changed: Lease to AI → Mine") and 16:00 (purple "Mine → Lease to AI"); pause, scroll to the highlighted rows and the bot preview. | "In our live run the call changed twice, on 15 November at Silesia Farm — but it never flipped to mining. So here is a simulated day on demo data: invented prices, same agent. Midday dip — mine. Evening ramp — back to the lease. Every hour has a reason, and this is the alert the bot sends." *(Say "demo data" out loud.)* |
 | 6 | 3:15–3:50 | Terminal: `npm run agent -- --mode=mock --once --state=limit` | "And the limit, also on demo data: it stops before paying." |
 | 7 | 3:50–4:30 | Repo page, `docs/JUDGE.md` | "What we need: a miner that returns hashprice and ERCOT prices — those Intents come back empty for us. And two or three people who run mining hardware to tell us what the call gets wrong. Five minutes to run, no wallet." |
 
@@ -115,7 +115,7 @@ This is the showing that is scored. A reviewer needs to: run it with a new input
 
 - [ ] **Clean-machine rehearsal:** a fresh clone in an empty folder, following `docs/JUDGE.md` word for word — demo mode, the agent on demo data, tests. Fix anything that does not match the text.
 - [ ] **Refresh the evidence:** copy the current ledger and the agent's run and decision logs into `docs/evidence/`. The repo holds 9 November only; the 27-hour run is not in it yet.
-- [ ] **Bring `docs/JUDGE.md` up to date** with the multi-day run (it still describes single cycles on 9 November).
+- [ ] **Bring `docs/JUDGE.md` up to date** with the multi-day run (fixed on 16 November: JUDGE.md now has the multi-day run, 95 tests and the two live changes of call).
 - [ ] **A reviewer-access link that works without us:** the public repo is enough for demo mode. A hosted demo is optional — see "Нужно от пользователя", item 5.
 - [ ] **Keep the agent running** through the judging week, so the history a reviewer opens is current.
 
@@ -125,10 +125,10 @@ This is the showing that is scored. A reviewer needs to: run it with a new input
 
 Found while preparing these materials; each one is a decision for the owner or the project head, not something this document changes.
 
-1. **The live call never changes.** In all 47 hourly cycles from 10 to 12 November (no call change recorded in `runs.jsonl`) all three example sites kept the same call: with power at $189–610/MWh, mining never wins. A viewer sees "Lease / Switch off / Keep as is" and never "Mine", and the change alert has never fired live. *Addressed on 12 November (owner's decision) with the demo day:* an invented site and an invented day of prices on which the call changes twice — screen `/demo-day`, `npm run demo:day`, bot `/demo`, details in `docs/demo-day/README.md`. *What remains true:* it is a simulation. The live call has still not changed, the application says so (B6, B7), and the demo day must never be shown or described as live data.
+1. **The live call almost never changes (as of 12 November, 47 hourly cycles: never; since then two changes).** On 15 November Silesia Farm went Switch off → Lease to AI (08:00 UTC) and back (13:00 UTC), recorded with `changed: true` and one alert each; Leipzig Hub and the fixed-tariff rig never changed and no live call has ever been "Mine" (power $14.52–664.25/MWh against mining revenue of about $50–74/MWh). A viewer sees "Lease / Switch off / Keep as is" and never "Mine". *Addressed on 12 November (owner's decision) with the demo day:* an invented site and an invented day of prices on which the call changes twice — screen `/demo-day`, `npm run demo:day`, bot `/demo`, details in `docs/demo-day/README.md`. *What remains true:* it is a simulation, and the "Mine" flip has not happened live. The application says so (B6, B7), and the demo day must never be shown or described as live data.
 2. **One of five inputs is bought through Telegraph.** Telegraph integration is worth only 5 points, but technical quality (35, minimum 24) is judged with "mainnet readiness" in mind. *Suggested:* the cheap `WEB_SEARCH` probe for lease-rate comparables and the CAISO probe for `GRID_POWER_PRICE`, both already in the project queue — each success turns a "Public source" label into a receipt.
 3. **No outside users** — 10 points for adoption and up to 4 of the growth points depend on an independent person doing something. See item 4 in the list below.
-4. **`docs/SUBMISSION.md` is partly out of date** (test count, "single cycles on one evening"). `application.md` in this folder is the current text.
+4. **`docs/SUBMISSION.md` is partly out of date** (test count, "single cycles on one evening"). `application.md` in this folder is the current text. (Update 16 November: the test count and the "single cycles on one evening" wording in `SUBMISSION.md` are fixed.)
 
 ---
 

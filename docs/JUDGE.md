@@ -43,7 +43,9 @@ Expected output (real log from 2026-11-09):
 
 The Usage screen then shows an "Hourly agent" card with the last run. Without `--once` the agent keeps running and repeats every hour at hh:01 UTC (retry in 10 minutes after a failure; `Ctrl+C` stops it; a second copy refuses to start).
 
-**See a call change (demo data, 30 seconds).** In our live run no call has changed yet, so this is shown on an invented site with an invented day of prices, run through the same agent cycle:
+**Live changes of call.** The live run recorded two, both on 15 Nov 2026 at Silesia Farm: 08:00 UTC Switch off → Lease to AI and 13:00 UTC Lease to AI → Switch off (History → filter *7 d* → *Changed from…*; or `grep '"changed":true' data/agent/live/decisions.jsonl`). No live call has ever been Mine.
+
+**See a Mine flip (demo data, 30 seconds).** That flip never happened live, so it is shown on an invented site with an invented day of prices, run through the same agent cycle:
 
 ```
 npm run demo:day -- --speed=0
@@ -54,7 +56,7 @@ It prints 24 simulated hours with the reason for each, and the two bot alerts (`
 Checks:
 
 ```
-npm test            # 94 tests: decision logic, agent cycle, demo day, bot messages, site storage, spend limit, request rate
+npm test            # 95 tests: decision logic, agent cycle, demo day, bot messages, site storage, spend limit, request rate
 npm run typecheck
 npm run build
 ```
@@ -118,7 +120,7 @@ That transaction is the agent's own purchase from 2026-11-09 19:57 UTC: `status 
 
 ### What is in the ledger
 
-127 requests, all on 2026-11-09: **94 paid ($0.94)** and 33 unpaid with no settlement (1 × `400`, 18 × `402 payment required`, 14 × `504`). By origin: 8 manual probes 05:27–05:36 UTC (7 paid); 1 first live check at 05:39; **a burst of 107 requests 05:39:58–05:41:31** (75 paid and all 32 of the 402/504) — our first live build under parallel headless-browser screenshots, when concurrent page loads each started their own BTC-price purchase because that version had no shared in-flight request and its limit check did not count payments in flight, so spend went past the $0.50 limit set then; fixed at 05:41 (one shared snapshot, in-flight reservation), the file lock came later. The devnode rate limit (60 new questions per client per minute) was not what failed: there is no `429` in the ledger, and every request in the burst repeated the same question, which the node does not count; most `402`s (15 of 17) are settlements the facilitator could not complete ("payment was verified but could not be settled") while many payments from one wallet were in flight, and the `504`s are gateway timeouts. Since 2026-11-10 the client also refuses a 31st request within any minute (`src/lib/live/telegraph.ts`); then 11 single purchases (8 by the app during development, 3 by the hourly agent at 19:57, 20:04 and 20:19). Three more paid probes ran before the ledger existed and are in `docs/evidence/first-hashprice.json` and `docs/evidence/second-queries.json`. Agent runs and decisions of that day: `docs/evidence/agent-runs.jsonl`, `docs/evidence/agent-decisions.jsonl`.
+127 requests, all on 2026-11-09: **94 paid ($0.94)** and 33 unpaid with no settlement (1 × `400`, 18 × `402 payment required`, 14 × `504`). By origin: 8 manual probes 05:27–05:36 UTC (7 paid); 1 first live check at 05:39; **a burst of 107 requests 05:39:58–05:41:31** (75 paid and all 32 of the 402/504) — our first live build under parallel headless-browser screenshots, when concurrent page loads each started their own BTC-price purchase because that version had no shared in-flight request and its limit check did not count payments in flight, so spend went past the $0.50 limit set then; fixed at 05:41 (one shared snapshot, in-flight reservation), the file lock came later. The devnode rate limit (60 new questions per client per minute) was not what failed: there is no `429` in the ledger, and every request in the burst repeated the same question, which the node does not count; most `402`s (15 of 17) are settlements the facilitator could not complete ("payment was verified but could not be settled") while many payments from one wallet were in flight, and the `504`s are gateway timeouts. Since 2026-11-10 the client also refuses a 31st request within any minute (`src/lib/live/telegraph.ts`); then 11 single purchases (8 by the app during development, 3 by the hourly agent at 19:57, 20:04 and 20:19). Three more paid probes ran before the ledger existed and are in `docs/evidence/first-hashprice.json` and `docs/evidence/second-queries.json`. Agent runs and decisions of that day: `docs/evidence/agent-runs.jsonl`, `docs/evidence/agent-decisions.jsonl`. Whole ledger as of 16 Nov 21:00 UTC: 279 requests, 242 paid ($2.42 test USDC) — the 94 of 9 Nov plus 148 hourly-agent purchases from 10–16 Nov (7 / 24 / 23 / 24 / 24 / 24 / 22 per day; `node scripts/recount.mjs 2026-11-16T21:00:00Z`).
 
 ## 5. Break it (reasonable failures)
 
@@ -151,8 +153,8 @@ Without a token the agent prints the alerts it would have sent (`alert (bot not 
 - The daily limit stops purchases before payment (live runs with limits $0.50 and $0.01 while $0.92–0.93 was spent: 0 payments, all places paused; on 2026-11-10 `DAILY_SPEND_LIMIT_USD=0` on a clean copy with an empty ledger and no wallet key: 0 payments, all places paused; unit test `src/lib/live/telegraph.test.ts`).
 - Telegraph unreachable → no call, banner and alerts, no payment.
 - All screens in demo and live mode open without console errors (68 demo + 17 live automated browser checks, desktop and a 390 px phone viewport).
-- `npm test` (94 tests as of 2026-11-12), `npm run typecheck`, `npm run build` pass.
-- Demo day (2026-11-12): `npm run demo:day` and the `/demo-day` screen show two changes of call on invented prices; desktop and a 390 px phone viewport, no console errors. This verifies the mechanism, not live behaviour.
+- `npm test` (95 tests in 11 files as of 2026-11-16), `npm run typecheck`, `npm run build` pass.
+- Demo day (2026-11-12): `npm run demo:day` and the `/demo-day` screen show two changes of call on invented prices (Lease to AI → Mine → Lease to AI); desktop and a 390 px phone viewport, no console errors. This verifies the mechanism, not live behaviour.
 
 **Network:** testnet only — Telegraph devnode + Ethereum Sepolia (test USDC). Nothing ran on mainnet.
 
@@ -161,6 +163,6 @@ Without a token the agent prints the alerts it would have sent (`alert (bot not 
 - Telegraph hashprice and ERCOT power intents returned empty numbers on the devnode, so hashprice is computed by us and power comes from Energy-Charts (Europe). US (ERCOT) sites work only in demo mode.
 - AI lease rates are operator input; the Telegraph `WEB_SEARCH` "market guide" is shown only in demo mode.
 - The Telegram bot is implemented, its messages are tested, and it runs as @hashorlease_bot (1 subscriber); delivery of a message to Telegram has **not** been verified yet (status of 12 Nov).
-- **No call has changed in live operation** (power stayed at $189–610/MWh, far above mining revenue), so the change alert has not fired live. The change of call is demonstrated only on the demo day, with invented prices.
+- **Live changes of call: two, no live call was ever Mine.** Both are at Silesia Farm on 15 Nov 2026 (08:00 and 13:00 UTC; recounted 16 Nov 21:00 UTC). Power ranged $99.96–495.45/MWh at Leipzig Hub and $14.52–664.25/MWh at Silesia Farm; mining revenue (Mine option plus power price) stayed at $50–74/MWh, so Mine never beat the other options. The agent logged both changes and one alert each (`notified: 1` in `runs.jsonl`); delivery of those messages to Telegram has **not** been verified. The Mine flip is demonstrated only on the demo day, with invented prices.
 - The app has no login; the site API and "Refresh now" (throttled to once per 2 minutes, capped by the daily limit) are meant for a local or single-operator install, not a public deployment.
 - History hours before the agent started are recomputed from past day-ahead prices with today's mining income; only hours tagged "Agent call" were decided live.

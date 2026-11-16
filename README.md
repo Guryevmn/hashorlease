@@ -49,7 +49,7 @@ Places (`/`), site (`/sites/<id>`), edit site (`/sites/<id>/edit`), History (`/f
 
 ## Demo day
 
-In the live run no call has changed yet (power stayed far above what mining earns), so the moment a call flips is shown on **demo data**: one invented site, one invented day of prices, 24 simulated hours through the same agent cycle. The call goes Lease to AI → Mine at 11:00 and back at 16:00, each time with the reason.
+In the live run the call changed twice, both on 15 Nov 2026 at Silesia Farm (Switch off → Lease to AI at 08:00 UTC, back to Switch off at 13:00 UTC, each with the reason in the journal). No live call has ever been Mine, so that flip is shown on **demo data**: one invented site, one invented day of prices, 24 simulated hours through the same agent cycle. The call goes Lease to AI → Mine at 11:00 and back at 16:00, each time with the reason.
 
 ```
 npm run demo:day                 # 24 simulated hours, 5 s each (2 minutes); journal → data/agent/demo/
@@ -124,7 +124,7 @@ npm run agent -- --mode=live --once --fresh    # skip the cached snapshot — to
 - The agent decides only from the snapshot of the current UTC hour: when running every hour, that is one purchase per hour.
 - The Telegram bot runs as @hashorlease_bot, but delivery of messages to Telegram has not been verified yet.
 - Time in the demo is fixed: 8 Nov 2026, 14:04 UTC.
-- No call has changed in live operation yet. The change of call is shown on the demo day (`/demo-day`): invented prices on an invented site, chosen so that the power price crosses the break-even point; it is not evidence of live behaviour.
+- Live operation (recounted 16 Nov 2026, 21:00 UTC) shows two changes of call, both at Silesia Farm on 15 Nov (08:00 and 13:00 UTC); Leipzig Hub and the fixed-tariff rig never changed, and no live call has ever been Mine. The Mine flip is shown on the demo day (`/demo-day`): invented prices on an invented site, chosen so that the power price crosses the break-even point; it is not evidence of live behaviour. Delivery of the change alerts to Telegram has not been verified.
 
 ## License
 
