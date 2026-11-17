@@ -58,12 +58,24 @@ export function hashpriceUsdPerPhDay(n: { btcUsd: number; hashratePhs: number; a
   return Math.round(((144 * n.avgRewardBtc * n.btcUsd) / n.hashratePhs) * 100) / 100;
 }
 
-async function telegraphBtcPrice(): Promise<{ price: number; tx: string | null; miner?: string; at: string } | { error: string; limit: boolean }> {
+async function telegraphBtcPrice(): Promise<
+  { price: number; tx: string | null; hash: string | null; proofUrl: string | null; miner?: string; at: string } | { error: string; limit: boolean }
+> {
   try {
     const r = await ask({ query: "What is the current price of Bitcoin (BTC) in USD?" }, "All sites");
     const price = (r.body?.result as { price_usd?: number } | undefined)?.price_usd;
-    if (r.status !== 200 || typeof price !== "number" || !r.tx) return { error: `Telegraph answered ${r.status} without a price`, limit: false };
-    return { price, tx: r.tx, miner: r.body?.miner_name as string | undefined, at: (r.body?.timestamp as string | undefined) ?? new Date().toISOString() };
+    if (r.status !== 200 || typeof price !== "number" || !r.paid) {
+      const reason = typeof r.body?.reason === "string" ? `: ${r.body.reason}` : " without a price";
+      return { error: `Telegraph answered ${r.status}${reason}`, limit: false };
+    }
+    return {
+      price,
+      tx: r.tx,
+      hash: r.tx ?? r.receiptHash ?? ((r.body?.signal_hash as string | undefined) ?? null),
+      proofUrl: r.proofUrl,
+      miner: r.body?.miner_name as string | undefined,
+      at: (r.body?.timestamp as string | undefined) ?? new Date().toISOString(),
+    };
   } catch (e) {
     return { error: e instanceof Error ? e.message : String(e), limit: e instanceof SpendLimitError };
   }
@@ -178,8 +190,8 @@ async function buildSnapshot(): Promise<{ snapshot: MarketSnapshot; fx: number }
         provider: tg.miner,
         fetchedAt: tg.at,
         costUsd: 0.01,
-        hash: tg.tx ? shortHash(tg.tx) : undefined,
-        proofUrl: tg.tx ? `https://sepolia.etherscan.io/tx/${tg.tx}` : undefined,
+        hash: tg.hash ? shortHash(tg.hash) : undefined,
+        proofUrl: tg.proofUrl ?? undefined,
         source: `BTC $${Math.round(tg.price).toLocaleString("en-US")} via Telegraph; hashrate ${(net.hashratePhs / 1000).toFixed(0)} EH/s and rewards from mempool.space`,
       }),
     };

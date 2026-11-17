@@ -127,7 +127,7 @@ export function ReceiptChip({ receipt, now }: { receipt: Receipt; now: string })
                 <dd>
                   {r.proofUrl ? (
                     <a href={r.proofUrl} target="_blank" rel="noreferrer" style={{ textDecoration: "underline" }}>
-                      {r.status === "public" ? "Open source ↗" : "View payment on Sepolia ↗"}
+                      {r.status === "public" ? "Open source ↗" : r.proofUrl.includes("etherscan.io") ? "View payment on Sepolia ↗" : "View Telegraph receipt ↗"}
                     </a>
                   ) : (
                     <span className="muted">{r.hash ? "View proof ↗ (not available in demo)" : "No proof link"}</span>

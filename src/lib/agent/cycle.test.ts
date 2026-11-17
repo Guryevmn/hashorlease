@@ -118,6 +118,33 @@ describe("runCycle", () => {
     expect(back.messages.map((m) => m.kind)).toEqual(["network-back"]);
   });
 
+  it("a long outage: a reminder every 6 hours with the duration, not every cycle", async () => {
+    const store = memoryStore();
+    let t = NOW.getTime();
+    const d = deps(store, snap("error"), { now: () => new Date(t) });
+    const kinds: string[][] = [];
+    for (let i = 0; i < 80; i++) {
+      // every 10 minutes, ~13 hours like on 17.11
+      const r = await runCycle(d);
+      kinds.push(r.messages.map((m) => m.kind));
+      t += 10 * 60_000;
+    }
+    const sent = kinds.flatMap((k, i) => k.map((kind) => ({ i, kind })));
+    expect(sent.map((s) => s.kind)).toEqual(["network", "network", "network"]);
+    expect(sent.map((s) => s.i)).toEqual([1, 37, 73]); // 2nd failure, then +6 h, +12 h
+    const back = await runCycle(deps(store, snap("default"), { now: () => new Date(t) }));
+    expect(back.messages.map((m) => m.kind)).toEqual(["network-back"]);
+    expect(store.readAlerts().networkDownSince).toBeUndefined();
+  });
+
+  it("the reminder says how long the data has been missing", async () => {
+    const store = memoryStore();
+    store.writeAlerts({ networkDown: true, networkFails: 40, networkDownSince: "2026-11-08T07:01:00.000Z", networkAlertedAt: "2026-11-08T07:11:00.000Z" });
+    const r = await runCycle(deps(store, snap("error")));
+    expect(r.messages).toHaveLength(1);
+    expect(plainText(r.messages[0].text)).toContain("7 h");
+  });
+
   it("a single failed cycle followed by success sends nothing at all", async () => {
     const store = memoryStore();
     const a = await runCycle(deps(store, snap("error")));

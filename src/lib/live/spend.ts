@@ -1,5 +1,5 @@
 import type { SpendLogEntry, SpendState } from "../types";
-import { dailyLimitUsd, readLedger, spentTodayUsd } from "./telegraph";
+import { dailyLimitUsd, isPaidRow, proofUrlOf, readLedger, spentTodayUsd } from "./telegraph";
 
 const SERVICE_LABEL: Record<string, string> = { CRYPTO_PRICE_USD: "CRYPTO_PRICE_USD" };
 
@@ -27,9 +27,9 @@ export function liveSpendState(): Omit<SpendState, "stopAtLimit" | "alertAtPct" 
       siteName: r.purpose ?? "—",
       provider: r.miner_name ?? undefined,
       costUsd: r.cost_usd,
-      status: r.tx ? ("paid" as const) : ("failed" as const),
-      hash: r.tx ? `${r.tx.slice(0, 6)}…${r.tx.slice(-4)}` : undefined,
-      proofUrl: r.tx ? `https://sepolia.etherscan.io/tx/${r.tx}` : undefined,
+      status: isPaidRow(r) ? ("paid" as const) : ("failed" as const),
+      hash: paidHash(r),
+      proofUrl: isPaidRow(r) ? (proofUrlOf(r) ?? undefined) : undefined,
     }));
 
   return {
@@ -42,4 +42,11 @@ export function liveSpendState(): Omit<SpendState, "stopAtLimit" | "alertAtPct" 
     byService: [...by.entries()].map(([service, v]) => ({ service: SERVICE_LABEL[service] ?? service, requests: v.requests, costUsd: Math.round(v.costUsd * 100) / 100 })),
     log,
   };
+}
+
+/** Short hash of a paid row: the Sepolia tx (x402) or the Telegraph receipt (escrow). */
+function paidHash(r: ReturnType<typeof readLedger>[number]): string | undefined {
+  if (!isPaidRow(r)) return undefined;
+  const h = r.tx ?? r.receipt_hash ?? r.signal_hash;
+  return h ? `${h.slice(0, 6)}…${h.slice(-4)}` : undefined;
 }

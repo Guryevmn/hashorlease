@@ -4,7 +4,7 @@
 import { mockAgentSnapshot, mockSeedSites, type MockState } from "../data/mock";
 import { getFreshSnapshot, getLiveSnapshot } from "../live/market";
 import { readSites } from "../live/sites";
-import { dailyLimitUsd, readLedger, spentTodayUsd } from "../live/telegraph";
+import { isPaidRow, dailyLimitUsd, readLedger, spentTodayUsd } from "../live/telegraph";
 import { createTelegramNotifier } from "../bot/notify";
 import { publicAppUrl } from "../bot/messages";
 import { runCycle, type CycleDeps, type CycleResult } from "./cycle";
@@ -49,7 +49,7 @@ export function createDeps(opts: RunnerOptions): CycleDeps {
       ...common,
       loadSites: () => readSites(),
       getSnapshot: () => (opts.fresh ? getLiveSnapshot(true) : getFreshSnapshot()),
-      spend: () => ({ spentUsd: spentTodayUsd(), limitUsd: dailyLimitUsd(), paidRequests: readLedger().filter((r) => r.tx).length }),
+      spend: () => ({ spentUsd: spentTodayUsd(), limitUsd: dailyLimitUsd(), paidRequests: readLedger().filter(isPaidRow).length }),
     };
   }
   const state = opts.state ?? "default";
