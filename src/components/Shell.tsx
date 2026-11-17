@@ -50,7 +50,7 @@ export function Shell({ children }: { children: ReactNode }) {
             })}
           </nav>
           {!demoDay && (
-            <AppLink href="/spend" className={`spent num ${s?.limitReached ? "over" : ""}`}>
+            <AppLink href="/spend" className={`badge spent num ${s?.limitReached ? "over" : ""}`}>
               {s ? <><span className="spent-label">Spent today </span>{usd(s.spentUsd)} / {usd(s.limitUsd)}</> : <Skel w={150} />}
             </AppLink>
           )}

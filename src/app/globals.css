@@ -85,15 +85,21 @@ p { margin: 0; }
 .nav { display: flex; gap: var(--s1); flex: 1 1 auto; flex-wrap: wrap; }
 .nav a { padding: var(--s2) var(--s3); border-radius: var(--r1); color: var(--muted); font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 500; }
 .nav a[aria-current="page"] { background: var(--off-bg); color: var(--text); font-weight: 600; }
-.spent { margin-left: auto; font-size: var(--t-sub); line-height: var(--lh-sub); padding: var(--s1) var(--s3); border: 1px solid var(--line); border-radius: 999px; }
-.spent.over { border-color: var(--bad); color: var(--bad); }
+.spent { margin-left: auto; background: #f1f3f5; color: var(--text); }
+.spent.over { background: var(--bad-bg); color: var(--bad); }
 .demo-strip { background: #fde68a; border-bottom: 1px solid #f1c84a; color: #4a3600; text-align: center; font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 600; padding: var(--s2) var(--s3); }
 .main { max-width: 960px; margin: 0 auto; padding: var(--s5) var(--s4) 80px; }
 .footer { max-width: 960px; margin: 0 auto; padding: 0 var(--s4) 40px; font-size: var(--t-cap); line-height: var(--lh-cap); color: var(--muted); }
 .footer a { text-decoration: underline; margin-right: var(--s2); }
 .footer a[aria-current="true"] { font-weight: 700; color: var(--text); }
 
-.badge { display: inline-flex; align-items: center; gap: var(--s1); font-size: var(--t-cap); line-height: var(--lh-cap); font-weight: 700; padding: var(--s1) 10px; border-radius: 999px; border: 0; white-space: nowrap; letter-spacing: 0; }
+/* Chip: the one chip style for the whole app (header, decision, "was …", option strip, status tags).
+   Same height, padding, radius, size and weight everywhere; only the color pair changes. */
+.badge { display: inline-flex; align-items: center; justify-content: center; gap: var(--s1); height: 28px; padding: 0 10px; border-radius: 999px; border: 0; font-size: var(--t-cap); line-height: var(--lh-cap); font-weight: 600; letter-spacing: 0; white-space: nowrap; font-variant-numeric: tabular-nums; flex: none; vertical-align: middle; }
+/* Icons in a chip are sized to the 13 px text, whatever size the component asked for. */
+.badge svg { width: 14px; height: 14px; flex: none; stroke-width: 2.25; }
+/* The power glyph is a full circle and reads larger than the server glyph at the same box: optical correction. */
+.badge svg.lucide-power { width: 13px; height: 13px; }
 .badge.testnet { background: #fff0e0; color: #8a4b00; }
 .badge.demo { background: #fde68a; color: #5c4400; }
 .badge.stale { background: var(--warn-bg); color: var(--warn); }
@@ -131,7 +137,8 @@ p { margin: 0; }
 .site-card:hover { border-color: #b8c0cc; }
 .site-head { display: flex; justify-content: space-between; gap: var(--s3); align-items: flex-start; }
 .site-title { min-width: 0; }
-.pill { padding: var(--s2) var(--s3); font-size: var(--t-sub); line-height: var(--lh-sub); flex: none; }
+.pill { flex: none; }
+.pills { display: flex; align-items: center; gap: var(--s2); flex: none; }
 .decision { display: inline-flex; align-items: center; gap: var(--s2); font-size: var(--t-title2); line-height: var(--lh-title2); font-weight: 700; letter-spacing: var(--tr-title2); margin: var(--s3) 0 var(--s1); }
 .decision.mine { color: var(--mine); }
 .decision.lease { color: var(--lease); }
@@ -229,9 +236,6 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 .menu-list button:disabled { color: var(--muted); cursor: not-allowed; }
 
 .opts { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--s2); margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--line); }
-.opt { display: flex; flex-direction: column; font-size: var(--t-sub); line-height: var(--lh-sub); }
-.opt .muted { font-size: var(--t-cap); line-height: var(--lh-cap); }
-.opt.best span:last-child { font-weight: 700; }
 .verdict { margin: var(--s2) 0; font-size: var(--t-body); line-height: var(--lh-body); }
 
 /* Phone: bottom tab bar, compact header */
@@ -241,7 +245,6 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
   .header .badge.testnet { display: none; }
   .nav { position: fixed; left: var(--s4); right: var(--s4); bottom: calc(var(--s3) + env(safe-area-inset-bottom)); z-index: 20; background: rgba(255,255,255,.78); -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(15,23,42,.06); border-radius: var(--r3); box-shadow: 0 8px 32px rgba(15,23,42,.14); padding: var(--s1); gap: var(--s1); flex-wrap: nowrap; }
   .nav a { flex: 1; text-align: center; padding: var(--s3) var(--s2); border-radius: 24px; }
-  .spent { padding: var(--s1) var(--s2); white-space: nowrap; }
   .demo-strip { text-align: left; padding: var(--s1) var(--s3); }
   .main { padding: var(--s4) var(--s3) 112px; }
   .hero .big { font-size: var(--t-title1); line-height: var(--lh-title1); }
@@ -318,15 +321,18 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 /* Site card: options are a compact strip with a unit caption, the winner tinted in its decision color. */
 .opts { grid-auto-flow: column; grid-auto-columns: max-content; grid-template-columns: none; justify-content: start; gap: var(--s2); align-items: center; }
 .opts-cap { font-size: var(--t-cap); line-height: var(--lh-cap); color: var(--muted); margin-right: var(--s2); }
-.opt { flex-direction: row; align-items: baseline; gap: var(--s2); padding: var(--s1) var(--s3); border-radius: 999px; background: #f4f5f7; }
-.opt .muted { font-size: var(--t-cap); }
+/* Each option is a chip: label in a quieter color, same size and weight as the value. */
+/* Filled = the current decision; outlined = the other options and the past one ("was …"). */
+.badge.opt, .badge.was { background: transparent; box-shadow: inset 0 0 0 1px #d6dbe2; color: var(--text); }
+.badge.was { color: var(--muted); }
+.badge.opt .opt-label { color: var(--muted); }
+.opt.best { box-shadow: none; }
 .opt.best.mine { background: var(--mine-bg); color: var(--mine); }
 .opt.best.lease { background: var(--lease-bg); color: var(--lease); }
 .opt.best.off { background: var(--off-bg); color: var(--off); }
-.opt.best .muted { color: inherit; }
+.opt.best .opt-label { color: inherit; opacity: .72; }
 /* Usage: a value set on the server reads as text with a lock, not as an editable field. */
 .static-value { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s2) var(--s3); min-height: 40px; font-size: var(--t-head); line-height: var(--lh-head); font-weight: 600; }
-.lock-note { display: inline-flex; align-items: center; gap: var(--s1); padding: 2px var(--s2); border-radius: 999px; background: var(--off-bg); color: var(--muted); font-size: var(--t-cap); line-height: var(--lh-cap); font-weight: 600; }
 /* Add place: segmented control hugs its options instead of stretching; a hint sits next to its field. */
 .card.stack > .field + .hint { margin-top: calc(-1 * var(--s3)); }
 .field > .seg { align-self: flex-start; }
@@ -341,18 +347,18 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 }
 .mark-btn { min-height: 28px; font-size: var(--t-cap); line-height: var(--lh-cap); }
 .feed-row .status:empty { display: none; }
+/* Variant A: a decision change is a quiet line, not a second chip. */
+.change-line { display: flex; align-items: center; margin-top: var(--s3); color: var(--muted); font-size: var(--t-cap); line-height: var(--lh-cap); font-weight: 500; }
+.change-line .dot { width: 6px; height: 6px; margin-right: var(--s2); }
 @media (max-width: 640px) {
   /* Phone header fits 390 px: no "Spent today" label, the amount stays. */
   .spent-label { display: none; }
-  .header .badge { padding: 2px var(--s2); }
   .demo-strip-inner { padding: 0; }
   .site-title-bar { flex-wrap: nowrap; align-items: flex-start; }
   .site-title-bar h1 { font-size: var(--t-title2); line-height: var(--lh-title2); }
   .menu-label { display: none; }
   .opts { grid-auto-flow: row; grid-template-columns: repeat(3, max-content); }
   .opts-cap { grid-column: 1 / -1; }
-  .opt { padding: 2px var(--s2); }
-  /* Card head: decision pills go under the name instead of squeezing it into three lines. */
-  .site-card .site-head { flex-direction: column; gap: var(--s2); }
-  .site-card .pills { justify-content: flex-start; flex-direction: row-reverse; }
+  /* Card head: the decision chip stays right of the name; a "was …" chip (variant B) stacks under it. */
+  .site-card .pills { flex-direction: column; align-items: flex-end; gap: var(--s1); }
 }

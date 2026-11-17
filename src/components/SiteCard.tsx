@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { AppLink } from "./DataProvider";
 import { Equal } from "lucide-react";
 import { DecisionIcon, Skel } from "./ui";
@@ -16,6 +17,8 @@ export function updatedAt(r: SiteReport): string {
 
 export function SiteCard({ report }: { report: SiteReport }) {
   const { site, result } = report;
+  const changeStyle = useChangeStyle();
+  const changedAt = result && result.ok && result.changed ? utcTime(report.asOf.slice(0, 13) + ":00:00Z") : null;
   const sub =
     site.kind === "grid" ? `${site.nodeLabel} · ${site.mw} MW` : `${site.nodeLabel} · ${Math.round(site.mw * 1000)} kW`;
 
@@ -30,14 +33,14 @@ export function SiteCard({ report }: { report: SiteReport }) {
           <span className="badge paused pill">On hold</span>
         ) : (
           <div className="pills">
-            {result.changed && report.previousDecision && (
-              <span className="badge keep pill num" title={`Changed at ${utcTime(report.asOf.slice(0, 13) + ":00:00Z")} UTC`}>was {DECISION_LABEL[report.previousDecision]}</span>
-            )}
             {result.keepAsIs && <span className="badge calm pill">Keep as is</span>}
             <span className={`badge ${result.chosen} pill`}>
-              <DecisionIcon d={result.chosen} />
+              <DecisionIcon d={result.chosen} size={14} />
               {DECISION_LABEL[result.chosen]}
             </span>
+            {changeStyle === "chip" && changedAt && report.previousDecision && (
+              <span className="badge was pill" title={`Changed at ${changedAt} UTC`}>was {DECISION_LABEL[report.previousDecision]}</span>
+            )}
           </div>
         )}
       </div>
@@ -67,6 +70,12 @@ export function SiteCard({ report }: { report: SiteReport }) {
             {result.options.lease !== null && <Opt label="Lease" value={signedUsd(result.options.lease)} best={result.chosen === "lease"} d="lease" />}
             <Opt label="Off" value={usd(result.options.off, 0)} best={result.chosen === "off"} d="off" />
           </div>
+          {changeStyle === "line" && changedAt && report.previousDecision && (
+            <div className="change-line num">
+              <span className="dot" aria-hidden />
+              Changed from {DECISION_LABEL[report.previousDecision]} · {changedAt}
+            </div>
+          )}
         </>
       )}
     </AppLink>
@@ -75,11 +84,24 @@ export function SiteCard({ report }: { report: SiteReport }) {
 
 function Opt({ label, value, best, d }: { label: string; value: string; best: boolean; d: string }) {
   return (
-    <div className={best ? `opt best ${d}` : "opt"}>
-      <span className="muted">{label}</span>
+    <span className={best ? `badge opt best ${d}` : "badge opt"}>
+      <span className="opt-label">{label}</span>
       <span>{value}</span>
-    </div>
+    </span>
   );
+}
+
+/**
+ * How a decision change shows on the card (design review 2026-11, two variants to choose from):
+ * "line" (A, default) — a quiet "Changed from Mine · 14:00" line under the options;
+ * "chip" (B, open with ?change=chip) — a secondary "was Mine" chip next to the decision.
+ */
+function useChangeStyle(): "line" | "chip" {
+  const [style, setStyle] = useState<"line" | "chip">("line");
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("change") === "chip") setStyle("chip");
+  }, []);
+  return style;
 }
 
 /** Margin that made us keep everything as is, $/MWh. */

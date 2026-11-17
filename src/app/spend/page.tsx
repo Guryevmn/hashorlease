@@ -128,7 +128,7 @@ function SpendBody({
                 <span className="label">Daily limit</span>
                 <div className="static-value num" aria-describedby="limit-hint">
                   {usd(s.limitUsd)}
-                  <span className="lock-note"><Lock size={14} aria-hidden /> Set on the server</span>
+                  <span className="badge keep"><Lock size={14} aria-hidden /> Set on the server</span>
                 </div>
                 <span id="limit-hint" className="hint">
                   To change it, edit <code>DAILY_SPEND_LIMIT_USD</code> and restart. The app can&apos;t raise its own limit.

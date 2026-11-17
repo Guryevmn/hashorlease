@@ -70,7 +70,7 @@ export function DemoDayView({ day, siteLine, breakEven }: { day: DemoDayResult; 
               {rec.keepAsIs && <span className="badge calm pill">Keep as is</span>}
               {rec.decision && (
                 <span className={`badge ${rec.decision} pill`}>
-                  <DecisionIcon d={rec.decision} />
+                  <DecisionIcon d={rec.decision} size={14} />
                   {DECISION_LABEL[rec.decision]}
                 </span>
               )}
