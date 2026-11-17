@@ -8,6 +8,3 @@ export function Logo({ className }: { className?: string }) {
     </svg>
   );
 }
-
-/** Ширина / высота логотипа: для расчёта места в шапке. */
-export const LOGO_ASPECT = 8.7255;
