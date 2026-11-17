@@ -233,35 +233,47 @@ Receipt state variants:
 **Goal:** deliver the decision without opening the app and nudge the user when it changes.
 **Main question:** "Do I need to do anything with the farm right now?"
 
-Format: short text, no tables. Emoji are the same as the decision icons in the app. All messages are in English.
+Format: Telegram HTML. Main things in **bold** (site name, the call, the amount), an empty line between blocks (what was decided / why / numbers), service notes last and in *italics*. Numbers never break in the middle (non-breaking spaces in "+$1,203/h vs. mining"). No tables. Emoji are the same as the decision icons in the app. All messages are in English.
 
 ### Decision-change alert (arrives on its own)
 ```
-🔄 Houston Hub: Mine → Lease to AI
-+$136/h vs. mining · $54.60/MWh
+🔄 **Houston Hub**: Mine → **Lease to AI**
+
+Why: power fell from $40.10 to $32.40/MWh; Lease to AI now beats Mine by $6.80/MWh
+
+**+$136/h vs. mining** · $54.60/MWh
 Power $32.40 · Hashprice $38.50/PH/day
-Receipts: 3 · testnet
-[Open breakdown]  [Snooze 1h]
+
+*Receipts: 3 · testnet*
+[Open breakdown]  [Snooze 1h]  [Receipts]
 ```
+Demo alerts start with "🧪 *Demo data · simulated 16:00 UTC*" and end with "*Demo data · no Telegraph receipts*".
 
 ### The /now command (all sites by default; `/now Houston` — one)
 ```
-Right now · 14:05 UTC
-⚡ Houston Hub — Lease to AI · +$136/h
-⏻ North Ridge — Switch off · saves $119/h
-⛏ My tariff — Mine, keep as is · +$0.03/h
-Spent today: $0.42 of $1.00
+**Right now** · 14:05 UTC
+
+⚡ **Houston Hub**
+Lease to AI · **+$136/h**
+
+⏻ **North Ridge**
+Switch off · **saves $119/h**
+
+⛏ **My tariff**
+Mine, keep as is · **+$0.79/day**
+
+*Spent today: $0.42 of $1.00*
 [Open app]
 ```
-For a single site: add the Mine / Lease / Off lines in $/MWh and "Receipts: 3 · latest 14:00 UTC".
+For a single site: one block, then "Per MWh: Mine +$47.80 · Lease +$54.60 · Off $0" and an italic "Receipts: 3 · testnet · latest 14:00 UTC".
 
 ### Other
-- **/start** (and a repeated /start) — two messages: a greeting ("Alerts are on. I check every hour whether to mine, lease to AI, or switch off, and write here when a call changes." + command list + an "Open app" button), then the current call for every site, same text as /now. No agent entries yet → "The first call will arrive within the next hour." No sites at all → the old text "…Add a site in the app first."
-- **While there are no sites:** "No sites yet. Add one in the app to get calls here."
+- **/start** (and a repeated /start) — two messages. First a greeting in three short blocks: what the bot does and that alerts are on; "Tap **See a demo day** … or **Current calls** …"; an italic note on which sites it tracks ("three example sites: …; sites you add in the web app are not tracked here yet") and the commands. Buttons under it: [See a demo day] [Current calls] (they do the same as /demo and /now), then [Open app] on its own row. Second message: the current call for every site, same text as /now. No agent entries yet → "The first call will arrive within the next hour." No sites at all → the greeting alone.
+- **While there are no sites:** "No sites to report yet."
 - **Close call (no alert):** a change without an alert; in /now the line "Mine, keep as is". Optionally a daily digest — a question for the designer.
-- **Provider error:** "⚠️ North Ridge: grid price unavailable. Last call (13:00): Switch off. Retrying in 10 min."
-- **Spend limit:** "⛔ Daily spend limit reached ($1.00). Calls are paused until 00:00 UTC. [Raise limit]"
-- **Data request failed entirely:** "⚠️ Can't reach Telegraph. I'll keep trying and tell you when it's back."
+- **Provider error:** "⚠️ **North Ridge**: grid price unavailable" · "Last call (13:00): **Switch off**." · "*Retrying in 10 min.*"
+- **Spend limit:** "⛔ **Daily spend limit reached**" · "Limit **$1.00** a day. Calls are paused until 00:00 UTC." [Raise limit]
+- **Data request failed entirely:** "⚠️ **Can't reach Telegraph**" · "I'll keep trying and tell you when it's back."
 - **Receipt in the bot:** a "Receipts" button under the message expands a list: `GRID_POWER_PRICE · m-1f3 · 14:00 UTC · $0.010 · 0x55f8…e138`. We will confirm the receipt format after the first request.
 
 ---

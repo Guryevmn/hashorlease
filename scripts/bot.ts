@@ -1,6 +1,7 @@
 // Hash or Lease Telegram bot (grammY): /start subscribes to alerts and shows the current call right away, /now shows the current decision, /stop unsubscribes.
 // Decision-change alerts are sent by the hourly agent (npm run agent) to those who subscribed here.
 // The bot makes no paid requests: /now reads the agent's latest entries from data/agent/<mode>/.
+// The welcome has two buttons (See a demo day / Current calls) that do the same as /demo and /now.
 // /demo replays the simulated demo day (invented prices, every message marked as demo) into the chat that asked.
 //
 //   npm run bot        # needs HASHORLEASE_BOT_TOKEN in .env; the bot does not start without it
@@ -14,9 +15,10 @@ import { mockSeedSites } from "@/lib/data/mock";
 import { readSites } from "@/lib/live/sites";
 import { dailyLimitUsd, spentTodayUsd } from "@/lib/live/telegraph";
 import { readChats, snooze, subscribe, unsubscribe, writeChats } from "@/lib/bot/chats";
-import { demoDayReplay, nowReply, publicAppUrl, receiptsMessage, welcomeReply, type BotMessage } from "@/lib/bot/messages";
+import { CALLBACK_DEMO, CALLBACK_NOW, demoDayReplay, nowReply, publicAppUrl, receiptsMessage, welcomeReply, type BotMessage } from "@/lib/bot/messages";
 import { demoSiteLine, simulateDemoDay } from "@/lib/demo/day";
 import { keyboardOf } from "@/lib/bot/notify";
+import type { Context } from "grammy";
 
 if (existsSync(".env")) process.loadEnvFile(".env");
 
@@ -37,7 +39,7 @@ const log = (s: string) => console.log(`[${new Date().toISOString().replace(/\.\
 
 const sites = () => (mode === "live" ? readSites() : mockSeedSites());
 const spend = () => (mode === "live" ? { spentUsd: spentTodayUsd(), limitUsd: dailyLimitUsd() } : { spentUsd: 0, limitUsd: 1 });
-const send = (m: BotMessage) => ({ text: m.text, opts: { reply_markup: keyboardOf(m.buttons) } });
+const send = (m: BotMessage) => ({ text: m.text, opts: { parse_mode: "HTML" as const, reply_markup: keyboardOf(m.buttons) } });
 
 const bot = new Bot(token);
 
@@ -55,20 +57,43 @@ bot.command("stop", async (ctx) => {
   await ctx.reply("Alerts are off. Send /start to turn them back on.");
 });
 
-bot.command("now", async (ctx) => {
-  const m = send(nowReply({ sites: sites(), decisions: store.readDecisions(), now: new Date(), ...spend(), query: ctx.match, appUrl }));
+// /now and the "Current calls" button give the same answer.
+async function replyNow(ctx: Context, query?: string) {
+  const m = send(nowReply({ sites: sites(), decisions: store.readDecisions(), now: new Date(), ...spend(), query, appUrl }));
   await ctx.reply(m.text, m.opts);
+}
+
+// /demo and the "See a demo day" button give the same answer. One replay per chat at a time (it takes ~10 s).
+const demoRunning = new Set<number>();
+async function replyDemo(ctx: Context) {
+  const chatId = ctx.chat?.id;
+  if (chatId === undefined || demoRunning.has(chatId)) return;
+  demoRunning.add(chatId);
+  try {
+    // Computed in memory: nothing is bought and nothing is written to the agent's journal.
+    const day = await simulateDemoDay({ appUrl });
+    const replay = demoDayReplay({ siteName: day.site.name, siteLine: demoSiteLine(day.site), decisions: day.decisions, appUrl });
+    for (const [i, message] of replay.entries()) {
+      if (i > 0) await new Promise((r) => setTimeout(r, 2500));
+      const m = send(message);
+      await ctx.reply(m.text, m.opts);
+    }
+  } finally {
+    demoRunning.delete(chatId);
+  }
+}
+
+bot.command("now", (ctx) => replyNow(ctx, ctx.match));
+bot.command("demo", (ctx) => replyDemo(ctx));
+
+bot.callbackQuery(CALLBACK_NOW, async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await replyNow(ctx);
 });
 
-bot.command("demo", async (ctx) => {
-  // Computed in memory: nothing is bought and nothing is written to the agent's journal.
-  const day = await simulateDemoDay({ appUrl });
-  const replay = demoDayReplay({ siteName: day.site.name, siteLine: demoSiteLine(day.site), decisions: day.decisions, appUrl });
-  for (const [i, message] of replay.entries()) {
-    if (i > 0) await new Promise((r) => setTimeout(r, 2500));
-    const m = send(message);
-    await ctx.reply(m.text, m.opts);
-  }
+bot.callbackQuery(CALLBACK_DEMO, async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await replyDemo(ctx);
 });
 
 bot.callbackQuery(/^snooze:(.+)$/, async (ctx) => {

@@ -9,7 +9,7 @@ import { existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { DECISION_LABEL } from "@/lib/decision";
 import { agentDir, createFileStore } from "@/lib/agent/store";
-import { daySegments } from "@/lib/bot/messages";
+import { daySegments, plainText } from "@/lib/bot/messages";
 import { DEMO_DAY, DEMO_DAY_HOURS, demoDaySite, demoSiteLine, runDemoHour } from "@/lib/demo/day";
 import { usd } from "@/lib/format";
 import type { DecisionRecord } from "@/lib/agent/types";
@@ -51,7 +51,7 @@ for (let h = 0; h < DEMO_DAY_HOURS; h++) {
   console.log(`[demo ${d.hour.slice(11, 16)}] power ${usd(x.powerUsdPerMwh, 0).padStart(4)}/MWh · hashprice ${usd(x.hashprice)} · ${what} · ${d.why ?? ""}`);
   for (const m of r.messages) {
     console.log("\n  ── bot alert (demo, not sent to Telegram) ──");
-    for (const line of m.text.split("\n")) console.log(`  ${line}`);
+    for (const line of plainText(m.text).split("\n")) console.log(`  ${line}`);
     console.log("");
   }
   if (speed > 0 && h < DEMO_DAY_HOURS - 1) await new Promise((res) => setTimeout(res, speed * 1000));
