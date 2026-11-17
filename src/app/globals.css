@@ -33,7 +33,9 @@
   --t-head: 19px;   --lh-head: 24px;    /* Headline: block headings, gain */
   --t-body: 17px;   --lh-body: 24px;    /* Body: main text */
   --t-sub: 15px;    --lh-sub: 20px;     /* Subhead: labels, tables */
-  --t-cap: 13px;    --lh-cap: 16px;     /* Caption: badges, small print */
+  --t-cap: 13px;    --lh-cap: 16px;     /* Caption: small print */
+  --t-chip: 12px;   --lh-chip: 16px;    /* Chip label (Caption 2), Medium */
+  --chip-h: 24px;
   --radius: var(--r2);
   /* Tracking per scale step. Fallback fonts (Segoe UI, Roboto...) only: mild, 0 for small text.
      Apple devices: the system font tightens itself by size (SF Pro, Apple HIG "Tracking values":
@@ -94,12 +96,13 @@ p { margin: 0; }
 .footer a[aria-current="true"] { font-weight: 700; color: var(--text); }
 
 /* Chip: the one chip style for the whole app (header, decision, "was …", option strip, status tags).
-   Same height, padding, radius, size and weight everywhere; only the color pair changes. */
-.badge { display: inline-flex; align-items: center; justify-content: center; gap: var(--s1); height: 28px; padding: 0 10px; border-radius: 999px; border: 0; font-size: var(--t-cap); line-height: var(--lh-cap); font-weight: 600; letter-spacing: 0; white-space: nowrap; font-variant-numeric: tabular-nums; flex: none; vertical-align: middle; }
-/* Icons in a chip are sized to the 13 px text, whatever size the component asked for. */
-.badge svg { width: 14px; height: 14px; flex: none; stroke-width: 2.25; }
+   Same height, padding, radius, size and weight everywhere; only the color pair changes.
+   Light version (branch agent/chips-light): 24 px, 0/8, 12 px Medium, 12 px icon. */
+.badge { display: inline-flex; align-items: center; justify-content: center; gap: var(--s1); height: var(--chip-h); padding: 0 var(--s2); border-radius: 999px; border: 0; font-size: var(--t-chip); line-height: var(--lh-chip); font-weight: 500; letter-spacing: 0; white-space: nowrap; font-variant-numeric: tabular-nums; flex: none; vertical-align: middle; }
+/* Icons in a chip are sized to the 12 px text, whatever size the component asked for. */
+.badge svg { width: 12px; height: 12px; flex: none; stroke-width: 2.25; }
 /* The power glyph is a full circle and reads larger than the server glyph at the same box: optical correction. */
-.badge svg.lucide-power { width: 13px; height: 13px; }
+.badge svg.lucide-power { width: 11px; height: 11px; }
 .badge.testnet { background: #fff0e0; color: #8a4b00; }
 .badge.demo { background: #fde68a; color: #5c4400; }
 .badge.stale { background: var(--warn-bg); color: var(--warn); }
@@ -407,4 +410,33 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
   /* Phone: the reason line runs under the chevron too, so it fits on one line. */
   .hour-chev { grid-row: 1; }
   .hour-sub { grid-column: 1 / -1; }
+}
+
+/* Chips, light (branch agent/chips-light): smaller and quieter chips with more air around them. */
+/* Secondary chips: softer fill and lower contrast; the decision chip keeps its color. */
+.badge.demo { background: #fdf3d3; color: #6b5512; }
+.badge.testnet { background: #fff4e6; color: #8a5a1f; }
+.badge.keep { background: #f1f3f5; color: var(--muted); }
+.badge.calm { background: #eef3f9; color: #3e5a7d; }
+.spent { background: #f3f4f6; color: #3d4652; }
+.badge.opt, .badge.was { box-shadow: inset 0 0 0 1px var(--line); }
+.badge.opt .opt-label { color: #7a828d; }
+.opt.best .opt-label { opacity: .8; }
+/* A 24 px chip that is a link keeps a 44 px tap target. */
+a.badge { position: relative; }
+a.badge::after { content: ""; position: absolute; inset: -10px -4px; }
+/* Air: a chip never sits tight against its neighbour. */
+.header-inner { column-gap: var(--s3); }
+.pills { gap: var(--s2); }
+.opts { gap: var(--s2); }
+.opts-cap { margin-right: var(--s1); }
+.hour-line { gap: var(--s3); }
+.hour-line .badge + .badge { margin-left: calc(-1 * var(--s1)); }
+.tape-row .mid { gap: var(--s2) var(--s3); }
+.demo-entry .badge, .static-value .badge { margin-left: var(--s1); }
+@media (max-width: 640px) {
+  .header-inner { gap: var(--s3); }
+  .opts { gap: var(--s2); row-gap: var(--s2); }
+  .opts-cap { margin-bottom: var(--s1); }
+  .site-card .pills { gap: var(--s2); }
 }
