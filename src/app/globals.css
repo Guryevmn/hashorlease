@@ -349,6 +349,8 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 .feed-row .status:empty { display: none; }
 /* Variant A: a decision change is a quiet line, not a second chip. */
 .change-line { display: flex; align-items: center; margin-top: var(--s3); color: var(--muted); font-size: var(--t-cap); line-height: var(--lh-cap); font-weight: 500; }
+.feed-change { grid-column: 1 / -1; margin-top: 0; align-items: flex-start; }
+.feed-change .dot { margin-top: 6px; flex: none; }
 .change-line .dot { width: 6px; height: 6px; margin-right: var(--s2); }
 @media (max-width: 640px) {
   /* Phone header fits 390 px: no "Spent today" label, the amount stays. */

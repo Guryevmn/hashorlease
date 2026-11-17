@@ -93,3 +93,14 @@ export function groupByDay(rows: FeedRow[]): FeedDay[] {
   }
   return [...days.values()];
 }
+
+/** Rows where the call differs from the previous hour's (paused hours have no call, so they never count). */
+export function onlyChanges<T extends FeedEntry>(rows: T[]): T[] {
+  return rows.filter((r) => r.advice !== null && r.changedFrom !== undefined);
+}
+
+/** Reason as a sentence: the agent writes it in lower case, the quiet line wants a capital. */
+export function changeReasonText(reason: string | undefined): string | null {
+  const t = reason?.trim();
+  return t ? t[0].toUpperCase() + t.slice(1) : null;
+}

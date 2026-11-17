@@ -60,6 +60,9 @@ export function entryFromRecord(r: DecisionRecord): FeedEntry {
     advice: r.decision,
     pauseReason: r.status === "paused" ? r.reason : undefined,
     keepAsIs: r.keepAsIs,
+    ...(r.changed && r.previous && r.decision && r.previous !== r.decision
+      ? { changedFrom: r.previous, ...(r.why ? { changeReason: r.why } : {}) }
+      : {}),
     options: r.options,
     mw: r.mw,
     adviceGainUsd: r.gainVsMiningPerHour ?? 0,

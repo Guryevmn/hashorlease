@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createMockDataSource, type KeyValueStore, type MockState } from "./mock";
-import { resolveFeed, summarizeFeed } from "../feed";
+import { onlyChanges, resolveFeed, summarizeFeed } from "../feed";
 import { markKey } from "../marks";
 import type { SiteInput } from "../types";
 
@@ -78,6 +78,23 @@ describe("mock DataSource: states", () => {
 });
 
 describe("mock DataSource: feed and spend", () => {
+  it("demo feed shows decision changes with a reason; the first hour of history has none", async () => {
+    const feed = await mk().getFeed("7d", "all");
+    const changes = onlyChanges(feed);
+    expect(changes.length).toBeGreaterThan(0);
+    for (const e of changes) {
+      expect(e.changedFrom).not.toBe(e.advice);
+      expect(e.changeReason).toBeTruthy();
+    }
+    // A change row is exactly an hour whose call differs from the previous hour of the same site.
+    const bySite = new Map<string, typeof feed>();
+    for (const e of [...feed].reverse()) bySite.set(e.siteId, [...(bySite.get(e.siteId) ?? []), e]);
+    for (const list of bySite.values()) {
+      expect(list[0].changedFrom).toBeUndefined();
+      list.slice(1).forEach((e, i) => expect(e.changedFrom !== undefined).toBe(e.advice !== list[i].advice));
+    }
+  });
+
   it("24h feed: one row per hour, no made-up operator actions", async () => {
     const feed = await mk().getFeed("24h", "houston");
     expect(feed).toHaveLength(24);

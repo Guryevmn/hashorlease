@@ -7,7 +7,7 @@ import { useMemo } from "react";
 import { DECISION_LABEL, type Decision } from "@/lib/decision";
 import { useMarks } from "@/components/useMarks";
 import { markKey } from "@/lib/marks";
-import { groupByDay, resolveFeed, summarizeFeed } from "@/lib/feed";
+import { changeReasonText, groupByDay, onlyChanges, resolveFeed, summarizeFeed } from "@/lib/feed";
 import { usd, utcDate, utcTime } from "@/lib/format";
 import type { FeedEntry, FeedPeriod, FeedRow, Mark } from "@/lib/types";
 
@@ -18,6 +18,7 @@ export default function FeedPage() {
   const [period, setPeriod] = useState<FeedPeriod>("24h");
   const [siteId, setSiteId] = useState<string>("all");
   const [shown, setShown] = useState(PAGE);
+  const [changesOnly, setChangesOnly] = useState(false);
   const sites = useAsync(async (ds) => (await ds.getOverview()).reports.map((r) => r.site));
   const feed = useAsync((ds) => ds.getFeed(period, siteId), [period, siteId]);
   const status = useAsync((ds) => ds.getStatus());
@@ -40,6 +41,12 @@ export default function FeedPage() {
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
           </select>
+          <div className="seg" role="group" aria-label="Show">
+            <button aria-pressed={!changesOnly} onClick={() => { setChangesOnly(false); setShown(PAGE); }}>All hours</button>
+            <button aria-pressed={changesOnly} onClick={() => { setChangesOnly(true); setShown(PAGE); }}>
+              Changes only{feed.data ? ` · ${onlyChanges(feed.data).length}` : ""}
+            </button>
+          </div>
           <div className="seg" role="group" aria-label="Period">
             {PERIODS.map((p) => (
               <button key={p} aria-pressed={p === period} onClick={() => { setPeriod(p); setShown(PAGE); }}>
@@ -66,7 +73,7 @@ export default function FeedPage() {
           <AppLink href="/sites/new" className="btn">Add place</AppLink>
         </div>
       ) : (
-        <FeedBody entries={feed.data} now={status.data?.now} shown={shown} onMore={() => setShown((n) => n + PAGE)} showSite={siteId === "all"} />
+        <FeedBody entries={feed.data} now={status.data?.now} changesOnly={changesOnly} shown={shown} onMore={() => setShown((n) => n + PAGE)} showSite={siteId === "all"} />
       )}
     </>
   );
@@ -74,12 +81,14 @@ export default function FeedPage() {
 
 type ChangeMarks = (changes: Record<string, Mark | null>) => void;
 
-function FeedBody({ entries, now, shown, onMore, showSite }: { entries: FeedEntry[]; now?: string; shown: number; onMore: () => void; showSite: boolean }) {
+function FeedBody({ entries, now, changesOnly, shown, onMore, showSite }: { entries: FeedEntry[]; now?: string; changesOnly: boolean; shown: number; onMore: () => void; showSite: boolean }) {
   const { marks, change } = useMarks();
   const { live } = useData();
   const rows = useMemo(() => resolveFeed(entries, marks), [entries, marks]);
   const s = summarizeFeed(rows);
-  const visible = rows.slice(0, shown);
+  // "Changes only" narrows the list below; the counters above always cover every hour of the period.
+  const listed = changesOnly ? onlyChanges(rows) : rows;
+  const visible = listed.slice(0, shown);
   const days = groupByDay(visible);
   const today = (now ?? entries[0].hour).slice(0, 10);
   const yesterday = new Date(new Date(today).getTime() - 86400_000).toISOString().slice(0, 10);
@@ -113,6 +122,9 @@ function FeedBody({ entries, now, shown, onMore, showSite }: { entries: FeedEntr
       <p className="hint">Mark what you actually did and we&apos;ll show what you missed. Hours you don&apos;t mark are never counted, and “Keep as is” hours are never counted as missed.</p>
 
       <div className="card" style={{ paddingTop: 4 }}>
+        {listed.length === 0 && (
+          <p className="hint" style={{ padding: "var(--s4) 0" }}>No changes of the call in this period. Try 7 d or 30 d.</p>
+        )}
         {days.map((d) => {
           const label = d.day === today ? "Today" : d.day === yesterday ? "Yesterday" : utcDate(d.day + "T00:00:00Z");
           const unmarked = d.entries.filter((e) => e.status === "not-marked");
@@ -138,9 +150,9 @@ function FeedBody({ entries, now, shown, onMore, showSite }: { entries: FeedEntr
             </section>
           );
         })}
-        {shown < entries.length && (
+        {shown < listed.length && (
           <div style={{ textAlign: "center", padding: 12 }}>
-            <button className="btn" onClick={onMore}>Show more ({entries.length - shown} left)</button>
+            <button className="btn" onClick={onMore}>Show more ({listed.length - shown} left)</button>
           </div>
         )}
       </div>
@@ -191,6 +203,15 @@ function Row({ e, showSite, change }: { e: FeedRow; showSite: boolean; change: C
         <AppLink href={`/sites/${e.siteId}`} className="small" style={{ textDecoration: "underline" }}>Open breakdown</AppLink>
       </span>
       <span className="num status" style={{ fontWeight: 600, textAlign: "right" }}><StatusText e={e} /></span>
+      {e.changedFrom && (
+        <div className="change-line feed-change">
+          <span className="dot" aria-hidden />
+          <span>
+            Changed from {DECISION_LABEL[e.changedFrom]} → {DECISION_LABEL[e.advice]}
+            {changeReasonText(e.changeReason) ? ` · ${changeReasonText(e.changeReason)}` : ""}
+          </span>
+        </div>
+      )}
 
       <div className="mark-row" role="group" aria-label={`Mark what you did, ${who}`}>
         <span className="mark-label">You:</span>

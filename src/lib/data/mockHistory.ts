@@ -2,6 +2,7 @@
 // Needed for the "what would have happened" feed and the mini chart. The current hour (i = 0) matches the market snapshot.
 
 import { decide, type Decision, type DecisionOutcome } from "../decision";
+import { whyText } from "../agent/why";
 import { entryFromOutcome } from "../feed";
 import type { FeedEntry, HourPoint, Site } from "../types";
 
@@ -114,12 +115,20 @@ export function siteHistory24(site: Site): HourPoint[] {
 }
 
 export function feedEntries(site: Site, hours: number, pausedHours: number[] = []): FeedEntry[] {
-  const hist = simulateHistory(site).slice(-hours);
-  const entries = hist.map((h): FeedEntry => {
+  const full = simulateHistory(site);
+  const hist = full.slice(-hours);
+  const entries = hist.map((h, idx): FeedEntry => {
     if (pausedHours.includes(h.i)) {
       return { hour: h.hour, siteId: site.id, siteName: site.name, advice: null, keepAsIs: false, options: null, mw: site.mw, adviceGainUsd: 0, powerPrice: h.power, receiptCount: 0 };
     }
-    return entryFromOutcome(site, h.hour, h.power, h.outcome);
+    const entry = entryFromOutcome(site, h.hour, h.power, h.outcome);
+    // A change against the hour before (the oldest hour of the history has nothing to compare with).
+    const before = full[full.length - hist.length + idx - 1];
+    if (before && before.outcome.chosen !== h.outcome.chosen) {
+      entry.changedFrom = before.outcome.chosen;
+      entry.changeReason = whyText(h.outcome, h.power, { decision: before.outcome.chosen, options: before.outcome.options, powerPrice: before.power });
+    }
+    return entry;
   });
   return entries.reverse(); // newest first
 }

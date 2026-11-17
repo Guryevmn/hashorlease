@@ -158,6 +158,10 @@ export interface FeedEntry {
   /** Decision recorded by the hourly agent (not recomputed from price history). */
   recorded?: boolean;
   keepAsIs: boolean;
+  /** The call differs from the previous hour's: what it was before (for \"Changed from X → Y · reason\"). */
+  changedFrom?: Decision;
+  /** One-line reason for the change: what moved and by how much. */
+  changeReason?: string;
   /** Option values for the hour, $/MWh; needed to compute the missed gain from a mark. */
   options: { mine: number; lease: number | null; off: number } | null;
   /** Site power draw, MW. */
