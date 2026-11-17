@@ -38,7 +38,7 @@ npm run bot        # Telegram bot (needs a token, see below)
 ## Modes
 
 - **Demo** (default, no `.env`): all numbers and receipts are made up, no network and no wallet. Every screen shows the "Testnet" and "Demo data" badges.
-- **Live** (`NEXT_PUBLIC_DATA_MODE=live` in `.env`): the BTC price is bought through Telegraph (x402, test USDC on Sepolia); everything else comes from free public sources. Details in "Live mode".
+- **Live** (`NEXT_PUBLIC_DATA_MODE=live` in `.env`): the BTC price is bought through Telegraph (x402 or from a prepaid Telegraph deposit, test USDC on Sepolia); everything else comes from free public sources. Details in "Live mode".
 
 Screen states on demo data: add `?state=…` to the address of any screen (links are in the footer):
 `loading` (skeletons), `empty` (no sites), `error` (Telegraph unreachable), `provider-error` (no power price for North Ridge), `limit` (daily limit reached).
@@ -90,13 +90,13 @@ npm run agent -- --mode=live --once --fresh    # skip the cached snapshot — to
 
 `NEXT_PUBLIC_DATA_MODE=live` in `.env` turns on real data.
 
-- **Wallet:** `node scripts/create-wallet.mjs` creates a test key in `.env` (do not commit it). You need Sepolia ETH (gas for `mint`) and test USDC `0xcc19…Ae17` (the token's `mint` is open). x402 payments need no gas.
+- **Wallet:** `node scripts/create-wallet.mjs` creates a test key in `.env` (do not commit it). You need Sepolia ETH (gas for `mint` and for the deposit) and test USDC `0xcc19…Ae17` (the token's `mint` is open). x402 payments need no gas. **How the agent pays** (`TELEGRAPH_PAY_RAIL` in `.env`): `auto` (default) — from a prepaid Telegraph deposit (escrow) first, x402 when the deposit is empty; `escrow` — deposit only; `x402` — per request only. Steps to fund the deposit: `docs/JUDGE.md` §2.
 - **What is paid:** one Telegraph request per market snapshot: the BTC price (`CRYPTO_PRICE_USD`, $0.01). The snapshot is shared by the app and the agent and lives 30 minutes (`data/snapshot.json`); without a fresh receipt it is retried after 5 minutes. The agent costs about $0.24 a day.
 - **Hashprice** is computed by us: 144 blocks × average reward × price (Telegraph) / network hashrate (mempool.space). The `MINING_HASHPRICE_VERIFY_GENERAL` Intent returns empty numbers on the devnode (see `docs/PLAN.md` §3).
 - **Electricity:** Energy-Charts (SMARD), day-ahead prices for zones DE-LU, FR, PL, AT, NL, free of charge. On screen this number carries the "Public source, not bought via Telegraph" badge. ERCOT through Telegraph returns empty prices on the devnode.
 - **Sites** are stored on the server in `data/sites.json` (not in git) so the agent can see them without a browser. A corrupted file is not overwritten: the screen and the agent show an error. API: `GET/POST /api/live/sites`, `PUT/DELETE /api/live/sites/<id>`, with the same validation as the form.
 - **Spend limit:** `DAILY_SPEND_LIMIT_USD` in `.env` (default 0.50). It is checked before every payment against the `data/ledger.jsonl` ledger under a disk lock (`data/.payment.lock`): the app and the agent pay strictly one at a time. A payment that went out without a response is recorded as spent. A single payment is at most $0.02 and only in test USDC. A paid request is made only after the free data; after a failure there is a 5-minute pause. "Refresh now" is allowed at most once every 2 minutes. The limit cannot be changed from the UI (Usage shows it read-only).
-- **Receipts:** Sepolia transactions in the ledger, on the site screen (a receipt next to each number), on Usage and in the agent log, with an etherscan link.
+- **Receipts:** in the ledger, on the site screen (a receipt next to each number), on Usage and in the agent log. For an x402 payment the proof is a Sepolia transaction (etherscan link); for a payment from the deposit it is the Telegraph `receipt_hash` with a link to the signal (there is no transaction per request: the node bills the balance once per epoch).
 - **Script client:** `node scripts/telegraph.mjs query "…"` or `node scripts/telegraph.mjs INTENT '{"param":…}'` (paid, with the limit and the ledger).
 
 ## Architecture
@@ -124,7 +124,7 @@ npm run agent -- --mode=live --once --fresh    # skip the cached snapshot — to
 - The agent decides only from the snapshot of the current UTC hour: when running every hour, that is one purchase per hour.
 - The Telegram bot runs as @hashorlease_bot; the owner's own check worked on 17 Nov, but no outside person has used it.
 - Time in the demo is fixed: 8 Nov 2026, 14:04 UTC.
-- Live operation (recounted 17 Nov 2026, 20:00 UTC: calls in 156 of 170 hourly slots since 10 Nov, longest streak 112 hours) shows two changes of call, both at Silesia Farm on 15 Nov (08:00 and 13:00 UTC); Leipzig Hub and the fixed-tariff rig never changed, and no live call has ever been Mine. The Mine flip is shown on the demo day (`/demo-day`): invented prices on an invented site, chosen so that the power price crosses the break-even point; it is not evidence of live behaviour. The agent's log shows both change alerts sent to Telegram without a send error. **Since 17 Nov 07:00 UTC the agent has made no calls:** the payment is verified but its settlement at the third-party x402 facilitator times out, so the agent pauses all sites and pays nothing, as designed (cause not yet established).
+- Live operation (recounted 17 Nov 2026, 20:40 UTC: calls in 157 of 171 hourly slots since 10 Nov, longest streak 112 hours) shows two changes of call, both at Silesia Farm on 15 Nov (08:00 and 13:00 UTC); Leipzig Hub and the fixed-tariff rig (off in every hour; its label alternates between "Keep as is" and "Switch off" for the same action) never changed, and no live call has ever been Mine. The Mine flip is shown on the demo day (`/demo-day`): invented prices on an invented site, chosen so that the power price crosses the break-even point; it is not evidence of live behaviour. The agent's log shows both change alerts sent to Telegram without a send error. **One outage, closed:** from 17 Nov 07:00 to 20:33 UTC the settlement step at the third-party x402 facilitator timed out, so the agent paused all sites and paid nothing, as designed (13 hourly slots without a call). Since 20:33 UTC it pays from a Telegraph deposit (escrow) and all sites have a call again.
 - Feedback so far: one comment from an acquaintance of the author ([Discussions #1](https://github.com/Guryevmn/hashorlease/discussions/1), 17 Nov). It found two real problems, both fixed the same day. No independent users yet.
 
 ## License
