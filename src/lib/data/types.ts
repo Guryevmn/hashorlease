@@ -70,3 +70,5 @@ export interface DataSource {
 
 export const REFRESH_COST_USD = 0.02;
 export const GUIDE_COST_USD = 0.01;
+/** One paid Telegraph request for the Bitcoin price (mining income). Shared by all places, needed for every site kind. */
+export const BTC_PRICE_REQUEST_USD = 0.01;

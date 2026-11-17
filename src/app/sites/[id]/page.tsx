@@ -9,6 +9,7 @@ import { updatedAt } from "@/components/SiteCard";
 import { gainText } from "@/lib/gain";
 import { DECISION_LABEL, type Decision, type DecisionOutcome } from "@/lib/decision";
 import { num, signedUsd, usd, utcDate, utcTime } from "@/lib/format";
+import { paidReceiptsOf } from "@/lib/report";
 import type { HourPoint, Receipt, SiteReport } from "@/lib/types";
 
 export default function SiteDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -300,7 +301,7 @@ function Proof({ report, demo }: { report: SiteReport; demo: boolean }) {
     ["Power price", report.inputs.power.receipt],
     ...(report.inputs.leaseGuide ? ([["Market guide", report.inputs.leaseGuide.receipt]] as [string, Receipt][]) : []),
   ];
-  const paid = receipts.filter(([, rc]) => (rc.status === "verified" || rc.status === "stale") && (rc.costUsd ?? 0) > 0);
+  const paid = paidReceiptsOf(report);
   const publicSources = receipts.filter(([, rc]) => rc.status === "public");
   const total = paid.reduce((s, [, rc]) => s + (rc.costUsd ?? 0), 0);
 

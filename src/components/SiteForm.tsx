@@ -7,7 +7,11 @@ import { Banner, ReceiptChip } from "@/components/ui";
 import { GUIDE_COST_USD } from "@/lib/data/types";
 import { usd } from "@/lib/format";
 import {
+  addSiteCostNote,
+  EXAMPLE_MINERS,
   emptyFormValues,
+  FIELD_INPUT_ID,
+  firstInvalidField,
   fleetConsistencyHint,
   formValuesOf,
   phsPerMwOf,
@@ -39,6 +43,7 @@ export function SiteForm({ initial }: { initial?: Site }) {
   const [nodeLabel, setNodeLabel] = useState(initial?.kind === "grid" ? initial.nodeLabel || initial.nodeId || "" : "");
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
   const [overLimit, setOverLimit] = useState<number | null>(null);
   const [guide, setGuide] = useState<Sourced<string> | null>(null);
   const [guideError, setGuideError] = useState<string | null>(null);
@@ -90,7 +95,12 @@ export function SiteForm({ initial }: { initial?: Site }) {
   async function submit(paused: boolean) {
     setTouched(Object.fromEntries(Object.keys(v).map((k) => [k, true])));
     setFormError(null);
-    if (hasErrors) return;
+    if (hasErrors) {
+      const first = firstInvalidField(errors);
+      setSubmitted(true);
+      if (first) document.getElementById(FIELD_INPUT_ID[first])?.focus();
+      return;
+    }
     // Node is not in the grid list — say so right away, without a server request.
     if (v.kind === "grid" && quick.data && !quick.data.some((n) => n.id === v.nodeId)) {
       setFormError(
@@ -147,6 +157,11 @@ export function SiteForm({ initial }: { initial?: Site }) {
     >
       <h1>{editing ? `Edit ${initial.name}` : "Add place"}</h1>
 
+      {submitted && hasErrors && (
+        <Banner kind="warn">
+          {Object.keys(errors).length === 1 ? "1 field is empty or not valid" : `${Object.keys(errors).length} fields are empty or not valid`}. Fill in the highlighted fields to continue.
+        </Banner>
+      )}
       {formError && <Banner kind="bad">{formError}</Banner>}
       {overLimit !== null && (
         <Banner
@@ -209,7 +224,7 @@ export function SiteForm({ initial }: { initial?: Site }) {
           <div className="field">
             <label htmlFor="rate">Rate</label>
             <div className="row">
-              <input id="rate" className="input" style={{ maxWidth: 180 }} inputMode="decimal" placeholder={unit === "kwh" ? "0.040" : "40"} value={tariffRaw} onChange={(e) => setTariffRaw(e.target.value)} onBlur={() => blur("tariffUsdPerMwh")} aria-invalid={!!show("tariffUsdPerMwh")} />
+              <input id="rate" className="input" style={{ maxWidth: 180 }} inputMode="decimal" placeholder={unit === "kwh" ? "e.g. 0.040" : "e.g. 40"} value={tariffRaw} onChange={(e) => setTariffRaw(e.target.value)} onBlur={() => blur("tariffUsdPerMwh")} aria-invalid={!!show("tariffUsdPerMwh")} />
               <div className="seg" role="group" aria-label="Rate unit">
                 <button type="button" aria-pressed={unit === "kwh"} onClick={() => setUnit("kwh")}>$/kWh</button>
                 <button type="button" aria-pressed={unit === "mwh"} onClick={() => setUnit("mwh")}>$/MWh</button>
@@ -222,15 +237,27 @@ export function SiteForm({ initial }: { initial?: Site }) {
           </div>
         )}
 
-        <Field id="name" label="Site name" value={v.name} placeholder="Houston Hub" onChange={(x) => set("name", x)} onBlur={() => blur("name")} error={show("name")} />
+        <Field id="name" label="Site name" value={v.name} placeholder="e.g. Houston Hub" onChange={(x) => set("name", x)} onBlur={() => blur("name")} error={show("name")} />
       </section>
 
       <section className="card stack" aria-label="Miners">
-        <h2>Miners</h2>
+        <div className="row" style={{ justifyContent: "space-between" }}>
+          <h2>Miners</h2>
+          {!editing && (
+            <button type="button" className="btn small" onClick={() => setV((p) => ({ ...p, ...EXAMPLE_MINERS }))}>
+              Fill with example
+            </button>
+          )}
+        </div>
+        <span className="hint">
+          {editing
+            ? "All three are required."
+            : `Required: enter your own numbers. The grey text is only an example, not a value. Or start from ${EXAMPLE_MINERS.phs} PH/s · ${EXAMPLE_MINERS.mw} MW · ${EXAMPLE_MINERS.jPerTh} J/TH and change it.`}
+        </span>
         <div className="grid2">
-          <Field id="phs" label="Mining power (PH/s)" value={v.phs} placeholder="1000" inputMode="decimal" onChange={(x) => set("phs", x)} onBlur={() => blur("phs")} error={show("phs")} />
-          <Field id="mw" label="Power draw (MW)" value={v.mw} placeholder="20" inputMode="decimal" onChange={(x) => set("mw", x)} onBlur={() => blur("mw")} error={show("mw")} />
-          <Field id="j" label="Efficiency (J/TH)" value={v.jPerTh} placeholder="20" inputMode="decimal" onChange={(x) => set("jPerTh", x)} onBlur={() => blur("jPerTh")} error={show("jPerTh")} />
+          <Field id="phs" label="Mining power (PH/s)" value={v.phs} placeholder="e.g. 1000" inputMode="decimal" onChange={(x) => set("phs", x)} onBlur={() => blur("phs")} error={show("phs")} />
+          <Field id="mw" label="Power draw (MW)" value={v.mw} placeholder="e.g. 20" inputMode="decimal" onChange={(x) => set("mw", x)} onBlur={() => blur("mw")} error={show("mw")} />
+          <Field id="j" label="Efficiency (J/TH)" value={v.jPerTh} placeholder="e.g. 20" inputMode="decimal" onChange={(x) => set("jPerTh", x)} onBlur={() => blur("jPerTh")} error={show("jPerTh")} />
         </div>
         {perMw !== null && <span className="hint num">≈ {perMw.toFixed(1)} PH/s per MW</span>}
         {hint && <span className="hint" style={{ color: "var(--warn)" }}>{hint}</span>}
@@ -244,8 +271,8 @@ export function SiteForm({ initial }: { initial?: Site }) {
         {v.hasLease && (
           <>
             <div className="grid2">
-              <Field id="lease" label="Lease rate ($/MWh)" value={v.leaseRate} placeholder="95" inputMode="decimal" onChange={(x) => set("leaseRate", x)} onBlur={() => blur("leaseRate")} error={show("leaseRate")} />
-              <Field id="overhead" label="Overhead ($/MWh)" value={v.overhead} placeholder="8" inputMode="decimal" onChange={(x) => set("overhead", x)} onBlur={() => blur("overhead")} error={show("overhead")} />
+              <Field id="lease" label="Lease rate ($/MWh)" value={v.leaseRate} placeholder="e.g. 95" inputMode="decimal" onChange={(x) => set("leaseRate", x)} onBlur={() => blur("leaseRate")} error={show("leaseRate")} />
+              <Field id="overhead" label="Overhead ($/MWh)" value={v.overhead} placeholder="e.g. 8" inputMode="decimal" onChange={(x) => set("overhead", x)} onBlur={() => blur("overhead")} error={show("overhead")} />
             </div>
             <label className="row">
               <input type="checkbox" checked={!!v.includesPower} onChange={(e) => set("includesPower", e.target.checked)} />
@@ -274,11 +301,7 @@ export function SiteForm({ initial }: { initial?: Site }) {
         {editing
           ? "Changes show right away. Hours the agent already recorded keep the numbers they were decided with."
           : estimate.data
-            ? estimate.data.requestsPerDay > 0
-              ? `Adding a site makes ~${estimate.data.requestsPerDay} paid requests per day (≈ ${usd(estimate.data.costPerDayUsd)}).`
-              : live
-                ? "No extra cost: one paid Telegraph request per hour covers all places; power prices are free."
-                : "A fixed-rate site makes no paid grid requests."
+            ? addSiteCostNote(estimate.data, live, usd)
             : "Estimating cost…"}
       </p>
       <div className="row">

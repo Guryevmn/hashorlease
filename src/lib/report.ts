@@ -86,3 +86,13 @@ export function buildOverview(sites: Site[], snapshot: MarketSnapshot): Overview
   );
   return { snapshot, reports, totalGainPerHour };
 }
+
+/** Receipts of a report that cost real money: this is what "N paid requests" counts. */
+export function paidReceiptsOf(report: Pick<SiteReport, "inputs">): [string, Receipt][] {
+  const receipts: [string, Receipt][] = [
+    ["Mining income", report.inputs.hashprice.receipt],
+    ["Power price", report.inputs.power.receipt],
+    ...(report.inputs.leaseGuide ? ([["Market guide", report.inputs.leaseGuide.receipt]] as [string, Receipt][]) : []),
+  ];
+  return receipts.filter(([, rc]) => (rc.status === "verified" || rc.status === "stale") && (rc.costUsd ?? 0) > 0);
+}
