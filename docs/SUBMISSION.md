@@ -15,7 +15,7 @@ The application has not been submitted. The code and demo are public, and progre
 - **Track:** Apps & Agents
 - **Mission:** 12 — Mining and Power (example build 1, "The allocation agent")
 - **Intents used:** `CRYPTO_PRICE_USD` (bought on every cycle); `MINING_HASHPRICE_VERIFY_GENERAL`, `GRID_POWER_PRICE_GENERAL` (probed, returned empty values on the devnode)
-- **Team / contact:** `[name, email]`
+- **Team / contact:** Mikhail Guryev — product designer, [guryev.design](https://guryev.design), GitHub [@Guryevmn](https://github.com/Guryevmn); contact via GitHub Discussions #1
 - **Working or reviewer-access link:** https://github.com/Guryevmn/hashorlease · https://hashorlease.vercel.app (invented data)
 - **GitHub username that starred telegraphprotocol/bounties:** `[username]`
 - **Network:** testnet only — Telegraph devnode + Ethereum Sepolia (test USDC)
@@ -45,7 +45,7 @@ On testnet it runs end to end: an hourly agent buys the BTC price through Telegr
 The data for a whole fleet costs about $0.24 a day at testnet prices (one $0.01 purchase per hour covers every site), against decisions worth hundreds to thousands of dollars per hour on a multi-megawatt site. It needs no integration with the operator's hardware: you enter fleet size, power draw and the lease rate, and you get a call. No operator has used it yet — this is our reasoning, not customer evidence.
 
 **How can someone try it?**
-Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo mode with invented data, no wallet and no network. `npm run agent -- --mode=mock --once` runs the agent once the same way. Live mode needs a throwaway Sepolia test wallet; steps are in `docs/JUDGE.md`. Maintained by `[name, contact]`; questions go to GitHub Discussions #1 and Issues of the repository.
+Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo mode with invented data, no wallet and no network. `npm run agent -- --mode=mock --once` runs the agent once the same way. Live mode needs a throwaway Sepolia test wallet; steps are in `docs/JUDGE.md`. Maintained by Mikhail Guryev ([guryev.design](https://guryev.design), GitHub [@Guryevmn](https://github.com/Guryevmn)); questions go to GitHub Discussions #1 and Issues of the repository.
 
 ## 4. Full description
 

@@ -22,7 +22,7 @@ Rules checked on 2026-11-12: https://hackathon.telegraphprotocol.com/rules (sect
 | Intents | Bought every hour: `CRYPTO_PRICE_USD`. Probed, paid, returned empty values on the devnode: `MINING_HASHPRICE_VERIFY_GENERAL`, `GRID_POWER_PRICE_GENERAL` |
 | Working / reviewer-access link | https://github.com/Guryevmn/hashorlease · reviewer guide: `docs/JUDGE.md` · hosted demo: https://hashorlease.vercel.app (invented data, marked on screen) |
 | GitHub username that starred `telegraphprotocol/bounties` | `Guryevmn` |
-| Team / contact | `[name, email or Telegram/Discord handle]` |
+| Team / contact | Mikhail Guryev — product designer, [guryev.design](https://guryev.design), GitHub [@Guryevmn](https://github.com/Guryevmn); contact via GitHub Discussions #1 |
 | Network | Testnet only: Telegraph devnode + Ethereum Sepolia (test USDC) |
 
 ### A2. One-liner and short description
@@ -57,7 +57,7 @@ We have not asked any operator what they would pay, so these are three possible 
 What we would learn first from the 3–5 operator conversations planned in B8: which of the three they accept, and whether they trust the lease-rate input enough to be billed on it.
 
 **How can someone try it?**
-`git clone https://github.com/Guryevmn/hashorlease.git`, `npm install`, `npm run build && npm start` — it opens in demo mode with invented data, no wallet, no network. `npm run agent -- --mode=mock --once` runs the agent once the same way. Live mode needs a throwaway Sepolia test wallet; the steps are in `docs/JUDGE.md`. Maintained by `[name, contact — same as A1]`; issues and questions go to GitHub Discussions #1 and Issues of the repository.
+`git clone https://github.com/Guryevmn/hashorlease.git`, `npm install`, `npm run build && npm start` — it opens in demo mode with invented data, no wallet, no network. `npm run agent -- --mode=mock --once` runs the agent once the same way. Live mode needs a throwaway Sepolia test wallet; the steps are in `docs/JUDGE.md`. Maintained by Mikhail Guryev ([guryev.design](https://guryev.design), GitHub [@Guryevmn](https://github.com/Guryevmn)); issues and questions go to GitHub Discussions #1 and Issues of the repository.
 
 ### A4. Short demo
 
