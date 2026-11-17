@@ -255,7 +255,7 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 /* Tab bar icons: on phone the icon sits above the label (like iOS) */
 .nav a { display: inline-flex; align-items: center; gap: var(--s2); }
 @media (max-width: 720px) {
-  .nav a { flex-direction: column; gap: 2px; padding: var(--s2) var(--s2); font-size: var(--t-cap); line-height: var(--lh-cap); font-weight: 600; }
+  .nav a { flex-direction: column; gap: var(--s1); padding: var(--s2) var(--s2); font-size: var(--t-cap); line-height: var(--lh-cap); font-weight: 600; }
 }
 
 
@@ -379,7 +379,7 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 .link-btn.quiet { color: var(--accent); text-decoration: none; font-weight: 500; font-size: var(--t-sub); line-height: var(--lh-sub); }
 /* Hour row: line 1 time · place · decision chip; line 2 (changes only) a short reason and the result. Tap opens details. */
 .hour { border-top: 1px solid var(--line); }
-.hour-head { display: grid; grid-template-columns: 1fr auto; column-gap: var(--s2); row-gap: 2px; align-items: center; width: 100%; padding: var(--s3) 0; border: 0; background: none; text-align: left; }
+.hour-head { display: grid; grid-template-columns: 1fr auto; column-gap: var(--s2); row-gap: 6px; align-items: center; width: 100%; padding: var(--s3) 0; border: 0; background: none; text-align: left; }
 .hour-line { display: flex; align-items: center; gap: var(--s2); min-width: 0; }
 .hour-time { flex: none; width: 44px; color: var(--muted); font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 500; }
 .hour-site { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
@@ -440,3 +440,7 @@ a.badge::after { content: ""; position: absolute; inset: -10px -4px; }
   .opts-cap { margin-bottom: var(--s1); }
   .site-card .pills { gap: var(--s2); }
 }
+
+/* Air between stacked lines (branch agent/chips-light): at least 4 px between a headline and its caption. */
+.hero .big + .muted { margin-top: var(--s1); }
+@media (max-width: 640px) { .gain-small { margin-top: var(--s1); } }

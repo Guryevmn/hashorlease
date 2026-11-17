@@ -15,3 +15,9 @@ Pairs (`pairs/`, before above or left, after below or right):
 
 Checked: no horizontal scroll at 390 on Places, place page, History and Usage (`scrollWidth - innerWidth = 0`); measured chip in the browser: 24 px high, 8 px padding, 12 px, weight 500, icon 12 px.
 How it was shot: demo mode, headless Chrome, 390 px (2x) and 1440 px; History in 7 d with Changes only on.
+
+## Spacing pass (17.11, feedback: the reason line sticks to the line above)
+- Hour row in History: gap between line 1 (time · place · chip) and line 2 (reason) 2 → 6 px.
+- Other stacked pairs: bottom-bar icon/label 2 → 4 px; headline caption on Places (`+$255 /h` and its caption) 4 px; `gain` / `gain-small` on the phone 4 px.
+- Checked at 390 on Places, History (7 d, Changes only), Usage and a place page: no explicit gap under 4 px between text lines, chips and rows; `scrollWidth - innerWidth = 0`.
+- Pair: `pairs/07-390-history-spacing.png` (before left, after right).
