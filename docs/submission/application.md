@@ -2,6 +2,7 @@
 
 > **Резюме для владельца (по-русски).** Это готовый текст заявки на английском: сначала поля в том порядке, в каком их просит сайт хакатона (раздел 8 правил), затем полный рассказ о продукте. Все цифры проверены 11–12 ноября по коду и журналам; в конце — таблица «что обновить в день подачи» и список того, что в заявке честно названо слабым местом.
 > Обновление 17.11: добавлены первый отзыв знакомого тестера и два исправленных после него бага, новый логотип и дизайн, приветствие бота, обе реальные смены решения 15.11 и **сбой оплаты 17.11 с 07:00 UTC** (агент не может провести платёж, пока не заработает расчётный сервис x402; числа пересчитаны по журналу).
+> Добавлено позже 17.11: в разделе A3 — три гипотезы модели дохода (подписка на площадку, процент от выгоды, оплата по факту запросов), помечены «не проверено с клиентами»; цена привязана только к реальной стоимости данных ($0,24 в сутки на парк). Строки «кто поддерживает» не тронуты.
 > Ничего не отправлено. Поля в `[квадратных скобках]` заполняешь ты. Саму форму на сайте видно только после входа, поэтому порядок полей взят из правил, а не с экрана формы.
 
 Status: draft, **not submitted**. Refreshed 2026-11-17: agent and ledger numbers recounted on 17 Nov 20:00 UTC (`node scripts/recount.mjs 2026-11-17T20:00:00Z`); product, tester and bot facts as of 17 Nov. Supersedes sections 1–8 of `docs/SUBMISSION.md`.
@@ -47,6 +48,13 @@ On testnet it runs end to end. An hourly agent buys the BTC price through Telegr
 
 **Why would someone adopt it?**
 The data for a whole fleet costs about $0.24 a day at testnet prices — one $0.01 purchase per hour covers every site — while on our 20 MW example site, at the lease rate we assumed, the call beat mining by about $2,800–$10,700 per hour during the run (17 Nov recount). It needs no integration with the operator's hardware: enter fleet size, power draw and lease rate, get a call. No operator has used it yet; this is our reasoning, not customer evidence.
+
+**How could it make money? (hypotheses — not tested with any customer)**
+We have not asked any operator what they would pay, so these are three possible models, not a plan with prices. The only real cost figure we have is the data: the agent buys one $0.01 request per hour for the whole fleet, 24 × $0.01 = $0.24 a day, about $7.20 a month, at testnet prices (the mainnet price of the same request is not known to us).
+1. *Subscription per site.* A flat monthly fee per site, priced as a margin on top of that data cost plus hosting and support. *Hypothesis; no price tested.* Simple to explain and to bill; it does not depend on how much the call earns.
+2. *Share of the measured gain.* A small percentage of the "gain vs mining" the app shows in $/h. *Hypothesis, and the weakest of the three today:* the gain rests on the AI lease rate the operator types in himself, so it cannot be audited yet; it would need a baseline the operator agrees to.
+3. *Usage-based: pass the receipts through.* Bill the actual cost of each paid Telegraph request (already recorded in the ledger with its transaction) plus a fixed fee per call. *Hypothesis.* Fits the pay-per-request model that x402 is built for and scales with the number of sites and inputs bought.
+What we would learn first from the 3–5 operator conversations planned in B8: which of the three they accept, and whether they trust the lease-rate input enough to be billed on it.
 
 **How can someone try it?**
 `git clone https://github.com/Guryevmn/hashorlease.git`, `npm install`, `npm run build && npm start` — it opens in demo mode with invented data, no wallet, no network. `npm run agent -- --mode=mock --once` runs the agent once the same way. Live mode needs a throwaway Sepolia test wallet; the steps are in `docs/JUDGE.md`. Maintained by `[name, contact — same as A1]`; issues and questions go to GitHub Discussions #1 and Issues of the repository.
