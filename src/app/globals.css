@@ -14,7 +14,10 @@
   --warn-bg: #fff3d6;
   --bad: #b3261e;
   --bad-bg: #fde8e6;
-  --accent: #1d4ed8;
+  --accent: #5b3fd1;        /* links, focus ring, dots, progress; same purple as the logo (contrast 6.8:1 on white) */
+  --accent-hover: #4c32b8;  /* darker pair for hover/pressed (8.6:1 on white) */
+  --accent-bg: #efebfc;     /* light pair: tinted background (accent text on it 5.8:1) */
+  --accent-on-bg: #3f2a9e;  /* text on the tinted background (8.8:1) */
 
   /* Grid: 4 px step. Spacing only from this scale (exceptions: 1–2 px for lines and badges). */
   --s1: 4px;   /* inside an element: icon and label */
@@ -160,7 +163,7 @@ p { margin: 0; }
 .rcpt.verified { color: var(--mine); background: var(--mine-bg); }
 .rcpt.stale { color: var(--warn); background: var(--warn-bg); }
 .rcpt.unavailable { color: var(--off); background: var(--off-bg); }
-.rcpt.public { color: var(--accent); background: #e6eef8; }
+.rcpt.public { color: #1d4ed8; background: #e6eef8; } /* semantic (public data status) — kept blue on purpose */
 .rcpt[aria-expanded="true"] { box-shadow: 0 0 0 2px var(--accent); }
 .sheet-backdrop { position: fixed; inset: 0; z-index: 30; background: transparent; }
 .receipt-panel { position: absolute; left: 0; top: calc(100% + var(--s2)); z-index: 31; width: 340px; max-width: calc(100vw - 2 * var(--s4)); padding: var(--s3); border: 1px solid var(--line); border-radius: var(--r1); background: #fff; box-shadow: 0 12px 32px rgba(15,23,42,.16); font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 400; white-space: normal; text-align: left; letter-spacing: 0; }
@@ -378,10 +381,11 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 .switch { display: inline-flex; align-items: center; gap: var(--s2); min-height: 44px; padding: 0; border: 0; background: none; font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 600; }
 .switch-track { position: relative; flex: none; width: 40px; height: 24px; border-radius: 999px; background: #d3d8df; transition: background-color .2s ease; }
 .switch-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(15,23,42,.25); transition: transform .2s cubic-bezier(.2,.8,.2,1); }
-.switch[aria-checked="true"] .switch-track { background: var(--text); }
+.switch[aria-checked="true"] .switch-track { background: var(--accent); }
 .switch[aria-checked="true"] .switch-track::after { transform: translateX(16px); }
 @media (prefers-reduced-motion: reduce) { .switch-track, .switch-track::after { transition: none; } }
 .day-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); margin: var(--s4) 0 var(--s1); font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 600; }
+.link-btn.quiet:hover, .hour-link:hover { color: var(--accent-hover); }
 .link-btn.quiet { color: var(--accent); text-decoration: none; font-weight: 500; font-size: var(--t-sub); line-height: var(--lh-sub); }
 /* Hour row: line 1 time · place · decision chip; line 2 (changes only) a short reason and the result. Tap opens details. */
 .hour { border-top: 1px solid var(--line); }

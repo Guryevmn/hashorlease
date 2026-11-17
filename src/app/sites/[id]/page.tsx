@@ -362,7 +362,7 @@ function HistoryChart({ points }: { points: HourPoint[] }) {
   return (
     <div>
       <svg className="chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Power price over the last 24 hours, from ${usd(min)} to ${usd(max)} per MWh, with the hourly decision below`}>
-        <path d={line} fill="none" stroke="#1d4ed8" strokeWidth="2" />
+        <path d={line} fill="none" stroke="#5b3fd1" strokeWidth="2" />
         {points.map((p, i) => (
           <rect key={p.hour} x={padX + step * i + 1} y={chartH + 8} width={Math.max(step - 2, 1)} height={14} rx="2" fill={p.decision ? COLORS[p.decision] : "#d5dae1"}>
             <title>{`${utcTime(p.hour)} UTC · ${p.decision ? DECISION_LABEL[p.decision] : "paused"} · ${usd(p.powerPrice)}/MWh`}</title>

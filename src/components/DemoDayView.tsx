@@ -231,7 +231,7 @@ function DayChart({ day, at, breakEven, onPick }: { day: DemoDayResult; at: numb
         <line x1={padL} x2={W - padR} y1={y(breakEven)} y2={y(breakEven)} stroke="#1e7a46" strokeWidth="1.5" strokeDasharray="5 4" />
         <text x={padL + 4} y={y(breakEven) + 14} fontSize="12" fill="#14171c">{narrow ? `under ${usd(breakEven, 0)}: mine` : `below ${usd(breakEven, 0)} mining beats the lease`}</text>
         <path d={path(n - 1)} fill="none" stroke="#c4cbd4" strokeWidth="2" strokeLinejoin="round" />
-        <path d={path(at)} fill="none" stroke="#1d4ed8" strokeWidth="2" strokeLinejoin="round" />
+        <path d={path(at)} fill="none" stroke="#5b3fd1" strokeWidth="2" strokeLinejoin="round" />
         {changes.map(({ r, i }) => (
           <g key={r.hour}>
             <line x1={x(i)} x2={x(i)} y1={top - 4} y2={bandY + 16} stroke={COLORS[r.decision!]} strokeWidth="1.5" />
@@ -240,7 +240,7 @@ function DayChart({ day, at, breakEven, onPick }: { day: DemoDayResult; at: numb
             </text>
           </g>
         ))}
-        <circle cx={x(at)} cy={y(now.powerUsdPerMwh)} r="5" fill="#1d4ed8" stroke="#fff" strokeWidth="2" />
+        <circle cx={x(at)} cy={y(now.powerUsdPerMwh)} r="5" fill="#5b3fd1" stroke="#fff" strokeWidth="2" />
         {day.decisions.map((r, i) => (
           <rect key={r.hour} x={padL + step * i + 1} y={bandY} width={Math.max(step - 2, 1)} height={16} rx="3" fill={r.decision ? COLORS[r.decision] : "#d5dae1"} opacity={i <= at ? 1 : 0.22} />
         ))}
@@ -254,7 +254,7 @@ function DayChart({ day, at, breakEven, onPick }: { day: DemoDayResult; at: numb
         ))}
       </svg>
       <div className="row small muted">
-        <span><span aria-hidden style={{ color: "#1d4ed8" }}>━</span> Power price, $/MWh (demo)</span>
+        <span><span aria-hidden style={{ color: "#5b3fd1" }}>━</span> Power price, $/MWh (demo)</span>
         {(["mine", "lease"] as Decision[]).map((d) => (
           <span key={d}><span aria-hidden style={{ color: COLORS[d] }}>■</span> {DECISION_LABEL[d]}</span>
         ))}
