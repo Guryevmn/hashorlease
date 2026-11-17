@@ -91,7 +91,7 @@ npm run agent -- --mode=live --once --fresh    # skip the cached snapshot — to
 `NEXT_PUBLIC_DATA_MODE=live` in `.env` turns on real data.
 
 - **Wallet:** `node scripts/create-wallet.mjs` creates a test key in `.env` (do not commit it). You need Sepolia ETH (gas for `mint`) and test USDC `0xcc19…Ae17` (the token's `mint` is open). x402 payments need no gas.
-- **What is paid:** one Telegraph request per market snapshot: the BTC price (`CRYPTO_PRICE_USD`, $0.01). The snapshot is shared by the app and the agent and lives 30 minutes (`data/snapshot.json`); without a fresh receipt it is retried after 5 minutes. The agent costs about $0.24 a day.
+- **What is paid:** one Telegraph request per market snapshot: the BTC price (`CRYPTO_PRICE_USD`, $0.01). The snapshot is shared by the app and the agent and lives 30 minutes (`data/snapshot.json`); without a fresh receipt it is retried after 5 minutes. Once a day the agent also buys one lease-rate web search (`WEB_SEARCH_GENERAL`, $0.01; `npm run lease-guide` does it on demand). The agent costs about $0.25 a day.
 - **Hashprice** is computed by us: 144 blocks × average reward × price (Telegraph) / network hashrate (mempool.space). The `MINING_HASHPRICE_VERIFY_GENERAL` Intent returns empty numbers on the devnode (see `docs/PLAN.md` §3).
 - **Electricity:** Energy-Charts (SMARD), day-ahead prices for zones DE-LU, FR, PL, AT, NL, free of charge. On screen this number carries the "Public source, not bought via Telegraph" badge. ERCOT through Telegraph returns empty prices on the devnode.
 - **Sites** are stored on the server in `data/sites.json` (not in git) so the agent can see them without a browser. A corrupted file is not overwritten: the screen and the agent show an error. API: `GET/POST /api/live/sites`, `PUT/DELETE /api/live/sites/<id>`, with the same validation as the form.
@@ -116,7 +116,7 @@ npm run agent -- --mode=live --once --fresh    # skip the cached snapshot — to
 - In demo mode everything is made up: prices, receipts, hourly history; "View proof" links do not work. In live mode the sites are examples; there are no real users yet.
 - Testnet only (Telegraph devnode, Sepolia). No real money and no mainnet.
 - Hashprice is computed by us, electricity comes from Energy-Charts (Europe). US sites (ERCOT) exist only in the demo.
-- The AI lease rate is entered by the operator; the market guide (`WEB_SEARCH`) exists only in the demo.
+- The AI lease rate is entered by the operator. The "Market guide" next to it is a daily paid `WEB_SEARCH_GENERAL` hint with its own receipt; no decision reads it. The devnode's web search returns market-report links and rarely a stated rate, so the guide usually says "No rate quoted in the search results" rather than showing a number.
 - History before the agent started is recomputed from past electricity prices with today's hashprice; "Agent call" marks only the hours the agent decided live.
 - We do not know what the operator did in each hour: they mark it themselves on History ("Followed" / "Did something else" / "Skip"). Marks are stored in the browser's `localStorage`. Missed gain is computed only for marked hours; "Keep as is" hours are never counted as missed.
 - There is no login: the sites API is designed for a local single-operator install, not for a public server.

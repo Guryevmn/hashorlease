@@ -1,4 +1,4 @@
-// Live market snapshot: the BTC price is a paid Telegraph request (with a receipt), the Bitcoin network comes from mempool.space,
+// Live market snapshot: the BTC price is a paid Telegraph request (with a receipt) and a lease-rate web search is bought once a day, the Bitcoin network comes from mempool.space,
 // the electricity price from Energy-Charts (SMARD, day-ahead). On the Telegraph devnode the hashprice and ERCOT intents
 // return empty fields, so we compute those numbers ourselves (docs/PLAN.md §3).
 
@@ -6,7 +6,8 @@ import type { MarketSnapshot, PowerQuote, Receipt, Sourced } from "../types";
 import { LIVE_NODES } from "./catalog";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { ask, SpendLimitError } from "./telegraph";
+import { ask, readLedger, SpendLimitError } from "./telegraph";
+import { buyLeaseGuideIfDue, guideFromLedger } from "./leaseGuide";
 
 export { LIVE_NODES };
 
@@ -179,6 +180,9 @@ async function buildSnapshot(): Promise<{ snapshot: MarketSnapshot; fx: number }
   // Free data first: if mempool.space did not answer, we skip the paid request (otherwise the purchase would be wasted).
   const net = await fetchBtcNetwork();
   const tg = await telegraphBtcPrice();
+  // Second Telegraph request of the mission list: a lease-rate web search once a day. After the BTC price on purpose:
+  // if the daily limit runs short, the hint is what we lose, not the decision. A failure here never pauses decisions.
+  if ("price" in tg) await buyLeaseGuideIfDue();
   const now = new Date();
 
   let hashprice: Sourced<number | null>;
@@ -245,7 +249,7 @@ async function buildSnapshot(): Promise<{ snapshot: MarketSnapshot; fx: number }
       asOf: now.toISOString(),
       hashprice,
       power,
-      leaseGuide: null,
+      leaseGuide: guideFromLedger(readLedger()),
       networkDown: telegraphDown,
       lastGoodAt,
       limitReached: "limit" in tg && tg.limit,
