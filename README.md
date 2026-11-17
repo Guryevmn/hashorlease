@@ -79,12 +79,12 @@ npm run agent -- --mode=live --once --fresh    # skip the cached snapshot — to
 
 ## Telegram bot
 
-`npm run bot` (grammY): `/start` subscribes to alerts, `/now` or `/now Leipzig` shows the current decision, `/stop` unsubscribes, `/demo` replays the simulated demo day (marked as demo data), plus the "Snooze 1h" and "Receipts" buttons. A change alert says why the call changed ("Why: power price rose from … to …"). The bot buys nothing: `/now` reads the agent's latest records. Decision-change alerts are sent by the agent.
+`npm run bot` (grammY): `/start` subscribes to alerts and greets with the current call for every site and two buttons ("See a demo day", "Current calls"), `/now` or `/now Leipzig` shows the current decision, `/stop` unsubscribes, `/demo` replays the simulated demo day (marked as demo data), plus the "Snooze 1h" and "Receipts" buttons. A change alert says why the call changed ("Why: power price rose from … to …"). The bot buys nothing: `/now` reads the agent's latest records. Decision-change alerts are sent by the agent.
 
 - Needs a token from @BotFather in `.env`: `HASHORLEASE_BOT_TOKEN=…`. **Without it the bot does not start** and says what to do. The app and the agent work without the bot (the agent logs what it would have sent).
 - The variable has its own name, not `TELEGRAM_BOT_TOKEN`: the machine may hold another bot's token, and the app must not pick it up.
 - Link buttons ("Open app", "Open breakdown") appear only if `.env` sets a public `APP_URL` with https (Telegram does not accept localhost).
-- Subscribers are stored in `data/bot-chats.json` (not in git). Message texts are covered by tests; the bot runs as @hashorlease_bot (1 subscriber on 12 Nov), delivery of messages to Telegram has not been verified yet.
+- Subscribers are stored in `data/bot-chats.json` (not in git). Message texts are covered by tests; the bot runs as @hashorlease_bot (2 subscribed chats on 17 Nov). The owner's own `/start`, `/now` and `/demo` replies arrived on 17 Nov, and the agent's log shows 10 alerts sent between 12 and 16 Nov without a send error; no outside person has used the bot. A new subscriber gets no hourly messages, only changes, failures and the greeting.
 
 ## Live mode
 
@@ -122,9 +122,10 @@ npm run agent -- --mode=live --once --fresh    # skip the cached snapshot — to
 - There is no login: the sites API is designed for a local single-operator install, not for a public server.
 - The agent and the web app are separate processes: they share the market snapshot through a file and pay one at a time through a disk lock.
 - The agent decides only from the snapshot of the current UTC hour: when running every hour, that is one purchase per hour.
-- The Telegram bot runs as @hashorlease_bot, but delivery of messages to Telegram has not been verified yet.
+- The Telegram bot runs as @hashorlease_bot; the owner's own check worked on 17 Nov, but no outside person has used it.
 - Time in the demo is fixed: 8 Nov 2026, 14:04 UTC.
-- Live operation (recounted 16 Nov 2026, 21:00 UTC) shows two changes of call, both at Silesia Farm on 15 Nov (08:00 and 13:00 UTC); Leipzig Hub and the fixed-tariff rig never changed, and no live call has ever been Mine. The Mine flip is shown on the demo day (`/demo-day`): invented prices on an invented site, chosen so that the power price crosses the break-even point; it is not evidence of live behaviour. Delivery of the change alerts to Telegram has not been verified.
+- Live operation (recounted 17 Nov 2026, 20:00 UTC: calls in 156 of 170 hourly slots since 10 Nov, longest streak 112 hours) shows two changes of call, both at Silesia Farm on 15 Nov (08:00 and 13:00 UTC); Leipzig Hub and the fixed-tariff rig never changed, and no live call has ever been Mine. The Mine flip is shown on the demo day (`/demo-day`): invented prices on an invented site, chosen so that the power price crosses the break-even point; it is not evidence of live behaviour. The agent's log shows both change alerts sent to Telegram without a send error. **Since 17 Nov 07:00 UTC the agent has made no calls:** the payment is verified but its settlement at the third-party x402 facilitator times out, so the agent pauses all sites and pays nothing, as designed (cause not yet established).
+- Feedback so far: one comment from an acquaintance of the author ([Discussions #1](https://github.com/Guryevmn/hashorlease/discussions/1), 17 Nov). It found two real problems, both fixed the same day. No independent users yet.
 
 ## License
 

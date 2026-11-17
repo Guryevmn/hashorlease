@@ -1,6 +1,6 @@
 # Hash or Lease — submission draft (NOT submitted)
 
-> **Newer materials (2026-11-12):** the current application text, video script and demo plan are in [`docs/submission/`](submission/); where they differ from this file, they win.
+> **Newer materials:** the current application text, video script and demo plan are in [`docs/submission/`](submission/); where they differ from this file, they win. Facts in this file were refreshed on 2026-11-17 (journal numbers recounted 17 Nov 20:00 UTC).
 
 For the owner: below are the English texts for the hackathon site form, in the order of rules section 8
 ("What to submit by December 1": https://hackathon.telegraphprotocol.com/rules, checked 2026-11-10), a screenshot list, the video script and demo risks.
@@ -45,7 +45,7 @@ On testnet it runs end to end: an hourly agent buys the BTC price through Telegr
 The data for a whole fleet costs about $0.24 a day at testnet prices (one $0.01 purchase per hour covers every site), against decisions worth hundreds to thousands of dollars per hour on a multi-megawatt site. It needs no integration with the operator's hardware: you enter fleet size, power draw and the lease rate, and you get a call. No operator has used it yet — this is our reasoning, not customer evidence.
 
 **How can someone try it?**
-Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo mode with invented data, no wallet and no network. `npm run agent -- --mode=mock --once` runs the agent once the same way. Live mode needs a throwaway Sepolia test wallet; steps are in `docs/JUDGE.md`.
+Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo mode with invented data, no wallet and no network. `npm run agent -- --mode=mock --once` runs the agent once the same way. Live mode needs a throwaway Sepolia test wallet; steps are in `docs/JUDGE.md`. Maintained by `[name, contact]`; questions go to GitHub Discussions #1 and Issues of the repository.
 
 ## 4. Full description
 
@@ -58,7 +58,8 @@ Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo
 - **Hourly agent without a browser** (`npm run agent`): buys data, decides for all sites, writes history to disk, sends Telegram alerts when a call changes.
 - **No receipt, no call:** if Telegraph is unreachable or the spend limit is hit, the hour is recorded as "Paused" with the reason instead of a guess.
 - **History the operator can argue with:** hour-by-hour calls; the operator marks what they actually did, and missed gain is counted only for marked hours.
-- **Telegram bot** (grammY): change alerts, `/now`. *(Implemented, its messages are tested, and it runs as @hashorlease_bot; delivery of a message to Telegram not yet verified — 12 Nov.)*
+- **Telegram bot** (grammY): `/start` greets a new subscriber with the current call for every site and two buttons ("See a demo day", "Current calls"); change alerts, `/now`, `/demo`. *(Runs as @hashorlease_bot. The owner's own `/start`, `/now`, `/demo` replies arrived on 17 Nov; the agent's log shows 10 alerts sent 12–16 Nov without a send error. No outside person has used the bot.)*
+- **Interface** (17 Nov): new logo and one accent colour, one chip style, History marks every change of call ("Changed from Switch off → Lease to AI" with its reason) and has a "Changes only" switch, one vertical rhythm on all screens. Before/after pictures: `docs/design/`.
 
 **How it uses Telegraph.**
 - The agent calls the Telegraph Engine (`POST /engine/v1/ask` on the devnode) and pays per request with **x402** in test USDC on **Ethereum Sepolia**. No human approves the payment: this is a machine-to-machine purchase.
@@ -72,17 +73,18 @@ Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo
 - **Shape:** the decision logic is a pure module with no network or clock; the agent cycle takes its dependencies from outside, so the same code runs on live data, on demo data and in tests. Screens talk to one `DataSource` interface with a demo and a live implementation.
 - **Storage:** plain files on the operator's machine — the payment ledger, the shared market snapshot, live sites, agent decisions and runs. Sites and history marks in demo mode live in the browser.
 
-**Network and what is verified (2026-11-09/10).** Testnet only: Telegraph devnode + Ethereum Sepolia (test USDC). The agent's own purchases settle on Sepolia (`status 0x1`); the daily limit blocks payment before it happens (also checked on a clean install with `DAILY_SPEND_LIMIT_USD=0` and by a unit test); Telegraph-unreachable and provider-down cases pause the call instead of guessing; 95 automated tests in 11 files (run 2026-11-16), typecheck and production build pass; all screens were checked for console errors in demo and live mode (automated browser checks, 2026-11-09). The ledger holds 94 paid requests from 2026-11-09, most of them from development — the breakdown is in `docs/JUDGE.md` ("What is in the ledger").
+**Network and what is verified (2026-11-09/10).** Testnet only: Telegraph devnode + Ethereum Sepolia (test USDC). The agent's own purchases settle on Sepolia (`status 0x1`); the daily limit blocks payment before it happens (also checked on a clean install with `DAILY_SPEND_LIMIT_USD=0` and by a unit test); Telegraph-unreachable and provider-down cases pause the call instead of guessing; 127 automated tests in 13 files (run 2026-11-17), typecheck passes; production build passes (run 2026-11-17); all screens were checked for console errors in demo and live mode (automated browser checks, 2026-11-09). The ledger holds 252 paid requests ($2.52) by 17 Nov 20:00 UTC, 94 of them from 2026-11-09, most of those from development — the breakdown is in `docs/JUDGE.md` ("What is in the ledger").
 
 **Limitations (honest list).**
 - **Testnet only.** No real money, no mainnet transactions, no customers. No operator has used it; the live sites are examples.
 - **One input is bought through Telegraph** (BTC price). Hashprice is computed by us; power prices are free public European day-ahead data (Energy-Charts), not ERCOT. US sites run on demo data only.
 - **The AI lease rate is typed in by the operator.** The `WEB_SEARCH` market guide exists only in demo mode; there is no market comparison in live mode yet.
-- **The agent has run since 2026-11-10 18:00 UTC:** a decided call with a purchase in 146 of 147 hourly slots by 2026-11-16 20:00 UTC, one gap (14:00 UTC on 12 Nov), unbroken streak of 102 hours since 12 Nov 15:00 UTC (the first streak was 44 hours). 14 hours had a failed first run (Telegraph or a provider unavailable, a pause was logged) and all 14 recovered on the retry within the same hour. Recounted from `data/agent/live/runs.jsonl` on 16 Nov 21:00 UTC (`node scripts/recount.mjs 2026-11-16T21:00:00Z`); recount on submission day.
-- **Live calls changed twice, never to Mine:** on 15 Nov 2026 at Silesia Farm — 08:00 UTC Switch off → Lease to AI (power price fell from $123.79 to $54.00/MWh) and 13:00 UTC Lease to AI → Switch off (power rose from $66.60 to $169.43/MWh), each with its receipt and reason in `data/agent/live/decisions.jsonl` (`changed: true`). Leipzig Hub (Lease to AI) and the fixed-tariff rig (Keep as is) never changed. Delivery of the alerts to Telegram has not been verified.
+- **The agent has run since 2026-11-10 18:00 UTC:** a decided call with a purchase in 156 of 170 hourly slots by 2026-11-17 19:00 UTC; longest unbroken streak 112 hours (12 Nov 15:00 – 17 Nov 06:00 UTC; the first streak was 44 hours); one gap on 12 Nov (14:00 UTC). 16 hours had a failed first run (Telegraph or a provider unavailable, a pause was logged) and all 16 recovered on the retry within the same hour. **Since 17 Nov 07:00 UTC the run is broken:** every cycle pauses all sites and pays nothing — the ledger shows payments verified, then the settlement step at the third-party x402 facilitator timing out (13 slots without a call by 19:00 UTC; cause not yet established; `[update on submission day]`). Recounted from `data/agent/live/runs.jsonl` on 17 Nov 20:00 UTC (`node scripts/recount.mjs 2026-11-17T20:00:00Z`); recount on submission day.
+- **Live calls changed twice, never to Mine:** on 15 Nov 2026 at Silesia Farm — 08:00 UTC Switch off → Lease to AI (power price fell from $123.79 to $54.00/MWh) and 13:00 UTC Lease to AI → Switch off (power rose from $66.60 to $169.43/MWh), each with its receipt and reason in `data/agent/live/decisions.jsonl` (copy: `docs/evidence/agent-decisions.jsonl`, `changed: true`). Leipzig Hub (Lease to AI) and the fixed-tariff rig (Keep as is) never changed. The agent's log shows both alerts sent to Telegram without a send error; the owner's own bot check on 17 Nov worked, but no outside person has read an alert.
 - **History before the agent started** is recomputed from past power prices with today's hashprice; only hours tagged "Agent call" were decided live.
 - **No login.** Built for one operator on their own machine, not for a public server.
-- **Telegram bot** is implemented and its messages are tested, but it has not been run against Telegram `[update after the first real run]`.
+- **Telegram bot:** runs and answers (owner's check, 17 Nov); no outside person has used it. New subscribers get no hourly messages — only changes, failures and the greeting.
+- **Outside users: one acquaintance, one comment.** On 17 Nov a person the author asked directly (GitHub `scottlaren`, Discussions #1) tried the site and found two real problems (empty-looking miner fields that were only placeholders; a note that contradicted the receipt), both fixed the same day (commit `42cdf17`). He is not an independent user and this is not adoption.
 
 **What is next.**
 1. Buy more of the decision through Telegraph: lease-rate comparables via `WEB_SEARCH`; power prices via `GRID_POWER_PRICE` as soon as a node returns values (CAISO is the next probe); hashprice via `MINING_HASHPRICE_VERIFY` when its fields are populated. The receipt model on screen already supports all three.
@@ -110,12 +112,13 @@ Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo
 
 ## 6. Evidence
 
-- Payment ledger: `docs/evidence/ledger.jsonl` (copy of `data/ledger.jsonl`) — one line per request: intent, status, cost, tx, signal_hash, provider, full answer. 127 requests on 2026-11-09, 94 paid; breakdown in `docs/JUDGE.md` ("What is in the ledger").
+- Payment ledger: `docs/evidence/ledger.jsonl` (copy of `data/ledger.jsonl`, 17 Nov 2026 20:01 UTC) — one line per request: intent, status, cost, tx, signal_hash, provider, full answer. 363 lines, 252 paid ($2.52); the 9 Nov part (127 requests, 94 paid) is broken down in `docs/JUDGE.md` ("What is in the ledger"). `[refresh the copy on submission day]`
 - Example agent purchase: Sepolia tx `0x1c3bc795d2cf6d7eb66949a98ebf173d2f59545b7023597f5d363a48829a76df` (2026-11-09 19:57 UTC), one-command check in `docs/JUDGE.md` §4.
-- Agent runs and decisions with receipts: `docs/evidence/agent-runs.jsonl`, `docs/evidence/agent-decisions.jsonl` (copies of `data/agent/live/`).
+- Agent runs and decisions with receipts: `docs/evidence/agent-runs.jsonl`, `docs/evidence/agent-decisions.jsonl` (copies of `data/agent/live/`, 17 Nov 2026; both 15 Nov changes of call are in the decisions file).
 - Raw answers of the mission Intents that returned empty values: `docs/evidence/first-hashprice.json`, `docs/evidence/second-queries.json`.
-- Tests: `npm test` (95 tests in 11 files, run 2026-11-16: decision logic, agent cycle, bot messages, site storage, spend limit, request rate).
-- Screenshots: `docs/shots/sites.png`, `docs/shots/site-detail-receipt.png`.
+- Tests: `npm test` (127 tests in 13 files, run 2026-11-17: decision logic, agent cycle, bot messages, site form, site storage, spend limit, request rate).
+- Screenshots: `docs/shots/sites.png`, `docs/shots/site-detail-receipt.png` (9 Nov, before the redesign — to be replaced). Design before/after pairs: `docs/design/`.
+- Tester feedback: GitHub Discussions #1, https://github.com/Guryevmn/hashorlease/discussions/1 (one comment from an acquaintance, 17 Nov).
 
 **Evidence map (for us, not part of the form):**
 
@@ -147,7 +150,7 @@ Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo
 
 ## 9. Screenshots for the submission
 
-Ready (live mode, 9 Nov):
+Ready (live mode, 9 Nov; old design — re-shoot before submitting):
 - [x] `docs/shots/sites.png` — site list: call, $/h, receipt next to the numbers.
 - [x] `docs/shots/site-detail-receipt.png` — a site with an expanded Telegraph receipt and a link to the payment on Sepolia.
 
@@ -158,7 +161,7 @@ To capture before submitting (`npm start`, 1280×900 window):
 - [ ] The "Can't reach Telegraph" banner (scenario from JUDGE.md §5).
 - [ ] Terminal with the agent log (`npm run agent -- --once`).
 - [ ] The transaction page on sepolia.etherscan.io.
-- [ ] Telegram: a call-change alert and `/now` — the bot runs (@hashorlease_bot); delivery to a subscriber still to verify.
+- [ ] Telegram: the `/start` greeting with its two buttons, a call-change alert and `/now` (the owner verified the replies on 17 Nov; no screenshot yet).
 
 ## 10. Demo video, 2–3 minutes
 
@@ -198,7 +201,7 @@ Recommendation: record scene by scene and use the finished recording for the dem
 **One line:** every hour, for every site — mine, lease the power to AI or switch off, in dollars per hour, with a source under every number.
 **Telegraph:** the agent pays for the BTC price itself (x402, test USDC on Sepolia, $0.01 per request, about $0.24 a day). We tried to buy hashprice and ERCOT prices — the payment went through but the values were empty; so we compute hashprice ourselves and take electricity from an open European source.
 **Spend safety:** daily limit checked before payment, one payment at a time, $0.02 cap, test coin only.
-**Limitations:** testnet only, no users, one number is bought through Telegraph, the lease rate is entered by the operator, the agent has run since 10 Nov (146 of 147 hourly slots by 16 Nov 20:00 UTC; two live changes of call, both on 15 Nov), the bot runs (@hashorlease_bot) but delivery of messages to Telegram is not verified yet.
+**Limitations:** testnet only, no independent users, one number is bought through Telegraph, the lease rate is entered by the operator, the agent has run since 10 Nov (156 of 170 hourly slots by 17 Nov 19:00 UTC, longest streak 112 hours; two live changes of call, both on 15 Nov; **no call since 17 Nov 07:00 UTC** because settlement at the x402 facilitator times out), the bot runs (@hashorlease_bot, the owner's own check on 17 Nov worked), the only outside feedback is one comment from an acquaintance (fixed the same day).
 
 ## 13. Needed from you before submitting
 
@@ -207,6 +210,7 @@ Recommendation: record scene by scene and use the finished recording for the dem
 - [x] The code is published: public repository, MIT licence.
 - [x] Telegram bot token is in `.env`; the bot runs as @hashorlease_bot.
 - [x] The demo is hosted: https://hashorlease.vercel.app (invented data, marked on screen).
-- [ ] Record the video (or assign a session to record it) and give a "yes" to publish.
+- [ ] Record the video (or assign a session to record it) and give a "yes" to publish. Shoot it on the new design; check the agent is paying again first (17 Nov outage).
+- [ ] Ask 2–4 more people to try the site and leave a comment in Discussions #1 (only one acquaintance so far).
 - [ ] Links to public progress updates and showcase permissions (section 8).
 - [ ] Submitting the form — yourself or with your "yes".
