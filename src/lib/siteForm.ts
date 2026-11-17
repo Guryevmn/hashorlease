@@ -1,6 +1,7 @@
 // Validation of the "Add site" form fields (values arrive as strings from the inputs).
 
 import { DEFAULT_THRESHOLD_USD_PER_MWH } from "./decision";
+import { BTC_PRICE_REQUEST_USD } from "./data/types";
 import type { SiteInput } from "./types";
 
 export interface SiteFormValues {
@@ -166,4 +167,41 @@ export function sanitizeSiteInput(body: unknown): SiteInput | null {
     thresholdUsdPerMwh: n(b.thresholdUsdPerMwh),
     paused: b.paused === true ? true : undefined,
   };
+}
+
+/** A sample fleet for the "Fill with example" button: 1000 PH/s × 20 J/TH ÷ 1000 = 20 MW, so the numbers add up. */
+export const EXAMPLE_MINERS = { phs: "1000", mw: "20", jPerTh: "20" } as const;
+
+/** Form field → id of the input, to jump to the first field that needs attention. */
+export const FIELD_INPUT_ID: Record<keyof SiteFormValues, string> = {
+  kind: "kind-label",
+  name: "name",
+  nodeId: "node",
+  tariffUsdPerMwh: "rate",
+  mw: "mw",
+  phs: "phs",
+  jPerTh: "j",
+  hasLease: "lease",
+  leaseRate: "lease",
+  overhead: "overhead",
+  includesPower: "lease",
+  threshold: "threshold",
+};
+
+/** Order the fields appear on screen: the first error in this order gets the focus. */
+const FIELD_ORDER: (keyof SiteFormValues)[] = ["tariffUsdPerMwh", "nodeId", "name", "phs", "mw", "jPerTh", "leaseRate", "overhead", "threshold"];
+
+export function firstInvalidField(errors: SiteFormErrors): keyof SiteFormValues | null {
+  return FIELD_ORDER.find((k) => errors[k]) ?? null;
+}
+
+/**
+ * The cost line under the "Add place" form. It must agree with the receipts on the site page: every decision buys
+ * one Bitcoin price request (mining income), for any site kind, shared by all places. Only a grid node in demo mode
+ * adds its own hourly power-price requests; a fixed rate never does.
+ */
+export function addSiteCostNote(e: { requestsPerDay: number; costPerDayUsd: number }, live: boolean, usd: (n: number, digits?: number) => string): string {
+  if (e.requestsPerDay > 0) return `Adding a site makes ~${e.requestsPerDay} paid requests per day (≈ ${usd(e.costPerDayUsd)}).`;
+  if (live) return "No extra cost: one paid Telegraph request per hour (the Bitcoin price) covers all places; power prices are free.";
+  return `A fixed rate needs no paid power-price requests. Each call still uses 1 shared paid request (≈ ${usd(BTC_PRICE_REQUEST_USD, 3)}) for the Bitcoin price, which mining income depends on.`;
 }
