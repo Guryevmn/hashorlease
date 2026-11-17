@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildMockSnapshot, mockAgentSnapshot, mockSeedSites, type MockState } from "../data/mock";
 import type { MarketSnapshot } from "../types";
+import { plainText } from "../bot/messages";
 import { runCycle, type CycleDeps } from "./cycle";
 import { createFileStore, hourlyRows, lastDecided, type AgentStore } from "./store";
 import type { AlertState, DecisionRecord, RunRecord } from "./types";
@@ -70,12 +71,12 @@ describe("runCycle", () => {
     const second = await runCycle(deps(store, snap("default"), { now: () => new Date(NOW.getTime() + 3600_000) }));
     const change = second.messages.find((m) => m.kind === "change");
     expect(change?.siteId).toBe("houston");
-    expect(change?.text.split("\n")[0]).toBe("🔄 Houston Hub: Mine → Lease to AI");
+    expect(plainText(change?.text ?? "").split("\n")[0]).toBe("🔄 Houston Hub: Mine → Lease to AI");
     expect(second.run.changes).toEqual([{ siteId: "houston", siteName: "Houston Hub", from: "mine", to: "lease" }]);
     // The journal and the alert carry the reason for the change.
     const rec = second.decisions.find((d) => d.siteId === "houston")!;
     expect(rec.why).toMatch(/Lease to AI now beats Mine by \$\d/);
-    expect(change?.text.split("\n")[1]).toBe(`Why: ${rec.why}`);
+    expect(plainText(change?.text ?? "").split("\n\n")[1]).toBe(`Why: ${rec.why}`);
   });
 
   it("provider failure: site paused, one alert, the rest decided", async () => {
@@ -86,7 +87,7 @@ describe("runCycle", () => {
     expect(north.status).toBe("paused");
     expect(north.pauseKind).toBe("provider");
     expect(a.run.decided).toBe(2);
-    expect(a.messages.map((m) => m.text)).toEqual(["⚠️ North Ridge: grid price unavailable. Last call (14:00): Switch off. Retrying in 10 min."]);
+    expect(a.messages.map((m) => plainText(m.text))).toEqual(["⚠️ North Ridge: grid price unavailable\n\nLast call (14:00): Switch off.\n\nRetrying in 10 min."]);
     const b = await runCycle(deps(store, snap("provider-error")));
     expect(b.messages).toHaveLength(0);
   });

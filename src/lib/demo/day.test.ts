@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { runCycle } from "../agent/cycle";
 import { agentDir, createFileStore, createMemoryStore } from "../agent/store";
 import { buildMockSnapshot } from "../data/mock";
-import { daySegments, demoDayReplay } from "../bot/messages";
+import { daySegments, demoDayReplay, plainText } from "../bot/messages";
 import { DEMO_DAY, DEMO_DAY_START, DEMO_NODE_ID, demoBreakEvenPower, demoDaySite, demoDaySnapshot, demoSiteLine, simulateDemoDay } from "./day";
 
 const at = (h: number) => new Date(DEMO_DAY_START + h * 3600_000).toISOString();
@@ -107,12 +107,11 @@ describe("demo day in the bot", () => {
       [11, "change"],
       [16, "change"],
     ]);
-    expect(day.alerts[1].message.text.split("\n")).toEqual([
+    expect(plainText(day.alerts[1].message.text).split("\n\n")).toEqual([
       "🧪 Demo data · simulated 16:00 UTC",
       "🔄 Solar Ridge (demo): Mine → Lease to AI",
       "Why: power price rose from $33.00 to $124.00/MWh; Lease to AI now beats Mine by $93.50/MWh",
-      "+$1,402/h vs. mining · $67.00/MWh",
-      "Power $124.00 · Hashprice $35.10/PH/day",
+      "+$1,402/h vs. mining · $67.00/MWh\nPower $124.00 · Hashprice $35.10/PH/day",
       "Demo data · no Telegraph receipts",
     ]);
     for (const a of day.alerts) {
@@ -128,9 +127,9 @@ describe("demo day in the bot", () => {
     expect(daySegments(day.decisions)).toEqual(["00:00–11:00 ⚡ Lease to AI", "11:00–16:00 ⛏ Mine", "16:00–24:00 ⚡ Lease to AI"]);
     const replay = demoDayReplay({ siteName: day.site.name, siteLine: demoSiteLine(day.site), decisions: day.decisions, appUrl: null });
     expect(replay.map((m) => m.kind)).toEqual(["demo", "change", "change", "demo"]);
-    expect(replay[0].text).toContain("🧪 Demo day — invented prices, no Telegraph requests, no receipts.");
-    expect(replay[0].text).toContain("The call changes 2 times");
-    expect(replay[3].text).toContain("11:00–16:00 ⛏ Mine");
+    expect(replay[0].text).toContain("<i>Invented prices · no Telegraph requests · no receipts</i>");
+    expect(plainText(replay[0].text)).toContain("The call changes 2 times");
+    expect(plainText(replay[3].text)).toContain("11:00–16:00  ⛏ Mine");
     for (const m of replay) expect(m.text.startsWith("🧪")).toBe(true);
   });
 });

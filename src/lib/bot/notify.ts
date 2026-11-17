@@ -7,7 +7,8 @@ import type { BotMessage, Button } from "./messages";
 export function keyboardOf(buttons: Button[]): InlineKeyboard | undefined {
   if (buttons.length === 0) return undefined;
   const kb = new InlineKeyboard();
-  for (const b of buttons) {
+  for (const [n, b] of buttons.entries()) {
+    if (b.newRow && n > 0) kb.row();
     if (b.url) kb.url(b.text, b.url);
     else if (b.data) kb.text(b.text, b.data);
   }
@@ -24,7 +25,7 @@ export function createTelegramNotifier(token: string, chatsFile = CHATS_FILE, lo
       for (const m of messages) {
         if ((m.kind === "change" || m.kind === "provider") && isSnoozed(chat, m.siteId, now)) continue;
         try {
-          await api.sendMessage(chatId, m.text, { reply_markup: keyboardOf(m.buttons) });
+          await api.sendMessage(chatId, m.text, { parse_mode: "HTML", reply_markup: keyboardOf(m.buttons) });
           sent++;
         } catch (e) {
           log(`telegram: can't send to chat ${chatId}: ${e instanceof Error ? e.message : String(e)}`);

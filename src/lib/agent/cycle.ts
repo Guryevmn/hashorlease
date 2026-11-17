@@ -4,7 +4,7 @@
 
 import { buildSiteReport } from "../report";
 import type { MarketSnapshot, Receipt, Site, SiteReport } from "../types";
-import { changeAlert, limitAlert, networkAlert, networkBackAlert, providerAlert, type BotMessage } from "../bot/messages";
+import { changeAlert, limitAlert, networkAlert, networkBackAlert, plainText, providerAlert, type BotMessage } from "../bot/messages";
 import { lastDecided, type AgentStore } from "./store";
 import type { AgentMode, AlertState, DecisionRecord, RecordedReceipt, RunRecord } from "./types";
 import { whyText } from "./why";
@@ -226,7 +226,7 @@ export async function runCycle(deps: CycleDeps): Promise<CycleResult> {
         log(`notify failed: ${e instanceof Error ? e.message : String(e)}`);
       }
     } else {
-      for (const m of messages) log(`alert (bot not configured, not sent): ${m.text.replace(/\n/g, " | ")}`);
+      for (const m of messages) log(`alert (bot not configured, not sent): ${plainText(m.text).replace(/\n+/g, " | ")}`);
     }
   }
   // Sending failed: do not remember the alert state, so the next cycle tries again.
