@@ -166,6 +166,16 @@ export function networkAlert(what: "Telegraph" | "market data" = "Telegraph"): B
   return { kind: "network", text: [`⚠️ ${b(`Can't reach ${esc(what)}`)}`, "I'll keep trying and tell you when it's back."].join("\n\n"), buttons: [] };
 }
 
+/** Reminder while the outage lasts (every few hours), so a single morning message is not the only signal. */
+export function networkStillDownAlert(what: "Telegraph" | "market data", hours: number): BotMessage {
+  const h = Math.max(1, Math.round(hours));
+  return {
+    kind: "network",
+    text: [`⚠️ ${b(`Still can't get ${esc(what)} · ${h} h`)}`, "Decisions stay paused until fresh paid data arrives. I keep retrying every 10 minutes."].join("\n\n"),
+    buttons: [],
+  };
+}
+
 export function networkBackAlert(): BotMessage {
   return { kind: "network-back", text: [`✅ ${b("Data is reachable again")}`, "Hourly calls are back on."].join("\n\n"), buttons: [] };
 }
@@ -263,7 +273,7 @@ export function receiptsMessage(r: DecisionRecord): BotMessage {
     kind: "receipts",
     siteId: r.siteId,
     text: [head, r.receipts.map(receiptLine).join("\n\n")].join("\n\n"),
-    buttons: links.map((x) => ({ text: `${x.service ?? x.label} on Sepolia ↗`, url: x.proofUrl! })),
+    buttons: links.map((x) => ({ text: `${x.service ?? x.label} ${x.proofUrl!.includes("etherscan.io") ? "on Sepolia" : "receipt"} ↗`, url: x.proofUrl! })),
   };
 }
 

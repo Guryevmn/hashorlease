@@ -77,6 +77,9 @@ export interface AlertState {
   networkDown?: boolean;
   /** Consecutive cycles that failed on the network; the alert goes out on the second one (the first is retried quietly in 10 min). */
   networkFails?: number;
+  /** When the current network outage started (first failed cycle) and when the user was last told about it. */
+  networkDownSince?: string;
+  networkAlertedAt?: string;
   /** Sites for which a provider failure was already reported. */
   providerDown?: string[];
 }

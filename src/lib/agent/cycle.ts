@@ -4,7 +4,7 @@
 
 import { buildSiteReport } from "../report";
 import type { MarketSnapshot, Receipt, Site, SiteReport } from "../types";
-import { changeAlert, limitAlert, networkAlert, networkBackAlert, plainText, providerAlert, type BotMessage } from "../bot/messages";
+import { changeAlert, limitAlert, networkAlert, networkBackAlert, networkStillDownAlert, plainText, providerAlert, type BotMessage } from "../bot/messages";
 import { lastDecided, type AgentStore } from "./store";
 import type { AgentMode, AlertState, DecisionRecord, RecordedReceipt, RunRecord } from "./types";
 import { whyText } from "./why";
@@ -37,6 +37,8 @@ export interface CycleResult {
 
 /** Failed network cycles in a row before the user is alerted. */
 const NETWORK_ALERT_AFTER = 2;
+/** While the outage lasts, remind every 6 hours: one message in the morning is easy to miss (17.11: 13 h of silence). */
+const NETWORK_REMIND_MS = 6 * 3600_000;
 
 const hourOf = (d: Date) => {
   const h = new Date(d);
@@ -200,13 +202,21 @@ export async function runCycle(deps: CycleDeps): Promise<CycleResult> {
   // A single failed network cycle is retried quietly (the agent retries after 10 min); the alert needs two in a row.
   if (pause?.kind === "network") {
     alerts.networkFails = (alerts.networkFails ?? 0) + 1;
+    alerts.networkDownSince ??= at;
     if (snapshot?.hashprice.receipt.source && snapshot.hashprice.receipt.status === "unavailable") log(`network pause (${alerts.networkFails} in a row): ${snapshot.hashprice.receipt.source}`);
+    const what = "sources" in pause ? "market data" : "Telegraph";
     if (alerts.networkFails >= NETWORK_ALERT_AFTER && !alerts.networkDown) {
-      messages.push(networkAlert("sources" in pause ? "market data" : "Telegraph"));
+      messages.push(networkAlert(what));
       alerts.networkDown = true;
+      alerts.networkAlertedAt = at;
+    } else if (alerts.networkDown && Date.parse(at) - Date.parse(alerts.networkAlertedAt ?? alerts.networkDownSince) >= NETWORK_REMIND_MS) {
+      messages.push(networkStillDownAlert(what, (Date.parse(at) - Date.parse(alerts.networkDownSince)) / 3600_000));
+      alerts.networkAlertedAt = at;
     }
   } else if (!pause && snapshot) {
     alerts.networkFails = 0;
+    delete alerts.networkDownSince;
+    delete alerts.networkAlertedAt;
     if (alerts.networkDown) {
       messages.push(networkBackAlert());
       alerts.networkDown = false;
