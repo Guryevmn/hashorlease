@@ -56,7 +56,7 @@ It prints 24 simulated hours with the reason for each, and the two bot alerts (`
 Checks:
 
 ```
-npm test            # 137 tests in 14 files: decision logic, agent cycle, demo day, bot messages, site form, site storage, spend limit, request rate
+npm test            # 154 tests in 15 files: decision logic, agent cycle, demo day, bot messages, site form, site storage, spend limit, request rate
 npm run typecheck
 npm run build
 ```
@@ -106,7 +106,7 @@ What live mode buys and where the other numbers come from:
 | Power price, current hour | Energy-Charts day-ahead (DE-LU, FR, PL, AT, NL) | free, public — shown with a globe icon "Public source, not bought via Telegraph" |
 | AI lease rate, overhead | entered by the operator | "Your input" |
 
-One purchase covers all sites and is reused for 30 minutes by both the app and the agent (`data/snapshot.json`), so the hourly agent costs about **$0.24/day**.
+One purchase covers all sites and is reused for 30 minutes by both the app and the agent (`data/snapshot.json`), so the hourly agent costs about **$0.24/day**, plus **$0.01/day** for one lease-rate web search (`WEB_SEARCH_GENERAL`, bought once per 24 h; `npm run lease-guide` runs it now; a hint only, never an input of the decision).
 
 Power prices of $360–520/MWh in the agent log are real evening prices, not a unit error: for 2026-11-09 19:00–20:00 UTC Energy-Charts day-ahead averaged €374.88/MWh for DE-LU and €465.96/MWh for PL (four 15-minute prices), which at EUR→USD ≈1.12 gives the $420.59 (Leipzig Hub) and $522.77 (Silesia Farm) in `docs/evidence/agent-decisions.jsonl`. Source: https://api.energy-charts.info/price?bzn=DE-LU&start=2026-11-09&end=2026-11-10 (same for `bzn=PL`).
 
@@ -182,7 +182,7 @@ Without a token the agent prints the alerts it would have sent (`alert (bot not 
 - The daily limit stops purchases before payment (live runs with limits $0.50 and $0.01 while $0.92–0.93 was spent: 0 payments, all places paused; on 2026-11-10 `DAILY_SPEND_LIMIT_USD=0` on a clean copy with an empty ledger and no wallet key: 0 payments, all places paused; unit test `src/lib/live/telegraph.test.ts`).
 - Telegraph unreachable → no call, banner and alerts, no payment.
 - All screens in demo and live mode open without console errors (68 demo + 17 live automated browser checks, desktop and a 390 px phone viewport).
-- `npm test` (137 tests in 14 files, run 2026-11-17 20:47 UTC), `npm run typecheck`, `npm run build` pass.
+- `npm test` (154 tests in 15 files, run 2026-11-17 20:54 UTC), `npm run typecheck`, `npm run build` pass.
 - Demo day (2026-11-12): `npm run demo:day` and the `/demo-day` screen show two changes of call on invented prices (Lease to AI → Mine → Lease to AI); desktop and a 390 px phone viewport, no console errors. This verifies the mechanism, not live behaviour.
 
 **Network:** testnet only — Telegraph devnode + Ethereum Sepolia (test USDC). Nothing ran on mainnet.
@@ -190,7 +190,7 @@ Without a token the agent prints the alerts it would have sent (`alert (bot not 
 **Not verified / not done:**
 - Real money, mainnet, real customers: none. No operator has used the app yet; the sites in live mode are examples.
 - Telegraph hashprice and ERCOT power intents returned empty numbers on the devnode, so hashprice is computed by us and power comes from Energy-Charts (Europe). US (ERCOT) sites work only in demo mode.
-- AI lease rates are operator input; the Telegraph `WEB_SEARCH` "market guide" is shown only in demo mode.
+- AI lease rates are operator input; the Telegraph `WEB_SEARCH_GENERAL` "market guide" is bought once a day in live mode and shown with its receipt, but the devnode returns links, not rates, so it usually reads "No rate quoted in the search results" (never a made-up number).
 - The Telegram bot runs as @hashorlease_bot. The owner's own `/start`, `/now` and `/demo` replies arrived on 17 Nov, and the agent's log shows 10 alerts sent 12–16 Nov without a send error; no outside person has used it (status of 17 Nov).
 - **Live changes of call: two, no live call was ever Mine.** Both are at Silesia Farm on 15 Nov 2026 (08:00 and 13:00 UTC; recounted 17 Nov 20:00 UTC). Power ranged $99.96–495.45/MWh at Leipzig Hub and $14.52–664.25/MWh at Silesia Farm; mining revenue (Mine option plus power price) stayed at $50–74/MWh, so Mine never beat the other options. The agent logged both changes and one alert each (`notified: 1` in `runs.jsonl`); the log shows both sent to Telegram without a send error, but no second person has confirmed reading them. The Mine flip is demonstrated only on the demo day, with invented prices.
 - **One outage on 17 Nov 2026, closed.** The agent made a call in 157 of 171 hourly slots from 10 Nov 18:00 UTC to 17 Nov 20:00 UTC (longest streak 112 hours). *What happened:* from 07:01 UTC the settlement step at the third-party x402 facilitator (`facilitator.x402.rs`) timed out — the payment was verified, then never settled; our signature and wallet were fine (the ledger has the failed requests with the reason, none charged). Every cycle paused all sites and paid nothing — the pause rule working — so 13 hourly slots (07:00–19:00 UTC) have no call. *What we did:* switched to Telegraph's second payment method, the deposit (§2), which does not use the facilitator; first successful purchase from it at 20:33 UTC, all sites decided again in the 20:00 slot. *Not tested:* whether the facilitator has recovered. *Also:* the pause alert in Telegram fired once (07:11 UTC); the agent now repeats it every 6 hours of an outage. Recount: `node scripts/recount.mjs <end-UTC>` (slots; x402 payments only).

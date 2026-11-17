@@ -48,6 +48,13 @@ export class SpendLimitError extends Error {
   }
 }
 
+/** The caller's own "already bought" check (run under the payment lock) said there is nothing to buy: no payment, no network. */
+export class AlreadyBoughtError extends Error {
+  constructor() {
+    super("Already bought recently");
+  }
+}
+
 export class RateLimitError extends Error {
   constructor() {
     super(`More than ${MAX_ASKS_PER_MINUTE} Telegraph requests in the last minute — try again shortly`);
@@ -182,6 +189,7 @@ async function acquirePayLock(): Promise<() => void> {
 export async function ask(
   payload: { intent: string; params: Record<string, unknown> } | { query: string },
   purpose: string,
+  opts: { skipIf?: () => boolean } = {},
 ): Promise<AskResult> {
   const limit = dailyLimitUsd();
   if (spentTodayUsd() + reservedUsd + REQUEST_COST_USD > limit + 1e-9) throw new SpendLimitError(limit);
@@ -193,6 +201,8 @@ export async function ask(
     // Under the lock, once more: another process may have paid while we waited.
     if (spentTodayUsd() + REQUEST_COST_USD > limit + 1e-9) throw new SpendLimitError(limit);
     if (asksLastMinute() >= MAX_ASKS_PER_MINUTE) throw new RateLimitError();
+    // Daily purchases (the lease-rate guide): another process may have bought while we waited for the lock.
+    if (opts.skipIf?.()) throw new AlreadyBoughtError();
     return await doAsk(payload, purpose);
   } finally {
     release?.();

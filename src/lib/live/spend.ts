@@ -36,9 +36,9 @@ export function liveSpendState(): Omit<SpendState, "stopAtLimit" | "alertAtPct" 
     limitUsd: limit,
     spentUsd: spent,
     limitReached: spent + 0.01 > limit + 1e-9,
-    forecastPerDayUsd: 0.24,
+    forecastPerDayUsd: 0.25,
     forecastNote:
-      "Hourly agent: 1 Telegraph request (BTC price) per hour for all places, $0.01 each (testnet USDC). An open app reuses the same purchase for 30 minutes; Refresh now buys one more.",
+      "Hourly agent: 1 Telegraph request (BTC price) per hour for all places plus 1 web search a day (lease-rate guide), $0.01 each (testnet USDC). An open app reuses the same purchase for 30 minutes; Refresh now buys one more.",
     byService: [...by.entries()].map(([service, v]) => ({ service: SERVICE_LABEL[service] ?? service, requests: v.requests, costUsd: Math.round(v.costUsd * 100) / 100 })),
     log,
   };

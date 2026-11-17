@@ -165,7 +165,7 @@ export default function SiteDetailPage({ params }: { params: Promise<{ id: strin
                 <Row
                   label="Market guide"
                   value={r.inputs.leaseGuide.value}
-                  detail="Estimate only, not a quote"
+                  detail="Estimate only, not a quote · not used in the decision"
                   receipt={r.inputs.leaseGuide.receipt}
                   now={now}
                 />
