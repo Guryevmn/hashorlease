@@ -354,6 +354,10 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 /* Filters: place and period on one line; "Changes only" is a switch above the list it filters. */
 .filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); }
 .select-compact { width: auto; min-height: 36px; padding: 0 var(--s3); font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 600; border-color: #c4cbd4; }
+/* Keep the native picker, but center its arrow independently of browser chrome. */
+.place-filter { position: relative; min-width: 0; }
+.place-filter select { appearance: none; -webkit-appearance: none; width: 100%; padding-right: var(--s6); }
+.place-filter > svg { position: absolute; top: 50%; right: var(--s2); translate: 0 -50%; pointer-events: none; }
 .filters .seg button { padding: 0 var(--s3); min-width: 52px; }
 /* Summary: one main number; the rest is one quiet line; the long explanation sits behind "?". */
 .summary { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--s1) var(--s5); margin-bottom: var(--s4); padding: var(--s3) var(--s4); }
@@ -401,7 +405,7 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 @media (max-width: 640px) {
   .history-title { flex-direction: column; align-items: stretch; gap: var(--s3); }
   .filters { flex-wrap: nowrap; }
-  .filters .select-compact { flex: 1 1 auto; min-width: 0; }
+  .filters .place-filter { flex: 1 1 auto; }
   .summary { grid-template-columns: 1fr auto; column-gap: var(--s3); }
   .summary-side { grid-column: 1 / -1; grid-row: 2; }
   .help-btn { grid-column: 2; grid-row: 1; }
@@ -427,6 +431,8 @@ a.badge { position: relative; }
 a.badge::after { content: ""; position: absolute; inset: -10px -4px; }
 /* Air: a chip never sits tight against its neighbour. */
 .header-inner { column-gap: var(--s3); }
+/* Optical alignment: the smaller chip labels read 1 px above the heavier logo. */
+.header-inner > .badge { translate: 0 1px; }
 .pills { gap: var(--s2); }
 .opts { gap: var(--s2); }
 .opts-cap { margin-right: var(--s1); }

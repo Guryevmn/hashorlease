@@ -29,17 +29,20 @@ export default function FeedPage() {
         <h1>History</h1>
         <div className="filters">
           <label className="sr-only" htmlFor="site-filter">Place</label>
-          <select
-            id="site-filter"
-            className="input select-compact"
-            value={siteId}
-            onChange={(e) => { setSiteId(e.target.value); setShown(PAGE); }}
-          >
-            <option value="all">All places</option>
-            {(sites.data ?? []).map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
+          <div className="place-filter">
+            <select
+              id="site-filter"
+              className="input select-compact"
+              value={siteId}
+              onChange={(e) => { setSiteId(e.target.value); setShown(PAGE); }}
+            >
+              <option value="all">All places</option>
+              {(sites.data ?? []).map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+            <ChevronDown size={16} strokeWidth={2} aria-hidden />
+          </div>
           <div className="seg" role="group" aria-label="Period">
             {PERIODS.map((p) => (
               <button key={p} aria-pressed={p === period} onClick={() => { setPeriod(p); setShown(PAGE); }}>
