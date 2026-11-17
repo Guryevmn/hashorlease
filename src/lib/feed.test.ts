@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupByDay, resolveFeed, summarizeFeed } from "./feed";
+import { groupByDay, resolveFeed, shortChangeReason, summarizeFeed } from "./feed";
 import { loadMarks, markKey, MARKS_KEY, saveMarks, withMarks } from "./marks";
 import type { FeedEntry } from "./types";
 
@@ -90,5 +90,19 @@ describe("mark storage", () => {
     expect(loadMarks(st)).toEqual({});
     st.setItem(MARKS_KEY, JSON.stringify({ a: { kind: "other", actual: "dance" }, b: { kind: "skip" } }));
     expect(loadMarks(st)).toEqual({ b: { kind: "skip" } });
+  });
+});
+
+describe("feed: short change reason", () => {
+  it("keeps only what moved, on one line", () => {
+    expect(shortChangeReason("power price fell from $43.74 to $32.40/MWh; Lease to AI now beats Mine by $6.79/MWh")).toBe("Power fell $43.74 → $32.40/MWh");
+    expect(shortChangeReason("mining income rose from $83.90 to $93.33/MWh; Mine now beats Lease to AI by $6.33/MWh")).toBe("Income rose $83.90 → $93.33/MWh");
+    expect(shortChangeReason("power price rose from $1,020.00 to $1,124.00/MWh")).toBe("Power rose $1,020.00 → $1,124.00/MWh");
+  });
+  it("falls back to the first clause with a capital", () => {
+    expect(shortChangeReason("the site's numbers changed; Lease to AI now beats Mine by $55.00/MWh")).toBe("Site numbers changed");
+    expect(shortChangeReason("something else")).toBe("Something else");
+    expect(shortChangeReason(undefined)).toBeNull();
+    expect(shortChangeReason("  ")).toBeNull();
   });
 });

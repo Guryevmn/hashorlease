@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import { ChevronDown, ChevronRight, CircleHelp, ReceiptText } from "lucide-react";
 import { AppLink, useAsync, useData } from "@/components/DataProvider";
 import { Banner, DecisionBadge, Skel } from "@/components/ui";
-import { useMemo } from "react";
 import { DECISION_LABEL, type Decision } from "@/lib/decision";
 import { useMarks } from "@/components/useMarks";
 import { markKey } from "@/lib/marks";
-import { changeReasonText, groupByDay, onlyChanges, resolveFeed, summarizeFeed } from "@/lib/feed";
+import { changeReasonText, groupByDay, onlyChanges, resolveFeed, shortChangeReason, summarizeFeed } from "@/lib/feed";
 import { usd, utcDate, utcTime } from "@/lib/format";
 import type { FeedEntry, FeedPeriod, FeedRow, Mark } from "@/lib/types";
 
@@ -25,14 +25,13 @@ export default function FeedPage() {
 
   return (
     <>
-      <div className="page-title">
+      <div className="page-title history-title">
         <h1>History</h1>
-        <div className="row">
-          <label className="sr-only" htmlFor="site-filter">Site</label>
+        <div className="filters">
+          <label className="sr-only" htmlFor="site-filter">Place</label>
           <select
             id="site-filter"
-            className="input"
-            style={{ width: "auto" }}
+            className="input select-compact"
             value={siteId}
             onChange={(e) => { setSiteId(e.target.value); setShown(PAGE); }}
           >
@@ -41,12 +40,6 @@ export default function FeedPage() {
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
           </select>
-          <div className="seg" role="group" aria-label="Show">
-            <button aria-pressed={!changesOnly} onClick={() => { setChangesOnly(false); setShown(PAGE); }}>All hours</button>
-            <button aria-pressed={changesOnly} onClick={() => { setChangesOnly(true); setShown(PAGE); }}>
-              Changes only{feed.data ? ` · ${onlyChanges(feed.data).length}` : ""}
-            </button>
-          </div>
           <div className="seg" role="group" aria-label="Period">
             {PERIODS.map((p) => (
               <button key={p} aria-pressed={p === period} onClick={() => { setPeriod(p); setShown(PAGE); }}>
@@ -63,7 +56,7 @@ export default function FeedPage() {
         </Banner>
       ) : feed.loading || !feed.data ? (
         <div className="stack" aria-busy="true" aria-label="Loading history">
-          <div className="stats">{[0, 1, 2].map((i) => <div className="card" key={i}><Skel w={120} /><div style={{ marginTop: 8 }}><Skel w={90} h={26} /></div></div>)}</div>
+          <div className="card summary"><div><Skel w={110} /><div style={{ marginTop: 8 }}><Skel w={120} h={28} /></div></div></div>
           <div className="card">{[0, 1, 2, 3, 4].map((i) => <div key={i} style={{ margin: "16px 0" }}><Skel w="90%" h={16} /></div>)}</div>
         </div>
       ) : feed.data.length === 0 ? (
@@ -73,7 +66,15 @@ export default function FeedPage() {
           <AppLink href="/sites/new" className="btn">Add place</AppLink>
         </div>
       ) : (
-        <FeedBody entries={feed.data} now={status.data?.now} changesOnly={changesOnly} shown={shown} onMore={() => setShown((n) => n + PAGE)} showSite={siteId === "all"} />
+        <FeedBody
+          entries={feed.data}
+          now={status.data?.now}
+          changesOnly={changesOnly}
+          onChangesOnly={(v) => { setChangesOnly(v); setShown(PAGE); }}
+          shown={shown}
+          onMore={() => setShown((n) => n + PAGE)}
+          showSite={siteId === "all"}
+        />
       )}
     </>
   );
@@ -81,13 +82,23 @@ export default function FeedPage() {
 
 type ChangeMarks = (changes: Record<string, Mark | null>) => void;
 
-function FeedBody({ entries, now, changesOnly, shown, onMore, showSite }: { entries: FeedEntry[]; now?: string; changesOnly: boolean; shown: number; onMore: () => void; showSite: boolean }) {
+function FeedBody({ entries, now, changesOnly, onChangesOnly, shown, onMore, showSite }: {
+  entries: FeedEntry[];
+  now?: string;
+  changesOnly: boolean;
+  onChangesOnly: (v: boolean) => void;
+  shown: number;
+  onMore: () => void;
+  showSite: boolean;
+}) {
   const { marks, change } = useMarks();
   const { live } = useData();
+  const [help, setHelp] = useState(false);
   const rows = useMemo(() => resolveFeed(entries, marks), [entries, marks]);
   const s = summarizeFeed(rows);
-  // "Changes only" narrows the list below; the counters above always cover every hour of the period.
-  const listed = changesOnly ? onlyChanges(rows) : rows;
+  // "Changes only" narrows the list below; the summary above always covers every hour of the period.
+  const changes = onlyChanges(rows);
+  const listed = changesOnly ? changes : rows;
   const visible = listed.slice(0, shown);
   const days = groupByDay(visible);
   const today = (now ?? entries[0].hour).slice(0, 10);
@@ -96,32 +107,48 @@ function FeedBody({ entries, now, changesOnly, shown, onMore, showSite }: { entr
 
   return (
     <>
-      <div className="stats" style={{ marginBottom: 6 }}>
-        <div className="card stat">
-          <div className="muted small">Marked hours</div>
-          <div className="v num">{s.markedHours} of {s.totalHours}</div>
-          <div className="tiny muted">{s.followedHours} followed{s.skippedHours > 0 ? ` · ${s.skippedHours} skipped` : ""}</div>
+      {/* Summary: one main number, the rest is a quiet line; the long explanation sits behind "?". */}
+      <section className="card summary" aria-label="Summary">
+        <div className="summary-main">
+          <div className="summary-label">{none ? "Marked hours" : "Gained by following"}</div>
+          <div className="summary-v num">
+            {none ? <>0 <span className="summary-of">of {s.totalHours}</span></> : usd(s.gainedUsd, 0)}
+          </div>
         </div>
-        <div className="card stat">
-          <div className="muted small">Missed gain</div>
-          <div className="v num">{none ? <span className="muted">—</span> : usd(s.missedUsd, 0)}</div>
-          <div className="tiny muted">{none ? "mark hours to see" : "marked hours only"}</div>
-        </div>
-        <div className="card stat">
-          <div className="muted small">Gained by following</div>
-          <div className="v num">{none ? <span className="muted">—</span> : usd(s.gainedUsd, 0)}</div>
-          <div className="tiny muted">{none ? "mark hours to see" : "marked hours only"}</div>
-        </div>
-      </div>
-      {live && (
-        <p className="hint">
-          Hours tagged “Agent call” were decided live by the hourly agent with the receipts it bought. Other hours are recomputed from past
-          day-ahead power prices with today&apos;s mining income.
+        <p className="summary-side">
+          {none ? (
+            "Mark what you did to see what you missed."
+          ) : (
+            <>
+              <b className="num">{usd(s.missedUsd, 0)}</b> missed · <span className="num">{s.markedHours} of {s.totalHours}</span> hours marked
+              {s.skippedHours > 0 ? <> · <span className="num">{s.skippedHours}</span> skipped</> : null}
+            </>
+          )}
         </p>
-      )}
-      <p className="hint">Mark what you actually did and we&apos;ll show what you missed. Hours you don&apos;t mark are never counted, and “Keep as is” hours are never counted as missed.</p>
+        <button className="help-btn" aria-expanded={help} aria-controls="summary-help" aria-label="How this is counted" onClick={() => setHelp((h) => !h)}>
+          <CircleHelp size={18} aria-hidden />
+        </button>
+        {help && (
+          <div id="summary-help" className="summary-help">
+            <p>Hours you don&apos;t mark are never counted, and “Keep as is” hours are never counted as missed.</p>
+            {live && (
+              <p>
+                Hours tagged “Agent call” were decided live by the hourly agent with the receipts it bought. Other hours are recomputed from past
+                day-ahead power prices with today&apos;s mining income.
+              </p>
+            )}
+          </div>
+        )}
+      </section>
 
-      <div className="card" style={{ paddingTop: 4 }}>
+      <div className="card hours">
+        <div className="list-head">
+          <span className="muted num">{changesOnly ? `${changes.length} ${changes.length === 1 ? "change" : "changes"}` : `${rows.length} hours`}</span>
+          <button className="switch" role="switch" aria-checked={changesOnly} onClick={() => onChangesOnly(!changesOnly)}>
+            Changes only
+            <span className="switch-track" aria-hidden />
+          </button>
+        </div>
         {listed.length === 0 && (
           <p className="hint" style={{ padding: "var(--s4) 0" }}>No changes of the call in this period. Try 7 d or 30 d.</p>
         )}
@@ -133,15 +160,15 @@ function FeedBody({ entries, now, changesOnly, shown, onMore, showSite }: { entr
               <div className="day-head">
                 <span>{label}</span>
                 <span className="row">
+                  {d.marked && <span className="muted num">missed {usd(d.missedUsd, 0)}</span>}
                   {unmarked.length > 0 && (
                     <button
-                      className="link-btn"
+                      className="link-btn quiet"
                       onClick={() => change(Object.fromEntries(unmarked.map((e) => [markKey(e.siteId, e.hour), { kind: "followed" } as Mark])))}
                     >
                       Mark {unmarked.length} as followed
                     </button>
                   )}
-                  <span className="muted num">{d.marked ? `missed ${usd(d.missedUsd, 0)}` : "Not marked"}</span>
                 </span>
               </div>
               {d.entries.map((e) => (
@@ -160,8 +187,8 @@ function FeedBody({ entries, now, changesOnly, shown, onMore, showSite }: { entr
   );
 }
 
-function StatusText({ e }: { e: FeedRow }) {
-  // An unmarked row says nothing: the three buttons next to it already show it is open.
+/** Result of a marked hour; an unmarked hour says nothing (its row opens to mark it). */
+function statusText(e: FeedRow): ReactNode {
   if (e.status === "not-marked") return null;
   if (e.status === "skipped") return <span className="muted">Skipped</span>;
   if (e.status === "followed") return <span style={{ color: "var(--mine)" }}>Followed</span>;
@@ -171,13 +198,15 @@ function StatusText({ e }: { e: FeedRow }) {
 }
 
 function Row({ e, showSite, change }: { e: FeedRow; showSite: boolean; change: ChangeMarks }) {
+  const [open, setOpen] = useState(false);
   const [picking, setPicking] = useState(false);
   if (e.status === "paused" || !e.advice) {
     return (
-      <div className="feed-row paused">
-        <span className="num">{utcTime(e.hour)}</span>
-        <span>{showSite ? `${e.siteName} · ` : ""}{e.pauseReason ?? "Paused · daily limit"}</span>
-        <span />
+      <div className="hour paused">
+        <span className="hour-line">
+          <span className="hour-time num">{utcTime(e.hour)}</span>
+          <span className="hour-pause">{showSite ? `${e.siteName} · ` : ""}{e.pauseReason ?? "Paused · daily limit"}</span>
+        </span>
       </div>
     );
   }
@@ -190,49 +219,69 @@ function Row({ e, showSite, change }: { e: FeedRow; showSite: boolean; change: C
   const choices = (["mine", "lease", "off"] as Decision[]).filter((d) => d !== e.advice);
   const showChoices = picking || kind === "other";
   const who = `${utcTime(e.hour)}${showSite ? ` ${e.siteName}` : ""}`;
+  const panelId = `hour-${key}`;
+  const short = e.changedFrom ? shortChangeReason(e.changeReason) : null;
+  const sub = e.changedFrom ? `Was ${DECISION_LABEL[e.changedFrom]}${short ? ` · ${short}` : ""}` : null;
+  const status = statusText(e);
+  // The opened row adds what the short line leaves out ("Lease to AI now beats Mine by …"), not the same words again.
+  const rest = changeReasonText(e.changeReason?.split(";").slice(1).join(";"));
 
   return (
-    <div className="feed-row">
-      <span className="num">{utcTime(e.hour)}</span>
-      <span className="mid">
-        {showSite && <b>{e.siteName}</b>}
-        <DecisionBadge d={e.advice} />
-        {e.keepAsIs && <span className="badge calm">Keep as is</span>}
-        {e.recorded && <span className="badge keep" title="Decided live by the hourly agent with the receipts it bought">Agent call</span>}
-        <span className="muted tiny">{e.receiptCount} {e.receiptCount === 1 ? "receipt" : "receipts"} · </span>
-        <AppLink href={`/sites/${e.siteId}`} className="small" style={{ textDecoration: "underline" }}>Open breakdown</AppLink>
-      </span>
-      <span className="num status" style={{ fontWeight: 600, textAlign: "right" }}><StatusText e={e} /></span>
-      {e.changedFrom && (
-        <div className="change-line feed-change">
-          <span className="dot" aria-hidden />
-          <span>
-            Changed from {DECISION_LABEL[e.changedFrom]} → {DECISION_LABEL[e.advice]}
-            {changeReasonText(e.changeReason) ? ` · ${changeReasonText(e.changeReason)}` : ""}
+    <div className={`hour${open ? " open" : ""}`}>
+      <button className="hour-head" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((o) => !o)}>
+        <span className="hour-line">
+          <span className="hour-time num">{utcTime(e.hour)}</span>
+          {showSite && <span className="hour-site">{e.siteName}</span>}
+          <DecisionBadge d={e.advice} />
+          {e.recorded && <span className="badge keep" title="Decided live by the hourly agent with the receipts it bought">Agent call</span>}
+        </span>
+        <ChevronDown className="hour-chev" size={18} aria-hidden />
+        {(sub || status) && (
+          <span className="hour-sub">
+            <span className={`hour-why${e.changedFrom ? " changed" : ""}`}>{sub}</span>
+            {status && <span className="hour-status num">{status}</span>}
           </span>
-        </div>
-      )}
-
-      <div className="mark-row" role="group" aria-label={`Mark what you did, ${who}`}>
-        <span className="mark-label">You:</span>
-        <button className="mark-btn" aria-pressed={kind === "followed"} onClick={() => set(kind === "followed" ? null : { kind: "followed" })}>Followed</button>
-        <button className="mark-btn" aria-pressed={showChoices} onClick={() => (kind === "other" ? set(null) : setPicking((p) => !p))}>Other</button>
-        <button className="mark-btn" aria-pressed={kind === "skip"} onClick={() => set(kind === "skip" ? null : { kind: "skip" })}>Skip</button>
-      </div>
-      {showChoices && (
-        <div className="mark-row" role="group" aria-label={`What did you do, ${who}`}>
-          <span className="mark-label">I ran:</span>
-          {choices.map((d) => (
-            <button
-              key={d}
-              className="mark-btn"
-              aria-pressed={e.mark?.kind === "other" && e.mark.actual === d}
-              disabled={d === "lease" && e.options?.lease === null}
-              onClick={() => set({ kind: "other", actual: d })}
-            >
-              {DECISION_LABEL[d]}
-            </button>
-          ))}
+        )}
+      </button>
+      {open && (
+        <div className="hour-more" id={panelId}>
+          {e.changedFrom && (
+            <p className="hour-full">
+              Changed from {DECISION_LABEL[e.changedFrom]} to {DECISION_LABEL[e.advice]}.{rest ? ` ${rest}.` : ""}
+            </p>
+          )}
+          {e.keepAsIs && <p className="hour-full">Keep as is: the gap to the next option is below the switch threshold.</p>}
+          <div className="hour-actions">
+            <div className="hour-marks">
+              <div className="mark-row" role="group" aria-label={`Mark what you did, ${who}`}>
+                <span className="mark-label">You:</span>
+                <button className="mark-btn" aria-pressed={kind === "followed"} onClick={() => set(kind === "followed" ? null : { kind: "followed" })}>Followed</button>
+                <button className="mark-btn" aria-pressed={showChoices} onClick={() => (kind === "other" ? set(null) : setPicking((p) => !p))}>Other</button>
+                <button className="mark-btn" aria-pressed={kind === "skip"} onClick={() => set(kind === "skip" ? null : { kind: "skip" })}>Skip</button>
+              </div>
+              {showChoices && (
+                <div className="mark-row" role="group" aria-label={`What did you do, ${who}`}>
+                  <span className="mark-label">I ran:</span>
+                  {choices.map((d) => (
+                    <button
+                      key={d}
+                      className="mark-btn"
+                      aria-pressed={e.mark?.kind === "other" && e.mark.actual === d}
+                      disabled={d === "lease" && e.options?.lease === null}
+                      onClick={() => set({ kind: "other", actual: d })}
+                    >
+                      {DECISION_LABEL[d]}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <AppLink href={`/sites/${e.siteId}`} className="hour-link">
+              <ReceiptText size={16} aria-hidden />
+              {e.receiptCount} {e.receiptCount === 1 ? "receipt" : "receipts"} · Breakdown
+              <ChevronRight size={16} aria-hidden />
+            </AppLink>
+          </div>
         </div>
       )}
     </div>

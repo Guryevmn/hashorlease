@@ -219,13 +219,6 @@ th { color: var(--muted); font-weight: 600; border-top: 0; }
 tr.blocked td { color: var(--muted); background: #f6f7f9; }
 
 /* Feed */
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3); }
-@media (max-width: 640px) { .stats { gap: var(--s2); } .stats .card { padding: var(--s3); } .stat .v { font-size: var(--t-head); line-height: var(--lh-head); } }
-.stat .v { font-size: var(--t-title2); line-height: var(--lh-title2); font-weight: 700; letter-spacing: var(--tr-title2); }
-.day-head { margin: var(--s5) 0 var(--s2); font-weight: 600; display: flex; justify-content: space-between; }
-.feed-row { display: grid; grid-template-columns: 52px 1fr auto; gap: var(--s1) var(--s3); padding: var(--s3) 0; border-top: 1px solid var(--line); align-items: center; }
-.feed-row.paused { color: var(--muted); }
-.feed-row .mid { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s3); align-items: center; }
 .empty { text-align: center; padding: 40px var(--s4); }
 .empty h2 { margin-bottom: var(--s2); }
 .chart { width: 100%; height: auto; display: block; }
@@ -271,13 +264,13 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 .gain-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--s2); margin-top: var(--s3); }
 .gain-small { color: var(--muted); font-size: var(--t-sub); line-height: var(--lh-sub); }
 .empty .row { justify-content: center; margin-top: var(--s3); }
-.mark-row { grid-column: 2 / 4; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2); }
+.mark-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2); }
 .mark-btn { min-height: 32px; padding: 0 var(--s3); border: 1px solid var(--line); border-radius: 999px; background: #fff; font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 500; }
 .mark-btn[aria-pressed="true"] { background: var(--text); color: #fff; border-color: var(--text); }
 .mark-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .mark-label { font-size: var(--t-cap); line-height: var(--lh-cap); color: var(--muted); }
 .link-btn { border: 0; background: none; padding: 0; text-decoration: underline; color: inherit; font-size: var(--t-sub); }
-@media (max-width: 640px) { .mark-row { grid-column: 1 / -1; } .gain-row { display: block; } .gain-small { display: block; } }
+@media (max-width: 640px) { .gain-row { display: block; } .gain-small { display: block; } }
 
 /* Demo day: simulated clock, change note, hour-by-hour tape, bot preview, journal record */
 .demo-entry { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); margin-top: var(--s5); }
@@ -337,20 +330,9 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 .card.stack > .field + .hint { margin-top: calc(-1 * var(--s3)); }
 .field > .seg { align-self: flex-start; }
 .seg button + button { border-left: 1px solid #c4cbd4; }
-/* History: one line per hour on desktop: time · place and decision · result · marks. */
-@media (min-width: 641px) {
-  .feed-row { grid-template-columns: 52px 1fr auto auto; }
-  .feed-row > .mark-row:first-of-type { grid-column: 4; grid-row: 1; }
-  .feed-row .mark-row + .mark-row { grid-column: 2 / 5; }
-  .feed-row .mark-label { display: none; }
-  .feed-row.paused { grid-template-columns: 52px 1fr auto; }
-}
 .mark-btn { min-height: 28px; font-size: var(--t-cap); line-height: var(--lh-cap); }
-.feed-row .status:empty { display: none; }
 /* Variant A: a decision change is a quiet line, not a second chip. */
 .change-line { display: flex; align-items: center; margin-top: var(--s3); color: var(--muted); font-size: var(--t-cap); line-height: var(--lh-cap); font-weight: 500; }
-.feed-change { grid-column: 1 / -1; margin-top: 0; align-items: flex-start; }
-.feed-change .dot { margin-top: 6px; flex: none; }
 .change-line .dot { width: 6px; height: 6px; margin-right: var(--s2); }
 @media (max-width: 640px) {
   /* Phone header fits 390 px: no "Spent today" label, the amount stays. */
@@ -363,4 +345,66 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
   .opts-cap { grid-column: 1 / -1; }
   /* Card head: the decision chip stays right of the name; a "was …" chip (variant B) stacks under it. */
   .site-card .pills { flex-direction: column; align-items: flex-end; gap: var(--s1); }
+}
+
+/* History, calm (branch agent/history-calm): compact filters, one summary block, two-line hour rows that open for details. */
+/* Filters: place and period on one line; "Changes only" is a switch above the list it filters. */
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); }
+.select-compact { width: auto; min-height: 36px; padding: 0 var(--s3); font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 600; border-color: #c4cbd4; }
+.filters .seg button { padding: 0 var(--s3); min-width: 52px; }
+/* Summary: one main number; the rest is one quiet line; the long explanation sits behind "?". */
+.summary { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--s1) var(--s5); margin-bottom: var(--s4); padding: var(--s3) var(--s4); }
+.summary-label { font-size: var(--t-cap); line-height: var(--lh-cap); color: var(--muted); font-weight: 500; }
+.summary-v { font-size: var(--t-title2); line-height: var(--lh-title2); font-weight: 700; letter-spacing: var(--tr-title2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.summary-of { color: var(--muted); font-weight: 600; font-size: var(--t-head); }
+.summary-side { color: var(--muted); font-size: var(--t-sub); line-height: var(--lh-sub); min-width: 0; }
+.summary-side b { color: var(--text); font-weight: 600; }
+.help-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); padding: 0; align-self: start; }
+.help-btn::after { content: ""; position: absolute; inset: -8px; } /* 44 px tap target */
+.help-btn[aria-expanded="true"] { background: var(--off-bg); color: var(--text); }
+.summary-help { grid-column: 1 / -1; display: flex; flex-direction: column; gap: var(--s2); padding-top: var(--s3); margin-top: var(--s2); border-top: 1px solid var(--line); color: var(--muted); font-size: var(--t-sub); line-height: var(--lh-sub); }
+/* List head: what is shown, and the switch that narrows it. */
+.hours { padding-top: var(--s2); padding-bottom: var(--s2); }
+.list-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); min-height: 44px; font-size: var(--t-sub); line-height: var(--lh-sub); }
+.switch { display: inline-flex; align-items: center; gap: var(--s2); min-height: 44px; padding: 0; border: 0; background: none; font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 600; }
+.switch-track { position: relative; flex: none; width: 40px; height: 24px; border-radius: 999px; background: #d3d8df; transition: background-color .2s ease; }
+.switch-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(15,23,42,.25); transition: transform .2s cubic-bezier(.2,.8,.2,1); }
+.switch[aria-checked="true"] .switch-track { background: var(--text); }
+.switch[aria-checked="true"] .switch-track::after { transform: translateX(16px); }
+@media (prefers-reduced-motion: reduce) { .switch-track, .switch-track::after { transition: none; } }
+.day-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); margin: var(--s4) 0 var(--s1); font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 600; }
+.link-btn.quiet { color: var(--accent); text-decoration: none; font-weight: 500; font-size: var(--t-sub); line-height: var(--lh-sub); }
+/* Hour row: line 1 time · place · decision chip; line 2 (changes only) a short reason and the result. Tap opens details. */
+.hour { border-top: 1px solid var(--line); }
+.hour-head { display: grid; grid-template-columns: 1fr auto; column-gap: var(--s2); row-gap: 2px; align-items: center; width: 100%; padding: var(--s3) 0; border: 0; background: none; text-align: left; }
+.hour-line { display: flex; align-items: center; gap: var(--s2); min-width: 0; }
+.hour-time { flex: none; width: 44px; color: var(--muted); font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 500; }
+.hour-site { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.hour-chev { grid-column: 2; grid-row: 1 / span 2; color: #9aa3ae; transition: transform .2s ease; }
+.hour.open .hour-chev { transform: rotate(180deg); }
+.hour-sub { grid-column: 1; display: flex; align-items: baseline; gap: var(--s3); min-width: 0; padding-left: calc(44px + var(--s2)); font-size: var(--t-cap); line-height: var(--lh-cap); }
+.hour-why { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+.hour-why.changed { color: #3d4652; }
+.hour-status { flex: none; margin-left: auto; font-weight: 600; font-size: var(--t-cap); }
+.hour.paused .hour-line { padding: var(--s3) 0; color: var(--muted); font-size: var(--t-sub); line-height: var(--lh-sub); }
+.hour-more { display: flex; flex-direction: column; gap: var(--s3); padding: 0 0 var(--s3) calc(44px + var(--s2)); }
+.hour-full { color: var(--muted); font-size: var(--t-sub); line-height: var(--lh-sub); }
+.hour-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2) var(--s4); }
+.hour-marks { display: flex; flex-direction: column; gap: var(--s2); }
+.hour-actions { align-items: flex-start; }
+.hour-link { display: inline-flex; align-items: center; gap: var(--s1); min-height: 28px; color: var(--accent); font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 500; }
+.hour-link svg { flex: none; }
+@media (hover: hover) { .hour-head:hover .hour-chev { color: var(--text); } }
+@media (max-width: 640px) {
+  .history-title { flex-direction: column; align-items: stretch; gap: var(--s3); }
+  .filters { flex-wrap: nowrap; }
+  .filters .select-compact { flex: 1 1 auto; min-width: 0; }
+  .summary { grid-template-columns: 1fr auto; column-gap: var(--s3); }
+  .summary-side { grid-column: 1 / -1; grid-row: 2; }
+  .help-btn { grid-column: 2; grid-row: 1; }
+  .hours { padding-left: var(--s3); padding-right: var(--s3); }
+  .hour-sub, .hour-more { padding-left: 0; }
+  /* Phone: the reason line runs under the chevron too, so it fits on one line. */
+  .hour-chev { grid-row: 1; }
+  .hour-sub { grid-column: 1 / -1; }
 }

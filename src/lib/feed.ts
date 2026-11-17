@@ -104,3 +104,16 @@ export function changeReasonText(reason: string | undefined): string | null {
   const t = reason?.trim();
   return t ? t[0].toUpperCase() + t.slice(1) : null;
 }
+
+/**
+ * Reason that fits one line of an hour row: only what moved, as "Power fell $43.74 → $32.40/MWh".
+ * The full sentence (with "… now beats … by …") stays for the opened row.
+ */
+export function shortChangeReason(reason: string | undefined): string | null {
+  const first = reason?.split(";")[0].trim();
+  if (!first) return null;
+  const m = first.match(/^(power price|mining income) (rose|fell) from (\S+) to (\S+)\/MWh$/i);
+  if (m) return `${m[1].toLowerCase() === "power price" ? "Power" : "Income"} ${m[2].toLowerCase()} ${m[3]} → ${m[4]}/MWh`;
+  if (/^the site's numbers changed$/i.test(first)) return "Site numbers changed";
+  return changeReasonText(first);
+}
