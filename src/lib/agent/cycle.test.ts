@@ -57,9 +57,26 @@ describe("runCycle", () => {
     expect(byId.houston.decision).toBe("lease");
     expect(byId["north-ridge"].decision).toBe("off");
     expect(byId.garage.decision).toBe("mine");
-    expect(byId.houston.receipts.map((r) => r.service)).toEqual(["MINING_HASHPRICE_VERIFY", "GRID_POWER_PRICE"]);
+    // The lease-rate guide (a bought WEB_SEARCH) is recorded with its receipt for the site that has a lease; sites without a lease don't get it.
+    expect(byId.houston.receipts.map((r) => r.service)).toEqual(["MINING_HASHPRICE_VERIFY", "GRID_POWER_PRICE", "WEB_SEARCH"]);
+    expect(byId.garage.receipts.map((r) => r.service)).not.toContain("WEB_SEARCH");
+    expect(byId.garage.receipts).toHaveLength(2);
     expect(store.decisions).toHaveLength(3);
     expect(store.runs).toHaveLength(1);
+  });
+
+  it("the lease-rate guide never decides: unavailable guide (no purchase) leaves decisions and receipts untouched, no pause", async () => {
+    const store = memoryStore();
+    const unavailable = async (): Promise<MarketSnapshot> => ({
+      ...buildMockSnapshot("default"),
+      leaseGuide: { value: "Not available", receipt: { status: "unavailable", service: "WEB_SEARCH_GENERAL", costUsd: 0, network: "testnet" } },
+    });
+    const { run, decisions } = await runCycle(deps(store, unavailable));
+    expect(run.ok).toBe(true);
+    expect(run.decided).toBe(3);
+    const houston = decisions.find((d) => d.siteId === "houston")!;
+    expect(houston.decision).toBe("lease");
+    expect(houston.receipts.map((r) => r.service)).toEqual(["MINING_HASHPRICE_VERIFY", "GRID_POWER_PRICE"]);
   });
 
   it("first decision is not a change; a change vs. the previous hour triggers an alert", async () => {

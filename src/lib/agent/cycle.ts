@@ -60,7 +60,11 @@ function recordReceipt(label: string, r: Receipt): RecordedReceipt {
 }
 
 function receiptsOf(rep: SiteReport): RecordedReceipt[] {
-  return [recordReceipt("Mining income", rep.inputs.hashprice.receipt), recordReceipt("Power price", rep.inputs.power.receipt)];
+  const out = [recordReceipt("Mining income", rep.inputs.hashprice.receipt), recordReceipt("Power price", rep.inputs.power.receipt)];
+  // The lease-rate guide is a hint, not an input of the decision: it is recorded (with its receipt) only when it was really bought.
+  const guide = rep.inputs.leaseGuide?.receipt;
+  if (guide && (guide.status === "verified" || guide.status === "stale")) out.push(recordReceipt("Market guide", guide));
+  return out;
 }
 
 function pausedRecord(base: Omit<DecisionRecord, "status" | "decision" | "keepAsIs" | "changed" | "options" | "chosenUsdPerMwh" | "gainVsMiningPerHour" | "profitPerHour">, reason: string, kind: DecisionRecord["pauseKind"]): DecisionRecord {

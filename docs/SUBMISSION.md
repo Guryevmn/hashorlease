@@ -14,7 +14,7 @@ The application has not been submitted. The code and demo are public, and progre
 - **Project name:** Hash or Lease
 - **Track:** Apps & Agents
 - **Mission:** 12 — Mining and Power (example build 1, "The allocation agent")
-- **Intents used:** `CRYPTO_PRICE_USD` (bought on every cycle); `MINING_HASHPRICE_VERIFY_GENERAL`, `GRID_POWER_PRICE_GENERAL` (probed, returned empty values on the devnode)
+- **Intents used:** `CRYPTO_PRICE_USD` (bought on every cycle); `WEB_SEARCH_GENERAL` (lease-rate guide, bought once a day, ~$0.01); `MINING_HASHPRICE_VERIFY_GENERAL`, `GRID_POWER_PRICE_GENERAL` (probed, returned empty values on the devnode)
 - **Team / contact:** Mikhail Guryev — product designer, [guryev.design](https://guryev.design), GitHub [@Guryevmn](https://github.com/Guryevmn); contact via GitHub Discussions #1
 - **Working or reviewer-access link:** https://github.com/Guryevmn/hashorlease · https://hashorlease.vercel.app (invented data)
 - **GitHub username that starred telegraphprotocol/bounties:** `[username]`
@@ -78,7 +78,7 @@ Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo
 **Limitations (honest list).**
 - **Testnet only.** No real money, no mainnet transactions, no customers. No operator has used it; the live sites are examples.
 - **One input is bought through Telegraph** (BTC price). Hashprice is computed by us; power prices are free public European day-ahead data (Energy-Charts), not ERCOT. US sites run on demo data only.
-- **The AI lease rate is typed in by the operator.** The `WEB_SEARCH` market guide exists only in demo mode; there is no market comparison in live mode yet.
+- **The AI lease rate is typed in by the operator.** The `WEB_SEARCH_GENERAL` market guide is bought once a day in live mode (receipt on screen and in the journal), but the devnode's web search returns market-report links rather than rates, so the guide usually says "No rate quoted in the search results"; it is a hint and never feeds a decision.
 - **The agent has run since 2026-11-10 18:00 UTC:** a decided call with a purchase in 156 of 170 hourly slots by 2026-11-17 19:00 UTC; longest unbroken streak 112 hours (12 Nov 15:00 – 17 Nov 06:00 UTC; the first streak was 44 hours); one gap on 12 Nov (14:00 UTC). 16 hours had a failed first run (Telegraph or a provider unavailable, a pause was logged) and all 16 recovered on the retry within the same hour. **Since 17 Nov 07:00 UTC the run is broken:** every cycle pauses all sites and pays nothing — the ledger shows payments verified, then the settlement step at the third-party x402 facilitator timing out (13 slots without a call by 19:00 UTC; cause not yet established; `[update on submission day]`). Recounted from `data/agent/live/runs.jsonl` on 17 Nov 20:00 UTC (`node scripts/recount.mjs 2026-11-17T20:00:00Z`); recount on submission day.
 - **Live calls changed twice, never to Mine:** on 15 Nov 2026 at Silesia Farm — 08:00 UTC Switch off → Lease to AI (power price fell from $123.79 to $54.00/MWh) and 13:00 UTC Lease to AI → Switch off (power rose from $66.60 to $169.43/MWh), each with its receipt and reason in `data/agent/live/decisions.jsonl` (copy: `docs/evidence/agent-decisions.jsonl`, `changed: true`). Leipzig Hub (Lease to AI) and the fixed-tariff rig (Keep as is) never changed. The agent's log shows both alerts sent to Telegram without a send error; the owner's own bot check on 17 Nov worked, but no outside person has read an alert.
 - **History before the agent started** is recomputed from past power prices with today's hashprice; only hours tagged "Agent call" were decided live.
@@ -87,7 +87,7 @@ Clone the repo, `npm install`, `npm run build && npm start` — it opens in demo
 - **Outside users: one acquaintance, one comment.** On 17 Nov a person the author asked directly (GitHub `scottlaren`, Discussions #1) tried the site and found two real problems (empty-looking miner fields that were only placeholders; a note that contradicted the receipt), both fixed the same day (commit `42cdf17`). He is not an independent user and this is not adoption.
 
 **What is next.**
-1. Buy more of the decision through Telegraph: lease-rate comparables via `WEB_SEARCH`; power prices via `GRID_POWER_PRICE` as soon as a node returns values (CAISO is the next probe); hashprice via `MINING_HASHPRICE_VERIFY` when its fields are populated. The receipt model on screen already supports all three.
+1. Buy more of the decision through Telegraph: lease-rate comparables via `WEB_SEARCH_GENERAL` (bought daily since 17 Nov, answers carry links only so far); power prices via `GRID_POWER_PRICE` as soon as a node returns values (CAISO is the next probe); hashprice via `MINING_HASHPRICE_VERIFY` when its fields are populated. The receipt model on screen already supports all three.
 2. A US site on live data — the mission's buyers are US operators.
 3. Put it in front of 3–5 miners and hosting operators and record what they do with the calls.
 4. Login and server-side history, so it can run as a hosted service.
