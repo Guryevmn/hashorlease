@@ -83,7 +83,9 @@ p { margin: 0; }
 /* Layout shell */
 .header { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10; }
 .header-inner { max-width: 960px; margin: 0 auto; padding: var(--s2) var(--s4); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); }
-.logo { font-weight: 700; font-size: var(--t-head); line-height: var(--lh-head); letter-spacing: var(--tr-head); }
+/* Logo T1 (design/logo-final): vector wordmark in the same 24 px line as the old text; caps 14 px (19 px Bold text had ~13.4 px). */
+.logo { display: inline-flex; align-items: center; height: var(--lh-head); flex: none; color: var(--text); }
+.logo-mark { display: block; height: 14.25px; width: auto; } /* viewBox 1516 units tall = caps 1490 + 26 overshoot */
 .nav { display: flex; gap: var(--s1); flex: 1 1 auto; flex-wrap: wrap; }
 .nav a { padding: var(--s2) var(--s3); border-radius: var(--r1); color: var(--muted); font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 500; }
 .nav a[aria-current="page"] { background: var(--off-bg); color: var(--text); font-weight: 600; }

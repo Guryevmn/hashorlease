@@ -8,6 +8,7 @@ import { Banner, Skel } from "./ui";
 import { MOCK_STATES } from "@/lib/data/mock";
 import { usd, utcTime } from "@/lib/format";
 import { acknowledgeLimit, limitAcknowledged } from "./limitAck";
+import { Logo } from "./Logo";
 
 const NAV = [
   { href: "/", label: "Places", Icon: MapPin },
@@ -35,7 +36,7 @@ export function Shell({ children }: { children: ReactNode }) {
     <>
       <header className="header">
         <div className="header-inner">
-          <AppLink href="/" className="logo">Hash or Lease</AppLink>
+          <AppLink href="/" className="logo"><Logo className="logo-mark" /></AppLink>
           {/* One honesty badge instead of two: the strip below explains it in words. */}
           <span className={`badge ${demo ? "demo" : "testnet"}`} title="Testnet · no real money">{demo ? "Demo · testnet" : "Testnet"}</span>
           <nav className="nav" aria-label="Main">
