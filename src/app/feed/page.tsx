@@ -95,13 +95,13 @@ function FeedBody({ entries, now, shown, onMore, showSite }: { entries: FeedEntr
         </div>
         <div className="card stat">
           <div className="muted small">Missed gain</div>
-          <div className="v num">{none ? <span className="muted">Not marked</span> : usd(s.missedUsd, 0)}</div>
-          <div className="tiny muted">marked hours only</div>
+          <div className="v num">{none ? <span className="muted">—</span> : usd(s.missedUsd, 0)}</div>
+          <div className="tiny muted">{none ? "mark hours to see" : "marked hours only"}</div>
         </div>
         <div className="card stat">
           <div className="muted small">Gained by following</div>
-          <div className="v num">{none ? <span className="muted">Not marked</span> : usd(s.gainedUsd, 0)}</div>
-          <div className="tiny muted">marked hours only</div>
+          <div className="v num">{none ? <span className="muted">—</span> : usd(s.gainedUsd, 0)}</div>
+          <div className="tiny muted">{none ? "mark hours to see" : "marked hours only"}</div>
         </div>
       </div>
       {live && (
@@ -149,7 +149,8 @@ function FeedBody({ entries, now, shown, onMore, showSite }: { entries: FeedEntr
 }
 
 function StatusText({ e }: { e: FeedRow }) {
-  if (e.status === "not-marked") return <span className="muted">Not marked</span>;
+  // An unmarked row says nothing: the three buttons next to it already show it is open.
+  if (e.status === "not-marked") return null;
   if (e.status === "skipped") return <span className="muted">Skipped</span>;
   if (e.status === "followed") return <span style={{ color: "var(--mine)" }}>Followed</span>;
   if (e.keepAsIs) return <span className="muted">Keep as is</span>;
@@ -189,12 +190,12 @@ function Row({ e, showSite, change }: { e: FeedRow; showSite: boolean; change: C
         <span className="muted tiny">{e.receiptCount} {e.receiptCount === 1 ? "receipt" : "receipts"} · </span>
         <AppLink href={`/sites/${e.siteId}`} className="small" style={{ textDecoration: "underline" }}>Open breakdown</AppLink>
       </span>
-      <span className="num" style={{ fontWeight: 600, textAlign: "right" }}><StatusText e={e} /></span>
+      <span className="num status" style={{ fontWeight: 600, textAlign: "right" }}><StatusText e={e} /></span>
 
       <div className="mark-row" role="group" aria-label={`Mark what you did, ${who}`}>
         <span className="mark-label">You:</span>
         <button className="mark-btn" aria-pressed={kind === "followed"} onClick={() => set(kind === "followed" ? null : { kind: "followed" })}>Followed</button>
-        <button className="mark-btn" aria-pressed={showChoices} onClick={() => (kind === "other" ? set(null) : setPicking((p) => !p))}>Did something else</button>
+        <button className="mark-btn" aria-pressed={showChoices} onClick={() => (kind === "other" ? set(null) : setPicking((p) => !p))}>Other</button>
         <button className="mark-btn" aria-pressed={kind === "skip"} onClick={() => set(kind === "skip" ? null : { kind: "skip" })}>Skip</button>
       </div>
       {showChoices && (

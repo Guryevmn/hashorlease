@@ -270,12 +270,6 @@ export function SiteForm({ initial }: { initial?: Site }) {
         <span className="hint">Don&apos;t switch if the gain is smaller than this.</span>
       </section>
 
-      <div className="row">
-        <button type="submit" className="btn primary" disabled={saving}>
-          {saving ? (editing ? "Saving…" : "Fetching first call…") : editing ? "Save changes" : "Add place"}
-        </button>
-        <AppLink href={editing ? `/sites/${initial.id}` : "/"} className="btn">Cancel</AppLink>
-      </div>
       <p className="hint" style={{ margin: 0 }}>
         {editing
           ? "Changes show right away. Hours the agent already recorded keep the numbers they were decided with."
@@ -287,6 +281,12 @@ export function SiteForm({ initial }: { initial?: Site }) {
                 : "A fixed-rate site makes no paid grid requests."
             : "Estimating cost…"}
       </p>
+      <div className="row">
+        <button type="submit" className="btn primary" disabled={saving}>
+          {saving ? (editing ? "Saving…" : "Fetching first call…") : editing ? "Save changes" : "Add place"}
+        </button>
+        <AppLink href={editing ? `/sites/${initial.id}` : "/"} className="btn">Cancel</AppLink>
+      </div>
     </form>
   );
 }

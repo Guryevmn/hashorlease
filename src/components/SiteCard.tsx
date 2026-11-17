@@ -30,6 +30,9 @@ export function SiteCard({ report }: { report: SiteReport }) {
           <span className="badge paused pill">On hold</span>
         ) : (
           <div className="pills">
+            {result.changed && report.previousDecision && (
+              <span className="badge keep pill num" title={`Changed at ${utcTime(report.asOf.slice(0, 13) + ":00:00Z")} UTC`}>was {DECISION_LABEL[report.previousDecision]}</span>
+            )}
             {result.keepAsIs && <span className="badge calm pill">Keep as is</span>}
             <span className={`badge ${result.chosen} pill`}>
               <DecisionIcon d={result.chosen} />
@@ -52,30 +55,27 @@ export function SiteCard({ report }: { report: SiteReport }) {
               <span>Difference {usd(keepDifference(result))}/MWh is below your {usd(result.thresholdUsdPerMwh)} threshold</span>
             </div>
           )}
-          <div className="muted small num" style={{ marginTop: 8 }}>
-            Updated {utcTime(updatedAt(report))} UTC
-            {report.status === "stale" && <span className="badge stale" style={{ marginLeft: 8 }}>Outdated</span>}
-          </div>
-          <div className="opts num" aria-label="Profit per MWh by option">
-            <Opt label="Mine" value={signedUsd(result.options.mine)} best={result.chosen === "mine"} />
-            {result.options.lease !== null && <Opt label="Lease" value={signedUsd(result.options.lease)} best={result.chosen === "lease"} />}
-            <Opt label="Off" value={usd(result.options.off, 0)} best={result.chosen === "off"} />
-          </div>
-          {result.changed && report.previousDecision && (
-            <div className="small" style={{ marginTop: 8 }}>
-              <span className="dot" aria-hidden />
-              Changed from {DECISION_LABEL[report.previousDecision]} · {utcTime(report.asOf.slice(0, 13) + ":00:00Z")}
+          {/* The update time lives in the market strip above; a card only speaks up when its data is old. */}
+          {report.status === "stale" && (
+            <div className="muted small num" style={{ marginTop: 8 }}>
+              Updated {utcTime(updatedAt(report))} UTC <span className="badge stale" style={{ marginLeft: 8 }}>Outdated</span>
             </div>
           )}
+          <div className="opts num" aria-label="Profit per MWh by option">
+            <span className="opts-cap">Profit per MWh</span>
+            <Opt label="Mine" value={signedUsd(result.options.mine)} best={result.chosen === "mine"} d="mine" />
+            {result.options.lease !== null && <Opt label="Lease" value={signedUsd(result.options.lease)} best={result.chosen === "lease"} d="lease" />}
+            <Opt label="Off" value={usd(result.options.off, 0)} best={result.chosen === "off"} d="off" />
+          </div>
         </>
       )}
     </AppLink>
   );
 }
 
-function Opt({ label, value, best }: { label: string; value: string; best: boolean }) {
+function Opt({ label, value, best, d }: { label: string; value: string; best: boolean; d: string }) {
   return (
-    <div className={best ? "opt best" : "opt"}>
+    <div className={best ? `opt best ${d}` : "opt"}>
       <span className="muted">{label}</span>
       <span>{value}</span>
     </div>

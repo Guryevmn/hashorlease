@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Check, Lock } from "lucide-react";
 import { useData, useAsync } from "@/components/DataProvider";
 import { Banner, Skel } from "@/components/ui";
 import { ago, usd, utcTime } from "@/lib/format";
@@ -121,13 +122,24 @@ function SpendBody({
         <h2 style={{ marginBottom: 12 }}>Daily limit</h2>
         <div className="grid2">
           <div className="field">
-            <label htmlFor="limit">Daily limit ($)</label>
-            <input id="limit" ref={limitInput} className="input" inputMode="decimal" value={limit} readOnly={serverLimit} onChange={(e) => setLimit(e.target.value)} aria-invalid={!!errs.limit} aria-describedby={errs.limit ? "limit-err" : serverLimit ? "limit-hint" : undefined} />
-            {errs.limit && <span id="limit-err" className="error-text">{errs.limit}</span>}
-            {serverLimit && (
-              <span id="limit-hint" className="hint">
-                Set on the server: <code>DAILY_SPEND_LIMIT_USD</code> in <code>.env</code>, then restart. The app can&apos;t raise its own limit.
-              </span>
+            {serverLimit ? (
+              <>
+                {/* Read-only value: plain text with a lock, not an input that looks editable. */}
+                <span className="label">Daily limit</span>
+                <div className="static-value num" aria-describedby="limit-hint">
+                  {usd(s.limitUsd)}
+                  <span className="lock-note"><Lock size={14} aria-hidden /> Set on the server</span>
+                </div>
+                <span id="limit-hint" className="hint">
+                  To change it, edit <code>DAILY_SPEND_LIMIT_USD</code> and restart. The app can&apos;t raise its own limit.
+                </span>
+              </>
+            ) : (
+              <>
+                <label htmlFor="limit">Daily limit ($)</label>
+                <input id="limit" ref={limitInput} className="input" inputMode="decimal" value={limit} onChange={(e) => setLimit(e.target.value)} aria-invalid={!!errs.limit} aria-describedby={errs.limit ? "limit-err" : undefined} />
+                {errs.limit && <span id="limit-err" className="error-text">{errs.limit}</span>}
+              </>
             )}
           </div>
           <div className="field">
@@ -136,10 +148,17 @@ function SpendBody({
             {errs.alert && <span id="alert-err" className="error-text">{errs.alert}</span>}
           </div>
         </div>
-        <label className="row" style={{ marginTop: 12 }}>
-          <input type="checkbox" checked={serverLimit ? true : stop} disabled={serverLimit} onChange={(e) => toggleStop(e.target.checked)} />
-          <span><b>Stop when limit reached</b> <span className="muted small">{serverLimit ? "(always on, enforced by the server before every payment)" : "(on by default)"}</span></span>
-        </label>
+        {serverLimit ? (
+          <div className="row small" style={{ marginTop: 12 }}>
+            <Check size={16} aria-hidden style={{ color: "var(--mine)" }} />
+            <span><b>Stops at the limit</b> <span className="muted">· always on, checked by the server before every payment</span></span>
+          </div>
+        ) : (
+          <label className="row" style={{ marginTop: 12 }}>
+            <input type="checkbox" checked={stop} onChange={(e) => toggleStop(e.target.checked)} />
+            <span><b>Stop when limit reached</b> <span className="muted small">(on by default)</span></span>
+          </label>
+        )}
         <div className="row" style={{ marginTop: 12 }}>
           <button className="btn primary" onClick={save}>Save</button>
           {saved && <span className="small" role="status">Saved</span>}

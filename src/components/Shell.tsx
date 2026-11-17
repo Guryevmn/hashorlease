@@ -23,6 +23,9 @@ export function Shell({ children }: { children: ReactNode }) {
   const demoDay = pathname.startsWith("/demo-day");
   const status = useAsync((ds) => (demoDay ? Promise.resolve(undefined) : ds.getStatus()), [demoDay]);
   const [dismissed, setDismissed] = useState(false);
+  // The mock-state switcher is a developer tool: shown only with ?preview or while a preview state is open.
+  const [showPreview, setShowPreview] = useState(false);
+  useEffect(() => setShowPreview(state !== "default" || new URLSearchParams(window.location.search).has("preview")), [state]);
   const s = status.data;
   const demo = demoDay || (s ? s.demo : !LIVE);
   // A limit banner dismissed today ("Dismiss" / "Resume tomorrow") does not come back on navigation; in the ?state=limit preview it is always visible.
@@ -33,8 +36,8 @@ export function Shell({ children }: { children: ReactNode }) {
       <header className="header">
         <div className="header-inner">
           <AppLink href="/" className="logo">Hash or Lease</AppLink>
-          <span className="badge testnet" title="Testnet · no real money">Testnet · no real money</span>
-          {demo && <span className="badge demo">Demo data</span>}
+          {/* One honesty badge instead of two: the strip below explains it in words. */}
+          <span className={`badge ${demo ? "demo" : "testnet"}`} title="Testnet · no real money">{demo ? "Demo · testnet" : "Testnet"}</span>
           <nav className="nav" aria-label="Main">
             {NAV.map((n) => {
               const active = n.href === "/" ? pathname === "/" || pathname.startsWith("/sites") : pathname.startsWith(n.href);
@@ -48,12 +51,13 @@ export function Shell({ children }: { children: ReactNode }) {
           </nav>
           {!demoDay && (
             <AppLink href="/spend" className={`spent num ${s?.limitReached ? "over" : ""}`}>
-              {s ? `Spent today ${usd(s.spentUsd)} / ${usd(s.limitUsd)}` : <Skel w={150} />}
+              {s ? <><span className="spent-label">Spent today </span>{usd(s.spentUsd)} / {usd(s.limitUsd)}</> : <Skel w={150} />}
             </AppLink>
           )}
         </div>
       </header>
       <div className="demo-strip" role="note">
+        <div className="demo-strip-inner">
         {demoDay ? (
           <>
             <b>Demo day</b> — invented site and prices, simulated hours. No Telegraph requests, no receipts, no real calls.
@@ -67,6 +71,7 @@ export function Shell({ children }: { children: ReactNode }) {
             <b>Demo data</b> — invented numbers and receipts. No wallet, no network, no real requests.
           </>
         )}
+        </div>
       </div>
       <main className="main">
         {s?.networkDown && (
@@ -92,7 +97,7 @@ export function Shell({ children }: { children: ReactNode }) {
         )}
         {children}
       </main>
-      <footer className="footer">
+      {showPreview && <footer className="footer">
         <div>
           Preview states (mock):{" "}
           {MOCK_STATES.map((st) => (
@@ -101,7 +106,7 @@ export function Shell({ children }: { children: ReactNode }) {
             </a>
           ))}
         </div>
-      </footer>
+      </footer>}
     </>
   );
 }

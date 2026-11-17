@@ -58,15 +58,15 @@ export default function SiteDetailPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="stack">
-      <div className="page-title" style={{ marginBottom: 0 }}>
+      <div className="page-title site-title-bar" style={{ marginBottom: 0 }}>
         <div className="row">
           <AppLink href="/" className="btn small">← Places</AppLink>
           <h1>{siteFlag(site) && <span aria-hidden>{siteFlag(site)} </span>}{site.name}</h1>
           {r.status === "stale" && <span className="badge stale">Outdated</span>}
         </div>
         <div className="menu">
-          <button className="btn small" aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu((m) => !m)}>
-            ⋯ Menu
+          <button className="btn small" aria-haspopup="menu" aria-expanded={menu} aria-label="Menu" onClick={() => setMenu((m) => !m)}>
+            ⋯<span className="menu-label"> Menu</span>
           </button>
           {menu && (
             <div className="menu-list" role="menu">
