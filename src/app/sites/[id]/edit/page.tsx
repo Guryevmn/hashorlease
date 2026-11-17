@@ -18,8 +18,8 @@ export default function EditSitePage({ params }: { params: Promise<{ id: string 
   }
   if (report.loading) {
     return (
-      <div className="stack" aria-busy="true" aria-label="Loading">
-        <Skel w={220} h={30} />
+      <div aria-busy="true" aria-label="Loading">
+        <div className="page-title"><Skel w={220} h={30} /></div>
         <div className="card"><Skel w="100%" h={120} /></div>
       </div>
     );

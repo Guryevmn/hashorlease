@@ -46,7 +46,7 @@ export function SiteCard({ report }: { report: SiteReport }) {
       </div>
 
       {!result || !result.ok ? (
-        <div className="small" style={{ marginTop: 12 }}>
+        <div className="small mt-3">
           {report.pausedReason ?? "Decision unavailable"}
         </div>
       ) : (
@@ -60,8 +60,8 @@ export function SiteCard({ report }: { report: SiteReport }) {
           )}
           {/* The update time lives in the market strip above; a card only speaks up when its data is old. */}
           {report.status === "stale" && (
-            <div className="muted small num" style={{ marginTop: 8 }}>
-              Updated {utcTime(updatedAt(report))} UTC <span className="badge stale" style={{ marginLeft: 8 }}>Outdated</span>
+            <div className="muted small num mt-2">
+              Updated {utcTime(updatedAt(report))} UTC <span className="badge stale" style={{ marginLeft: "var(--s2)" }}>Outdated</span>
             </div>
           )}
           <div className="opts num" aria-label="Profit per MWh by option">
@@ -124,10 +124,10 @@ export function SiteCardSkeleton() {
   return (
     <div className="card" aria-hidden>
       <Skel w={140} h={18} />
-      <div style={{ marginTop: 8 }}><Skel w={200} h={12} /></div>
-      <div style={{ marginTop: 16 }}><Skel w={180} h={26} /></div>
-      <div style={{ marginTop: 12 }}><Skel w={120} h={16} /></div>
-      <div style={{ marginTop: 12 }}><Skel w={260} h={12} /></div>
+      <div className="mt-2"><Skel w={200} h={12} /></div>
+      <div className="mt-4"><Skel w={180} h={26} /></div>
+      <div className="mt-3"><Skel w={120} h={16} /></div>
+      <div className="mt-4"><Skel w={260} h={12} /></div>
     </div>
   );
 }

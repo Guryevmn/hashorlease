@@ -27,6 +27,17 @@
   --s5: 24px;  /* between blocks */
   --s6: 32px;  /* between page sections */
   --s7: 48px;
+  /* Vertical rhythm (proximity). Space above a heading is 2–3× the space below it;
+     cards of one group sit closer than groups do. Vertical gaps come from these tokens, not raw numbers. */
+  --space-tight: var(--s1);       /* 4: heading ↔ its caption, label ↔ value */
+  --space-related: var(--s2);     /* 8: lines of one block */
+  --space-heading: var(--s3);     /* 12: section or card heading → its content */
+  --space-group: var(--s3);       /* 12: between cards of one group or list */
+  --space-block: var(--s4);       /* 16: between blocks inside a card or form; a list → its own action */
+  --space-subsection: var(--s5);  /* 24: before a heading inside a card; content → actions row */
+  --space-section: var(--s6);     /* 32: between groups of a screen; before a section heading */
+  --space-screen-top: var(--s6);  /* header → screen title (24 on phone) */
+  --space-title: var(--s4);       /* screen title → its content (12 on phone) */
   /* Radii */
   --r1: 12px; --r2: 20px; --r3: 28px;
   /* Fonts (Apple scale, size/line height; line height is a multiple of 4) */
@@ -95,7 +106,7 @@ p { margin: 0; }
 .spent { margin-left: auto; background: #f1f3f5; color: var(--text); }
 .spent.over { background: var(--bad-bg); color: var(--bad); }
 .demo-strip { background: #fde68a; border-bottom: 1px solid #f1c84a; color: #4a3600; text-align: center; font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 600; padding: var(--s2) var(--s3); }
-.main { max-width: 960px; margin: 0 auto; padding: var(--s5) var(--s4) 80px; }
+.main { max-width: 960px; margin: 0 auto; padding: var(--space-screen-top) var(--s4) 80px; }
 .footer { max-width: 960px; margin: 0 auto; padding: 0 var(--s4) 40px; font-size: var(--t-cap); line-height: var(--lh-cap); color: var(--muted); }
 .footer a { text-decoration: underline; margin-right: var(--s2); }
 .footer a[aria-current="true"] { font-weight: 700; color: var(--text); }
@@ -117,7 +128,7 @@ p { margin: 0; }
 .badge.off { background: var(--off-bg); color: var(--off); }
 .badge.paused { background: var(--bad-bg); color: var(--bad); }
 
-.banner { border-radius: var(--r2); padding: var(--s3) var(--s4); margin-bottom: var(--s4); display: flex; flex-wrap: wrap; gap: var(--s2) var(--s3); align-items: center; }
+.banner { border-radius: var(--r2); padding: var(--s3) var(--s4); margin-bottom: var(--space-block); display: flex; flex-wrap: wrap; gap: var(--s2) var(--s3); align-items: center; }
 .banner.warn { background: var(--warn-bg); color: #5c3b00; border: 1px solid #f1dc9c; }
 .banner.bad { background: var(--bad-bg); color: #7a1510; border: 1px solid #f3b9b4; }
 .banner .grow { flex: 1 1 200px; }
@@ -132,12 +143,13 @@ p { margin: 0; }
 .stack { display: flex; flex-direction: column; gap: var(--s4); }
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); }
 .between { justify-content: space-between; }
-.page-title { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; margin-bottom: var(--s4); }
+.page-title { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; margin-bottom: var(--space-title); }
 
 /* Market summary */
-.market { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); padding: var(--s3) var(--s4); background: #fff; border: 1px solid var(--line); border-radius: var(--r2); margin-bottom: var(--s5); align-items: center; font-size: var(--t-sub); line-height: var(--lh-sub); }
+.market { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); padding: var(--s3) var(--s4); background: #fff; border: 1px solid var(--line); border-radius: var(--r2); align-items: center; font-size: var(--t-sub); line-height: var(--lh-sub); }
 .market b { font-weight: 700; }
-.hero { margin-bottom: var(--s5); }
+/* The "Right now, all places" block heads the list of places: far from the market strip, close to its cards. */
+.hero { margin: var(--space-section) 0 var(--space-block); }
 .hero .big { font-size: var(--t-large); line-height: var(--lh-large); font-weight: 700; letter-spacing: var(--tr-large); }
 
 /* Site cards */
@@ -236,7 +248,7 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 .menu-list button:hover:not(:disabled) { background: #f3f5f7; }
 .menu-list button:disabled { color: var(--muted); cursor: not-allowed; }
 
-.opts { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--s2); margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--line); }
+.opts { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--s2); margin-top: var(--space-block); padding-top: var(--space-heading); border-top: 1px solid var(--line); }
 .verdict { margin: var(--s2) 0; font-size: var(--t-body); line-height: var(--lh-body); }
 
 /* Phone: bottom tab bar, compact header */
@@ -247,9 +259,8 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
   .nav { position: fixed; left: var(--s4); right: var(--s4); bottom: calc(var(--s3) + env(safe-area-inset-bottom)); z-index: 20; background: rgba(255,255,255,.78); -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(15,23,42,.06); border-radius: var(--r3); box-shadow: 0 8px 32px rgba(15,23,42,.14); padding: var(--s1); gap: var(--s1); flex-wrap: nowrap; }
   .nav a { flex: 1; text-align: center; padding: var(--s3) var(--s2); border-radius: 24px; }
   .demo-strip { text-align: left; padding: var(--s1) var(--s3); }
-  .main { padding: var(--s4) var(--s3) 112px; }
+  .main { padding: var(--space-screen-top) var(--s3) 112px; }
   .hero .big { font-size: var(--t-title1); line-height: var(--lh-title1); }
-  .page-title { margin-bottom: var(--s3); }
   .table-wrap table, .table-wrap thead, .table-wrap tbody, .table-wrap tr, .table-wrap td { display: block; }
   .table-wrap thead { display: none; }
   .table-wrap tr { padding: var(--s3) 0; border-top: 1px solid var(--line); }
@@ -269,7 +280,7 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 .keep-note { display: flex; align-items: flex-start; gap: var(--s2); margin-top: var(--s3); padding: var(--s2) var(--s3); border-radius: var(--r1); background: #eef3fa; color: #2b4a73; font-size: var(--t-sub); line-height: var(--lh-sub); }
 .keep-note svg { flex: none; margin-top: 2px; }
 .pills { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s1) var(--s2); }
-.gain-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--s2); margin-top: var(--s3); }
+.gain-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--s2); margin-top: var(--space-block); }
 .gain-small { color: var(--muted); font-size: var(--t-sub); line-height: var(--lh-sub); }
 .empty .row { justify-content: center; margin-top: var(--s3); }
 .mark-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2); }
@@ -281,7 +292,7 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 @media (max-width: 640px) { .gain-row { display: block; } .gain-small { display: block; } }
 
 /* Demo day: simulated clock, change note, hour-by-hour tape, bot preview, journal record */
-.demo-entry { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); margin-top: var(--s5); }
+.demo-entry { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); margin-top: var(--space-section); }
 .demo-entry:hover { border-color: #b8c0cc; }
 .demo-clock { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--s3); margin-top: var(--s3); }
 .demo-time { font-size: var(--t-large); line-height: var(--lh-large); font-weight: 700; letter-spacing: var(--tr-large); }
@@ -365,7 +376,7 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 .place-filter > svg { position: absolute; top: 50%; right: var(--s2); translate: 0 -50%; pointer-events: none; }
 .filters .seg button { padding: 0 var(--s3); min-width: 52px; }
 /* Summary: one main number; the rest is one quiet line; the long explanation sits behind "?". */
-.summary { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--s1) var(--s5); margin-bottom: var(--s4); padding: var(--s3) var(--s4); }
+.summary { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--s1) var(--s5); padding: var(--s3) var(--s4); }
 .summary-label { font-size: var(--t-cap); line-height: var(--lh-cap); color: var(--muted); font-weight: 500; }
 .summary-v { font-size: var(--t-title2); line-height: var(--lh-title2); font-weight: 700; letter-spacing: var(--tr-title2); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .summary-of { color: var(--muted); font-weight: 600; font-size: var(--t-head); }
@@ -384,7 +395,7 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 .switch[aria-checked="true"] .switch-track { background: var(--accent); }
 .switch[aria-checked="true"] .switch-track::after { transform: translateX(16px); }
 @media (prefers-reduced-motion: reduce) { .switch-track, .switch-track::after { transition: none; } }
-.day-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); margin: var(--s4) 0 var(--s1); font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 600; }
+.day-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); margin: var(--space-subsection) 0 var(--space-tight); font-size: var(--t-sub); line-height: var(--lh-sub); font-weight: 600; }
 .link-btn.quiet:hover, .hour-link:hover { color: var(--accent-hover); }
 .link-btn.quiet { color: var(--accent); text-decoration: none; font-weight: 500; font-size: var(--t-sub); line-height: var(--lh-sub); }
 /* Hour row: line 1 time · place · decision chip; line 2 (changes only) a short reason and the result. Tap opens details. */
@@ -409,7 +420,7 @@ tr.blocked td { color: var(--muted); background: #f6f7f9; }
 .hour-link svg { flex: none; }
 @media (hover: hover) { .hour-head:hover .hour-chev { color: var(--text); } }
 @media (max-width: 640px) {
-  .history-title { flex-direction: column; align-items: stretch; gap: var(--s3); }
+  .history-title { flex-direction: column; align-items: stretch; gap: var(--space-title); }
   .filters { flex-wrap: nowrap; }
   .filters .place-filter { flex: 1 1 auto; }
   .summary { grid-template-columns: 1fr auto; column-gap: var(--s3); }
@@ -456,3 +467,33 @@ a.badge::after { content: ""; position: absolute; inset: -10px -4px; }
 /* Air between stacked lines (branch agent/chips-light): at least 4 px between a headline and its caption. */
 .hero .big + .muted { margin-top: var(--s1); }
 @media (max-width: 640px) { .gain-small { margin-top: var(--s1); } }
+
+/* Vertical rhythm (branch agent/spacing-rhythm): proximity instead of one equal gap everywhere.
+   Screen: header → title (--space-screen-top) → content (--space-title); groups of cards are --space-section apart,
+   cards inside a group --space-group apart. Card: heading → content --space-heading; a caption under a heading --space-tight. */
+@media (max-width: 640px) {
+  :root { --space-screen-top: var(--s5); --space-title: var(--s3); }
+}
+.group { display: flex; flex-direction: column; gap: var(--space-group); }
+.section { margin-top: var(--space-section); }
+.actions { margin-top: var(--space-subsection); }
+.lines { display: flex; flex-direction: column; gap: var(--space-tight); }
+/* History: the title with its filters is one head; the summary and the list below it are one group. */
+.history-title { margin-bottom: var(--space-block); }
+.hours > section:first-of-type > .day-head { margin-top: var(--space-related); }
+/* Card headings: close to their content, a caption right under the heading. */
+.card > h2, .card-head { margin-bottom: var(--space-heading); }
+.card > h2:has(+ .card-sub) { margin-bottom: var(--space-tight); }
+.card-sub { margin-bottom: var(--space-heading); }
+.card.empty > h2 { margin-bottom: var(--space-related); }
+/* Form cards are stacks: the stack gap already separates the heading row. */
+.card.stack > .card-head { margin-bottom: 0; }
+.card.stack > .card-head + .hint { margin-top: calc(var(--space-tight) - var(--space-block)); }
+/* Demo day: the intro under the title is its caption. */
+.page-title:has(+ .page-sub) { margin-bottom: var(--space-related); }
+.page-sub { margin-bottom: var(--space-title); }
+/* Spacing utilities on the 4 px scale, for one-off gaps instead of inline pixel numbers. */
+.mt-1 { margin-top: var(--s1); }
+.mt-2 { margin-top: var(--s2); }
+.mt-3 { margin-top: var(--s3); }
+.mt-4 { margin-top: var(--s4); }

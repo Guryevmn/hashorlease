@@ -58,8 +58,8 @@ export default function SiteDetailPage({ params }: { params: Promise<{ id: strin
   }
 
   return (
-    <div className="stack">
-      <div className="page-title site-title-bar" style={{ marginBottom: 0 }}>
+    <div>
+      <div className="page-title site-title-bar">
         <div className="row">
           <AppLink href="/" className="btn small">← Places</AppLink>
           <h1>{siteFlag(site) && <span aria-hidden>{siteFlag(site)} </span>}{site.name}</h1>
@@ -78,12 +78,13 @@ export default function SiteDetailPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      {/* 2. Decision */}
+      {/* 2–3. The call: decision and option comparison are one group. */}
+      <div className="group">
       <section className="card" aria-label="Decision">
         {!result || !result.ok ? (
           <>
             <span className="badge paused">On hold</span>
-            <h2 style={{ marginTop: 8 }}>On hold — can&apos;t decide without {r.inputs.power.value === null ? "power price" : "all inputs"}</h2>
+            <h2 className="mt-2">On hold — can&apos;t decide without {r.inputs.power.value === null ? "power price" : "all inputs"}</h2>
             <p className="muted">{r.pausedReason}</p>
             <button className="btn" onClick={report.reload}>Retry</button>
           </>
@@ -109,19 +110,21 @@ export default function SiteDetailPage({ params }: { params: Promise<{ id: strin
       {/* 3. Option comparison */}
       {result && result.ok && (
         <section className="card" aria-label="Comparison">
-          <h2 style={{ marginBottom: 12 }}>Three options, per MWh</h2>
+          <h2>Three options, per MWh</h2>
           <div className="options num">
             <Option d="mine" value={result.options.mine} win={result.chosen === "mine"} />
             <Option d="lease" value={result.options.lease} win={result.chosen === "lease"} />
             <Option d="off" value={result.options.off} win={result.chosen === "off"} />
           </div>
-          <p className="small num" style={{ marginTop: 12, marginBottom: 0 }}>{thresholdText(result)}</p>
+          <p className="small num mt-3">{thresholdText(result)}</p>
         </section>
       )}
+      </div>
 
-      {/* 4. Where the numbers come from */}
+      {/* 4–5. Where the numbers come from and the receipts: one group. */}
+      <div className="group section">
       <section className="card" aria-label="Where the numbers come from">
-        <h2 style={{ marginBottom: 8 }}>Where the numbers come from</h2>
+        <h2>Where the numbers come from</h2>
         <div className="breakdown num">
           <Row
             label="Mining revenue"
@@ -192,10 +195,11 @@ export default function SiteDetailPage({ params }: { params: Promise<{ id: strin
 
       {/* 5. Proof */}
       <Proof report={r} demo={!live} />
+      </div>
 
       {/* 6. Chart */}
-      <section className="card" aria-label="Last 24 hours">
-        <h2 style={{ marginBottom: 8 }}>Last 24 hours</h2>
+      <section className="card section" aria-label="Last 24 hours">
+        <h2>Last 24 hours</h2>
         {history.loading ? (
           <Skel w="100%" h={120} />
         ) : history.error ? (
@@ -208,7 +212,7 @@ export default function SiteDetailPage({ params }: { params: Promise<{ id: strin
       </section>
 
       {/* 7. Buttons */}
-      <div className="row">
+      <div className="row actions">
         <button className="btn primary" disabled={busy || limitReached || r.status === "paused"} onClick={refresh}>
           {busy ? "Refreshing…" : `Refresh now (${usd(ds.refreshCostUsd)})`}
         </button>
@@ -259,7 +263,7 @@ function Option({ d, value, win }: { d: Decision; value: number | null; win: boo
   const disabled = value === null;
   return (
     <div className={`option ${d} ${win ? "win" : ""} ${disabled ? "disabled" : ""}`}>
-      <div className="row" style={{ gap: 8 }}>
+      <div className="row" style={{ gap: "var(--s2)" }}>
         <DecisionIcon d={d} size={18} />
         <b>{DECISION_LABEL[d]}</b>
         {win && <span className="badge keep">chosen</span>}
@@ -323,12 +327,12 @@ function Proof({ report, demo }: { report: SiteReport; demo: boolean }) {
   return (
     <section className="card" aria-label="Receipts">
       <h2>Receipts</h2>
-      <p className="small" style={{ margin: "8px 0 12px" }}>
+      <p className="small">
         This call used {paid.length} paid {paid.length === 1 ? "request" : "requests"} · {paid.length} {paid.length === 1 ? "receipt" : "receipts"} · total {usd(total, 3)}
         {publicSources.length > 0 && ` · plus ${publicSources.length} free public ${publicSources.length === 1 ? "source" : "sources"} (not via Telegraph)`}
       </p>
       <button
-        className="btn small"
+        className="btn small mt-3"
         onClick={() => {
           try {
             void navigator.clipboard?.writeText(summary);
@@ -384,11 +388,13 @@ function HistoryChart({ points }: { points: HourPoint[] }) {
 
 function DetailSkeleton() {
   return (
-    <div className="stack" aria-busy="true" aria-label="Calculating…">
-      <div className="row"><Skel w={80} h={28} /><Skel w={160} h={24} /></div>
-      <div className="card"><Skel w={200} h={30} /><div style={{ marginTop: 12 }}><Skel w={240} h={16} /></div><div className="muted small" style={{ marginTop: 8 }}>Calculating…</div></div>
-      <div className="card"><Skel w="100%" h={70} /></div>
-      <div className="card">{[0, 1, 2, 3].map((i) => <div key={i} style={{ margin: "12px 0" }}><Skel w={`${60 - i * 8}%`} h={16} /></div>)}</div>
+    <div aria-busy="true" aria-label="Calculating…">
+      <div className="row page-title"><Skel w={80} h={28} /><Skel w={160} h={24} /></div>
+      <div className="group">
+        <div className="card"><Skel w={200} h={30} /><div className="mt-3"><Skel w={240} h={16} /></div><div className="muted small mt-2">Calculating…</div></div>
+        <div className="card"><Skel w="100%" h={70} /></div>
+      </div>
+      <div className="card section">{[0, 1, 2, 3].map((i) => <div key={i} style={{ margin: "var(--s3) 0" }}><Skel w={`${60 - i * 8}%`} h={16} /></div>)}</div>
     </div>
   );
 }

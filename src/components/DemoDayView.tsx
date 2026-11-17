@@ -54,12 +54,12 @@ export function DemoDayView({ day, siteLine, breakEven }: { day: DemoDayResult; 
         <h1>Demo day</h1>
         <span className="badge demo">Demo data · simulated</span>
       </div>
-      <p className="hint" style={{ marginBottom: 16 }}>
+      <p className="hint page-sub">
         One invented site and one invented day of prices, run hour by hour through the same agent that makes the real calls.
         No Telegraph requests, no receipts, no money. Real calls are on <AppLink href="/" style={{ textDecoration: "underline" }}>Places</AppLink>.
       </p>
 
-      <div className="stack">
+      <div>
         <section className="card" aria-label="Simulated hour">
           <div className="site-head">
             <div className="site-title">
@@ -102,12 +102,12 @@ export function DemoDayView({ day, siteLine, breakEven }: { day: DemoDayResult; 
               ))}
             </div>
           )}
-          <div className="muted small num" style={{ marginTop: 12 }}>
+          <div className="muted small num mt-3">
             Demo inputs this hour: power {usd(rec.powerPrice ?? 0)}/MWh · mining income {usd(rec.hashprice ?? 0)}/PH/day (BTC {usd(day.hours[at].btcUsd, 0)}) · lease pays{" "}
             {rec.options?.lease != null ? usd(rec.options.lease) : "—"}/MWh after overhead
           </div>
 
-          <div className="row" style={{ marginTop: 16 }}>
+          <div className="row mt-4">
             {playing ? (
               <button className="btn primary" onClick={() => setPlaying(false)}><Pause size={16} aria-hidden /> Pause</button>
             ) : (
@@ -124,14 +124,16 @@ export function DemoDayView({ day, siteLine, breakEven }: { day: DemoDayResult; 
           </div>
         </section>
 
+        {/* The day's data: the price curve and the hour-by-hour tape. */}
+        <div className="group section">
         <section className="card" aria-label="Power price through the demo day">
           <h2>Power price through the day</h2>
-          <p className="hint">Invented profile: quiet night, morning peak, midday solar dip, evening peak. Tap an hour to jump to it.</p>
+          <p className="hint card-sub">Invented profile: quiet night, morning peak, midday solar dip, evening peak. Tap an hour to jump to it.</p>
           <DayChart day={day} at={at} breakEven={breakEven} onPick={(h) => { setPlaying(false); setAt(h); }} />
         </section>
 
         <section className="card" aria-label="Hour by hour">
-          <div className="row between">
+          <div className="row between card-head">
             <h2>Hour by hour</h2>
             <span className="muted small num">{shown.filter((r) => r.changed).length} of {changesTotal} changes so far</span>
           </div>
@@ -140,9 +142,13 @@ export function DemoDayView({ day, siteLine, breakEven }: { day: DemoDayResult; 
           </div>
         </section>
 
+        </div>
+
+        {/* What the day produces: the bot alerts and the journal. */}
+        <div className="group section">
         <section className="card" aria-label="Bot messages">
           <h2>What the Telegram bot sends</h2>
-          <p className="hint">Preview of the exact alert text. Demo: nothing is sent from this screen; in Telegram the same replay is the <code>/demo</code> command.</p>
+          <p className="hint card-sub">Preview of the exact alert text. Demo: nothing is sent from this screen; in Telegram the same replay is the <code>/demo</code> command.</p>
           <div className="tg">
             {alerts.length === 0 ? (
               <div className="tg-empty">No change yet — the bot stays quiet until the call changes.</div>
@@ -159,13 +165,14 @@ export function DemoDayView({ day, siteLine, breakEven }: { day: DemoDayResult; 
 
         <section className="card" aria-label="Demo journal">
           <h2>Journal</h2>
-          <p className="hint">
+          <p className="hint card-sub">
             Every simulated hour is recorded in the hourly agent&apos;s journal format, marked <code>&quot;mode&quot;:&quot;demo&quot;</code> and kept
             apart from the live journal. <code>npm run demo:day</code> writes it to <code>data/agent/demo/</code>.{" "}
             <a href="/api/demo-day" style={{ textDecoration: "underline" }}>Download the day (JSONL)</a>
           </p>
           <pre className="journal" tabIndex={0} aria-label={`Journal record for ${utcTime(rec.hour)}`}>{JSON.stringify(rec, null, 1)}</pre>
         </section>
+        </div>
       </div>
     </>
   );

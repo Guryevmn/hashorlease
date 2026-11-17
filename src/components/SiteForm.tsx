@@ -147,7 +147,6 @@ export function SiteForm({ initial }: { initial?: Site }) {
 
   return (
     <form
-      className="stack"
       style={{ maxWidth: 640 }}
       noValidate
       onSubmit={(e) => {
@@ -155,7 +154,7 @@ export function SiteForm({ initial }: { initial?: Site }) {
         void submit(false);
       }}
     >
-      <h1>{editing ? `Edit ${initial.name}` : "Add place"}</h1>
+      <h1 className="page-title">{editing ? `Edit ${initial.name}` : "Add place"}</h1>
 
       {submitted && hasErrors && (
         <Banner kind="warn">
@@ -177,6 +176,8 @@ export function SiteForm({ initial }: { initial?: Site }) {
         </Banner>
       )}
 
+      {/* The form cards are one group; the cost note and the buttons close the form below them. */}
+      <div className="group">
       <section className="card stack" aria-label="Site type">
         <div className="field">
           <span className="label" id="kind-label">Site type</span>
@@ -241,7 +242,7 @@ export function SiteForm({ initial }: { initial?: Site }) {
       </section>
 
       <section className="card stack" aria-label="Miners">
-        <div className="row" style={{ justifyContent: "space-between" }}>
+        <div className="row card-head" style={{ justifyContent: "space-between" }}>
           <h2>Miners</h2>
           {!editing && (
             <button type="button" className="btn small" onClick={() => setV((p) => ({ ...p, ...EXAMPLE_MINERS }))}>
@@ -281,12 +282,12 @@ export function SiteForm({ initial }: { initial?: Site }) {
             {ds.fetchLeaseGuide && <div>
               <button type="button" className="btn small" onClick={loadGuide} disabled={limitReached}>See market guide ({usd(GUIDE_COST_USD)})</button>
               {guide && (
-                <span style={{ marginLeft: 8 }}>
+                <span style={{ marginLeft: "var(--s2)" }}>
                   <b>{guide.value}</b> <span className="muted small">estimate only</span>{" "}
                   <ReceiptChip receipt={guide.receipt} now={status.data?.now ?? guide.receipt.fetchedAt ?? ""} />
                 </span>
               )}
-              {guideError && <span className="error-text" style={{ marginLeft: 8 }}>{guideError}</span>}
+              {guideError && <span className="error-text" style={{ marginLeft: "var(--s2)" }}>{guideError}</span>}
             </div>}
           </>
         )}
@@ -296,8 +297,10 @@ export function SiteForm({ initial }: { initial?: Site }) {
         <Field id="threshold" label="Threshold ($/MWh)" value={v.threshold} inputMode="decimal" onChange={(x) => set("threshold", x)} onBlur={() => blur("threshold")} error={show("threshold")} />
         <span className="hint">Don&apos;t switch if the gain is smaller than this.</span>
       </section>
+      </div>
 
-      <p className="hint" style={{ margin: 0 }}>
+      <div className="actions stack" style={{ gap: "var(--s3)" }}>
+      <p className="hint">
         {editing
           ? "Changes show right away. Hours the agent already recorded keep the numbers they were decided with."
           : estimate.data
@@ -309,6 +312,7 @@ export function SiteForm({ initial }: { initial?: Site }) {
           {saving ? (editing ? "Saving…" : "Fetching first call…") : editing ? "Save changes" : "Add place"}
         </button>
         <AppLink href={editing ? `/sites/${initial.id}` : "/"} className="btn">Cancel</AppLink>
+      </div>
       </div>
     </form>
   );

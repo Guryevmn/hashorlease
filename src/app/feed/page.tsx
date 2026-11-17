@@ -58,9 +58,9 @@ export default function FeedPage() {
           Can&apos;t update the feed: {feed.error.message}
         </Banner>
       ) : feed.loading || !feed.data ? (
-        <div className="stack" aria-busy="true" aria-label="Loading history">
-          <div className="card summary"><div><Skel w={110} /><div style={{ marginTop: 8 }}><Skel w={120} h={28} /></div></div></div>
-          <div className="card">{[0, 1, 2, 3, 4].map((i) => <div key={i} style={{ margin: "16px 0" }}><Skel w="90%" h={16} /></div>)}</div>
+        <div className="group" aria-busy="true" aria-label="Loading history">
+          <div className="card summary"><div><Skel w={110} /><div className="mt-2"><Skel w={120} h={28} /></div></div></div>
+          <div className="card">{[0, 1, 2, 3, 4].map((i) => <div key={i} style={{ margin: "var(--s4) 0" }}><Skel w="90%" h={16} /></div>)}</div>
         </div>
       ) : feed.data.length === 0 ? (
         <div className="card empty">
@@ -109,7 +109,7 @@ function FeedBody({ entries, now, changesOnly, onChangesOnly, shown, onMore, sho
   const none = s.markedHours === 0;
 
   return (
-    <>
+    <div className="group">
       {/* Summary: one main number, the rest is a quiet line; the long explanation sits behind "?". */}
       <section className="card summary" aria-label="Summary">
         <div className="summary-main">
@@ -153,7 +153,7 @@ function FeedBody({ entries, now, changesOnly, onChangesOnly, shown, onMore, sho
           </button>
         </div>
         {listed.length === 0 && (
-          <p className="hint" style={{ padding: "var(--s4) 0" }}>No changes of the call in this period. Try 7 d or 30 d.</p>
+          <p className="hint" style={{ padding: "var(--space-block) 0" }}>No changes of the call in this period. Try 7 d or 30 d.</p>
         )}
         {days.map((d) => {
           const label = d.day === today ? "Today" : d.day === yesterday ? "Yesterday" : utcDate(d.day + "T00:00:00Z");
@@ -181,12 +181,12 @@ function FeedBody({ entries, now, changesOnly, onChangesOnly, shown, onMore, sho
           );
         })}
         {shown < listed.length && (
-          <div style={{ textAlign: "center", padding: 12 }}>
+          <div style={{ textAlign: "center", padding: "var(--s3)" }}>
             <button className="btn" onClick={onMore}>Show more ({listed.length - shown} left)</button>
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
 

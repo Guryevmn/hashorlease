@@ -26,10 +26,12 @@ export default function SpendPage() {
   }
   if (loading || !data) {
     return (
-      <div className="stack" aria-busy="true" aria-label="Loading spend">
-        <h1>Usage</h1>
-        <div className="card"><Skel w={220} h={30} /><div style={{ marginTop: 12 }}><Skel w="100%" h={10} /></div></div>
-        <div className="card">{[0, 1, 2, 3].map((i) => <div key={i} style={{ margin: "12px 0" }}><Skel w="85%" h={14} /></div>)}</div>
+      <div aria-busy="true" aria-label="Loading spend">
+        <h1 className="page-title">Usage</h1>
+        <div className="group">
+          <div className="card"><Skel w={220} h={30} /><div className="mt-3"><Skel w="100%" h={10} /></div></div>
+          <div className="card">{[0, 1, 2, 3].map((i) => <div key={i} style={{ margin: "var(--s3) 0" }}><Skel w="85%" h={14} /></div>)}</div>
+        </div>
       </div>
     );
   }
@@ -94,23 +96,25 @@ function SpendBody({
   }
 
   return (
-    <div className="stack">
-      <h1>Usage</h1>
+    <div>
+      <h1 className="page-title">Usage</h1>
 
+      {/* Group 1: today's spend and the limit that caps it. */}
+      <div className="group">
       <section className="card" aria-label="Daily limit">
         {s.limitReached ? (
           <>
             <h2 style={{ color: "var(--bad)" }}>Limit reached</h2>
-            <p className="small" style={{ margin: "4px 0 8px" }}>Agent paused. Next calls at 00:00 UTC.</p>
+            <p className="small card-sub">Agent paused. Next calls at 00:00 UTC.</p>
           </>
         ) : null}
         <div className="num" style={{ fontSize: "var(--t-title1)", lineHeight: "var(--lh-title1)", fontWeight: 700 }}>{usd(s.spentUsd)} <span className="muted" style={{ fontSize: "var(--t-body)", fontWeight: 400 }}>of {usd(s.limitUsd)} today</span></div>
-        <div className={`meter ${s.limitReached ? "over" : ""}`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pct)} aria-label="Spent today" style={{ margin: "12px 0" }}>
+        <div className={`meter ${s.limitReached ? "over" : ""}`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pct)} aria-label="Spent today" style={{ margin: "var(--s3) 0" }}>
           <i style={{ width: `${pct}%` }} />
         </div>
         <div className="muted small">Resets at 00:00 UTC · Paid in test USDC (testnet)</div>
         {s.limitReached && (
-          <div className="row" style={{ marginTop: 12 }}>
+          <div className="row actions">
             <button className="btn" onClick={() => { limitInput.current?.focus(); limitInput.current?.scrollIntoView({ block: "center" }); }}>Raise limit</button>
             <button className="btn" onClick={() => { acknowledgeLimit(); setResumeNote(true); bump(); }}>Resume tomorrow</button>
             {resumeNote && <span className="small" role="status">OK — the agent resumes on its own at 00:00 UTC. Banner hidden for today.</span>}
@@ -119,7 +123,7 @@ function SpendBody({
       </section>
 
       <section className="card" id="settings" aria-label="Limit settings">
-        <h2 style={{ marginBottom: 12 }}>Daily limit</h2>
+        <h2>Daily limit</h2>
         <div className="grid2">
           <div className="field">
             {serverLimit ? (
@@ -149,45 +153,53 @@ function SpendBody({
           </div>
         </div>
         {serverLimit ? (
-          <div className="row small" style={{ marginTop: 12 }}>
+          <div className="row small mt-4">
             <Check size={16} aria-hidden style={{ color: "var(--mine)" }} />
             <span><b>Stops at the limit</b> <span className="muted">· always on, checked by the server before every payment</span></span>
           </div>
         ) : (
-          <label className="row" style={{ marginTop: 12 }}>
+          <label className="row mt-4">
             <input type="checkbox" checked={stop} onChange={(e) => toggleStop(e.target.checked)} />
             <span><b>Stop when limit reached</b> <span className="muted small">(on by default)</span></span>
           </label>
         )}
-        <div className="row" style={{ marginTop: 12 }}>
+        <div className="row actions">
           <button className="btn primary" onClick={save}>Save</button>
           {saved && <span className="small" role="status">Saved</span>}
         </div>
       </section>
+      </div>
 
-      <AgentCard status={agent.data ?? null} loading={agent.loading} />
+      {/* Group 2: the agent that spends. */}
+      <div className="group section">
+        <AgentCard status={agent.data ?? null} loading={agent.loading} />
+      </div>
 
+      {/* Group 3: where the money goes. */}
+      <div className="group section">
       <section className="card" aria-label="Projected cost">
         <h2>Projected cost</h2>
-        <p style={{ margin: "8px 0 4px" }}>At this pace: <b className="num">{usd(s.forecastPerDayUsd)}</b> per day</p>
+        <p style={{ marginBottom: "var(--space-tight)" }}>At this pace: <b className="num">{usd(s.forecastPerDayUsd)}</b> per day</p>
         <div className="muted small">{s.forecastNote}</div>
       </section>
 
       <section className="card" aria-label="By data source">
-        <h2 style={{ marginBottom: 8 }}>By data source</h2>
+        <h2>By data source</h2>
+        <div className="group">
         {s.byService.map((b) => (
-          <div key={b.service} style={{ margin: "12px 0" }}>
+          <div key={b.service}>
             <div className="row between small num">
               <code>{b.service}</code>
               <span>{b.requests} {b.requests === 1 ? "request" : "requests"} · {usd(b.costUsd)}</span>
             </div>
-            <div className="meter" style={{ marginTop: 4 }}><i style={{ width: `${(b.requests / maxReq) * 100}%` }} /></div>
+            <div className="meter mt-1"><i style={{ width: `${(b.requests / maxReq) * 100}%` }} /></div>
           </div>
         ))}
+        </div>
       </section>
 
       <section className="card" aria-label="Paid requests">
-        <div className="row between" style={{ marginBottom: 8 }}>
+        <div className="row between card-head">
           <h2>Paid requests</h2>
           <button className="btn small" onClick={exportCsv}>Export CSV</button>
         </div>
@@ -208,6 +220,7 @@ function SpendBody({
           </div>
         )}
       </section>
+      </div>
     </div>
   );
 }
@@ -233,21 +246,21 @@ function AgentCard({ status, loading }: { status: AgentStatus | null; loading: b
     <section className="card" aria-label="Hourly agent">
       <h2>Hourly agent</h2>
       {loading ? (
-        <div style={{ marginTop: 8 }}><Skel w={260} /></div>
+        <Skel w={260} />
       ) : !run ? (
-        <p className="small" style={{ marginTop: 8 }}>
+        <p className="small">
           The agent hasn&apos;t run yet{status?.mode === "mock" ? " in demo mode" : ""}. Start it on the server with <code>npm run agent</code>: it
           recalculates every place {status?.schedule ?? "every hour"} without this page open and buys the data it needs within the daily limit.
         </p>
       ) : (
-        <>
-          <p className="small num" style={{ margin: "8px 0 4px" }}>
+        <div className="lines">
+          <p className="small num">
             Last run <b>{utcTime(run.at)} UTC</b> ({ago(run.at, now)}) · {run.decided} of {run.sites} places decided
             {run.paused > 0 ? ` · ${run.paused} on hold` : ""} · {run.paidRequests} paid {run.paidRequests === 1 ? "request" : "requests"}
           </p>
-          {run.error && <p className="small" style={{ color: "var(--warn)", margin: "4px 0" }}>{run.error}</p>}
+          {run.error && <p className="small" style={{ color: "var(--warn)" }}>{run.error}</p>}
           {run.changes.length > 0 && (
-            <p className="small" style={{ margin: "4px 0" }}>
+            <p className="small">
               Changed: {run.changes.map((c) => `${c.siteName} ${DECISION_LABEL[c.from]} → ${DECISION_LABEL[c.to]}`).join(", ")}
             </p>
           )}
@@ -255,7 +268,7 @@ function AgentCard({ status, loading }: { status: AgentStatus | null; loading: b
             Today: {status!.runsToday} {status!.runsToday === 1 ? "run" : "runs"}, {status!.paidRequestsToday} paid {status!.paidRequestsToday === 1 ? "request" : "requests"} · runs {status!.schedule}
             {status!.mode === "mock" ? " · demo agent, no real requests" : ""}
           </div>
-        </>
+        </div>
       )}
     </section>
   );

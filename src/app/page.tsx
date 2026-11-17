@@ -34,8 +34,8 @@ export default function SitesPage() {
     return (
       <>
         <div className="market" aria-hidden><Skel w={160} /><Skel w={200} /><Skel w={120} /></div>
-        <div className="hero"><span className="muted small">Calculating…</span><div style={{ marginTop: 4 }}><Skel w={90} h={16} /></div><div style={{ marginTop: 8 }}><Skel w={260} h={38} /></div></div>
-        <div className="stack" aria-busy="true" aria-label="Calculating…">
+        <div className="hero"><span className="muted small">Calculating…</span><div className="mt-1"><Skel w={90} h={16} /></div><div className="mt-2"><Skel w={260} h={38} /></div></div>
+        <div className="group" aria-busy="true" aria-label="Calculating…">
           <SiteCardSkeleton /><SiteCardSkeleton /><SiteCardSkeleton />
         </div>
       </>
@@ -91,20 +91,20 @@ export default function SitesPage() {
         <div className="muted small">more per hour than mining everything · {reports.length} places</div>
       </section>
 
-      <div className="stack">
+      <div className="group">
         {reports.map((r) => (
           <SiteCard key={r.site.id} report={r} />
         ))}
       </div>
 
-      <div style={{ marginTop: 16 }}>
+      <div className="mt-4">
         <AppLink href="/sites/new" className="btn primary">+ Add place</AppLink>
       </div>
 
       <AppLink href="/demo-day" className="card demo-entry" aria-label="Demo day: watch a call change over a simulated day">
         <span>
           <b>See a call change</b> <span className="badge demo">Demo data</span>
-          <span className="muted small" style={{ display: "block", marginTop: 4 }}>
+          <span className="muted small mt-1" style={{ display: "block" }}>
             A simulated day on an invented site: Lease to AI → Mine → Lease to AI, with the reason for every hour.
           </span>
         </span>
