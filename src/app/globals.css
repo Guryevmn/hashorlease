@@ -169,7 +169,9 @@ p { margin: 0; }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: var(--s2); }
 
 /* Receipt */
-.chip-wrap { display: inline-block; vertical-align: middle; position: relative; margin-left: var(--s1); }
+/* The 20 px circle is centred on the optical middle of the capitals of its line (cap height ≈ 0.36 em above the baseline),
+   not on the x-height middle (`vertical-align: middle`), which left it ~3.5 px low. Flex wrapper: no line-height strut inside. */
+.chip-wrap { display: inline-flex; align-items: center; vertical-align: calc(0.36em - 6.15px); position: relative; margin-left: var(--s1); }
 .rcpt { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 50%; background: var(--off-bg); color: var(--muted); position: relative; vertical-align: middle; }
 .rcpt::after { content: ""; position: absolute; inset: -12px; } /* 44 px tap target */
 .rcpt.verified { color: var(--mine); background: var(--mine-bg); }
@@ -503,8 +505,8 @@ a.badge::after { content: ""; position: absolute; inset: -10px -4px; }
 /* Selected state of every control is the accent: period, mark buttons and the "Changes only" switch read as one family. */
 .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
 .mark-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
-/* A Telegraph receipt is proof, not a decision: its check is the app purple (green stays for "Mine"). */
-.rcpt.verified { color: var(--accent); background: var(--accent-bg); }
+/* "Verified" (a Telegraph receipt) is green — success/checked; purple stays the brand accent for buttons and switches.
+   The check is --mine on --mine-bg: 4.7:1 (icons need ≥ 3:1); see .rcpt.verified and .rs-seal.verified. */
 .btn.accent { background: var(--accent); border-color: var(--accent); color: #fff; }
 .btn.accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 .btn.tint { background: var(--accent-bg); border-color: transparent; color: var(--accent-on-bg); }
@@ -515,7 +517,7 @@ a.badge::after { content: ""; position: absolute; inset: -10px -4px; }
 .rs-grabber { display: none; }
 .rs-head { display: flex; align-items: center; gap: var(--s3); }
 .rs-seal { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--off-bg); color: var(--off); }
-.rs-seal.verified { background: var(--accent-bg); color: var(--accent); }
+.rs-seal.verified { background: var(--mine-bg); color: var(--mine); }
 .rs-seal.stale { background: var(--warn-bg); color: var(--warn); }
 .rs-seal.public { background: #e6eef8; color: #1d4ed8; }
 .rs-title { display: flex; flex-direction: column; gap: 0; min-width: 0; flex: 1 1 auto; }

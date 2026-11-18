@@ -209,7 +209,7 @@ function ReceiptGlyph({ status, size = 12 }: { status: Receipt["status"]; size?:
   if (status === "input") return <User size={size} strokeWidth={2.5} aria-hidden />;
   if (status === "public") return <Globe size={size} strokeWidth={2.5} aria-hidden />;
   const p = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 3, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true } as const;
-  if (status === "verified") return <svg {...p}><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>;
+  if (status === "verified") return <svg {...p}><path d="M5 12.25l4.5 4.5L19 7.25" /></svg>;
   if (status === "stale") return <svg {...p}><path d="M12 7v6" /><path d="M12 17h.01" /></svg>;
   return <svg {...p}><circle cx="12" cy="12" r="6" /></svg>;
 }
