@@ -1,13 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowUpRight, Check, ChevronDown, Copy, Cpu, Globe, Power, Server, User, X } from "lucide-react";
+import { ArrowUpRight, Check, Copy, Cpu, Globe, Power, Server, User, X } from "lucide-react";
 import type { Decision } from "@/lib/decision";
 import { DECISION_LABEL } from "@/lib/decision";
 import type { Receipt } from "@/lib/types";
 import { ago, usd, utcDate, utcTime } from "@/lib/format";
 import { RECEIPT_STATUS, receiptSummary, receiptTitle } from "@/lib/receipt";
-import { useVariant } from "./useVariant";
 
 export function DecisionIcon({ d, size = 22 }: { d: Decision; size?: number }) {
   const Icon = d === "mine" ? Cpu : d === "lease" ? Server : Power;
@@ -44,19 +43,15 @@ function copy(text: string) {
   }
 }
 
-const RECEIPT_VARIANTS = ["a", "b"] as const;
-
 /**
  * Telegraph receipt next to a number: a small icon beside the figure, details on tap (popover; bottom sheet on phone).
  * The sheet reads top-down: status, what was bought and for how much, the proof link, then the technical fields, quieter.
- * Variant A (default): big number, filled button, details always visible. Variant B (`?receipt=b`): two tiles, tinted button,
- * details folded under "Technical details".
+ * Big number, filled button, details always visible.
  */
 export function ReceiptChip({ receipt, now }: { receipt: Receipt; now: string }) {
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const closeBtn = useRef<HTMLButtonElement>(null);
-  const variant = useVariant("receipt", "a", RECEIPT_VARIANTS);
   const r = receipt;
 
   const close = useCallback(() => {
@@ -90,28 +85,16 @@ export function ReceiptChip({ receipt, now }: { receipt: Receipt; now: string })
       {open && (
         <>
           <div className="sheet-backdrop" onClick={close} aria-hidden />
-          <div className={`receipt-panel rs rs-${variant}`} role="dialog" aria-label={title}>
+          <div className={`receipt-panel rs`} role="dialog" aria-label={title}>
             <span className="rs-grabber" aria-hidden />
             <div className="rs-head">
-              {variant === "a" ? (
-                <>
-                  <span className={`rs-seal ${r.status}`} aria-hidden>
-                    <ReceiptGlyph status={r.status} size={16} />
-                  </span>
-                  <span className="rs-title">
-                    <b>{st.title}</b>
-                    <span className="rs-sub">{st.sub}</span>
-                  </span>
-                </>
-              ) : (
-                <span className="rs-title rs-title-b">
-                  <span className={`badge rs-status ${r.status}`}>
-                    <ReceiptGlyph status={r.status} />
-                    {st.title}
-                  </span>
-                  <span className="rs-sub">{st.sub}</span>
-                </span>
-              )}
+              <span className={`rs-seal ${r.status}`} aria-hidden>
+                <ReceiptGlyph status={r.status} size={16} />
+              </span>
+              <span className="rs-title">
+                <b>{st.title}</b>
+                <span className="rs-sub">{st.sub}</span>
+              </span>
               <button ref={closeBtn} type="button" className="rs-close" onClick={close} aria-label="Close">
                 <X size={16} strokeWidth={2.5} aria-hidden />
               </button>
@@ -121,7 +104,7 @@ export function ReceiptChip({ receipt, now }: { receipt: Receipt; now: string })
             ) : r.status === "demo" ? (
               <p className="rs-text">Invented number for the demo day. Nothing was requested or paid, so there is no receipt.</p>
             ) : (
-              <ReceiptBody r={r} now={now} variant={variant} />
+              <ReceiptBody r={r} now={now} />
             )}
           </div>
         </>
@@ -130,13 +113,13 @@ export function ReceiptChip({ receipt, now }: { receipt: Receipt; now: string })
   );
 }
 
-function ReceiptBody({ r, now, variant }: { r: Receipt; now: string; variant: "a" | "b" }) {
+function ReceiptBody({ r, now }: { r: Receipt; now: string }) {
   const sum = receiptSummary(r);
   const paid = r.status === "public" ? "Free" : r.costUsd ? `${usd(r.costUsd, 3)} USDC` : "Nothing paid";
   const paidNote =
     r.status === "public" ? "public source, no receipt" : r.costUsd ? (r.network === "testnet" ? "testnet" : r.network) : "no Telegraph receipt";
   const proof = r.proofUrl ? (
-    <a href={r.proofUrl} target="_blank" rel="noreferrer" className={`btn rs-proof ${variant === "a" && r.status !== "public" ? "accent" : "tint"}`}>
+    <a href={r.proofUrl} target="_blank" rel="noreferrer" className={`btn rs-proof ${r.status !== "public" ? "accent" : "tint"}`}>
       {r.status === "public" ? "Open source" : r.proofUrl.includes("etherscan.io") ? "View payment on Sepolia" : "View Telegraph receipt"}
       <ArrowUpRight size={18} strokeWidth={2.25} aria-hidden />
     </a>
@@ -146,32 +129,6 @@ function ReceiptBody({ r, now, variant }: { r: Receipt; now: string; variant: "a
   const details = <ReceiptDetails r={r} now={now} />;
   const also = sum.value && sum.note ? <p className="rs-note">Also used: {sum.note[0].toLowerCase() + sum.note.slice(1)}.</p> : null;
 
-  if (variant === "b") {
-    return (
-      <>
-        <div className="rs-tiles">
-          <div className="rs-tile">
-            <span className="rs-label">{sum.label}</span>
-            {sum.value ? <span className="rs-tile-v num">{sum.value}</span> : <span className="rs-tile-t">{sum.note ?? "—"}</span>}
-          </div>
-          <div className="rs-tile">
-            <span className="rs-label">Paid</span>
-            <span className="rs-tile-v rs-tile-v2 num">{paid}</span>
-            <span className="rs-tile-n">{paidNote}</span>
-          </div>
-        </div>
-        {proof && <div className="rs-action">{proof}</div>}
-        <details className="rs-more">
-          <summary>
-            Technical details
-            <ChevronDown size={16} strokeWidth={2.25} aria-hidden />
-          </summary>
-          {details}
-          {also}
-        </details>
-      </>
-    );
-  }
   return (
     <>
       <div className="rs-main">

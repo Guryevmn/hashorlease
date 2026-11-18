@@ -549,23 +549,6 @@ a.badge::after { content: ""; position: absolute; inset: -10px -4px; }
 .rs-copy::after { content: ""; position: absolute; inset: -10px -4px; }
 .rs-note { margin-top: var(--space-related); color: var(--muted); font-size: var(--t-cap); line-height: var(--lh-cap); }
 /* Variant B: status chip, two tiles, tinted button, technical details folded away. */
-.rs-title-b { flex-direction: row; align-items: center; flex-wrap: wrap; gap: var(--s1) var(--s2); }
-.badge.rs-status { background: var(--off-bg); color: var(--off); }
-.badge.rs-status.verified { background: var(--accent-bg); color: var(--accent); }
-.badge.rs-status.stale { background: var(--warn-bg); color: var(--warn); }
-.badge.rs-status.public { background: #e6eef8; color: #1d4ed8; }
-.rs-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s2); margin-top: var(--space-block); }
-.rs-tile { display: flex; flex-direction: column; gap: var(--space-tight); padding: var(--s3); border-radius: var(--r1); background: var(--bg); min-width: 0; }
-.rs-tile-v { font-size: var(--t-title2); line-height: var(--lh-title2); font-weight: 700; letter-spacing: var(--tr-title2); font-variant-numeric: tabular-nums; }
-.rs-tile-v2 { font-size: var(--t-head); line-height: var(--lh-head); font-weight: 600; margin-top: auto; }
-.rs-tile-t { font-size: var(--t-sub); line-height: var(--lh-sub); }
-.rs-tile-n { color: var(--muted); font-size: var(--t-cap); line-height: var(--lh-cap); }
-.rs-more { margin-top: var(--space-block); border-top: 1px solid var(--line); }
-.rs-more summary { display: flex; align-items: center; justify-content: space-between; min-height: 44px; list-style: none; cursor: pointer; color: var(--muted); font-weight: 500; }
-.rs-more summary::-webkit-details-marker { display: none; }
-.rs-more summary svg { transition: transform .2s ease; }
-.rs-more[open] summary svg { transform: rotate(180deg); }
-@media (prefers-reduced-motion: reduce) { .rs-more summary svg { transition: none; } }
 @media (max-width: 640px) {
   /* Phone: a clean dim with a light blur, so the page behind reads as "behind", not as faded text. */
   .sheet-backdrop { background: rgba(12,14,20,.4); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
@@ -579,7 +562,7 @@ a.badge::after { content: ""; position: absolute; inset: -10px -4px; }
 .badge.paused svg { width: 10px; height: 10px; fill: currentColor; stroke: none; }
 .resume-line { display: flex; align-items: center; gap: var(--s1); padding: var(--s2) 0; border-top: 1px solid var(--line); color: var(--accent); font-size: var(--t-cap); line-height: var(--lh-cap); font-weight: 600; }
 .resume-line svg { flex: none; }
-/* Variant A: one block per run of paused hours. */
+/* One block per run of paused hours. */
 .pause-block { margin: var(--s1) 0 var(--s2); border-radius: var(--r1); background: #fdf4f3; box-shadow: inset 0 0 0 1px #f6dcd8; }
 .resume-line + .pause-block { margin-top: 0; }
 .pause-head { display: grid; grid-template-columns: 1fr auto; column-gap: var(--s2); row-gap: var(--s1); align-items: center; width: 100%; padding: var(--s3); border: 0; background: none; text-align: left; }

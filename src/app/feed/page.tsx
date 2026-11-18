@@ -6,7 +6,6 @@ import { AppLink, useAsync, useData } from "@/components/DataProvider";
 import { Banner, DecisionBadge, Skel } from "@/components/ui";
 import { DECISION_LABEL, type Decision } from "@/lib/decision";
 import { useMarks } from "@/components/useMarks";
-import { useVariant } from "@/components/useVariant";
 import { markKey } from "@/lib/marks";
 import { changeReasonText, groupByDay, groupPauses, onlyChanges, pauseWhy, resolveFeed, shortChangeReason, summarizeFeed, type PauseRun } from "@/lib/feed";
 import { usd, utcDate, utcTime } from "@/lib/format";
@@ -14,7 +13,6 @@ import type { FeedEntry, FeedPeriod, FeedRow, Mark } from "@/lib/types";
 
 const PERIODS: FeedPeriod[] = ["24h", "7d", "30d"];
 const PAGE = 48;
-const PAUSE_VARIANTS = ["a", "b"] as const;
 
 export default function FeedPage() {
   const [period, setPeriod] = useState<FeedPeriod>("24h");
@@ -109,8 +107,6 @@ function FeedBody({ entries, now, changesOnly, onChangesOnly, shown, onMore, sho
   const today = (now ?? entries[0].hour).slice(0, 10);
   const yesterday = new Date(new Date(today).getTime() - 86400_000).toISOString().slice(0, 10);
   const none = s.markedHours === 0;
-  // Pauses: A (default) folds a run of paused hours into one block; B (`?pause=b`) keeps a row per hour with a "Paused" chip.
-  const pauseVariant = useVariant("pause", "a", PAUSE_VARIANTS);
   let newerAbove = false;
 
   return (
@@ -187,7 +183,7 @@ function FeedBody({ entries, now, changesOnly, onChangesOnly, shown, onMore, sho
                   it.kind === "row" ? (
                     <Row key={it.row.hour + it.row.siteId} e={it.row} showSite={showSite} change={change} />
                   ) : (
-                    <PauseItems key={"p" + it.to + it.rows.length} run={it} variant={pauseVariant} showSite={showSite} />
+                    <PauseItems key={"p" + it.to + it.rows.length} run={it} showSite={showSite} />
                   ),
                 );
               })()}
@@ -307,16 +303,16 @@ function ResumeLine({ at }: { at: string }) {
   );
 }
 
-function PauseItems({ run, variant, showSite }: { run: PauseRun; variant: "a" | "b"; showSite: boolean }) {
+function PauseItems({ run, showSite }: { run: PauseRun; showSite: boolean }) {
   return (
     <>
       {run.resumedAt && <ResumeLine at={run.resumedAt} />}
-      {variant === "a" ? <PauseBlock run={run} showSite={showSite} /> : run.rows.map((e) => <PausedRow key={e.hour + e.siteId} e={e} showSite={showSite} />)}
+      <PauseBlock run={run} showSite={showSite} />
     </>
   );
 }
 
-/** Variant A: a run of paused hours is one block: when, why, which places; the hours open on tap. */
+/** A run of paused hours is one block: when, why, which places; the hours open on tap. */
 function PauseBlock({ run, showSite }: { run: PauseRun; showSite: boolean }) {
   const [open, setOpen] = useState(false);
   const id = `pause-${run.from}`;
