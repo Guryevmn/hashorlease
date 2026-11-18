@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { groupByDay, resolveFeed, shortChangeReason, summarizeFeed } from "./feed";
+import { groupByDay, groupPauses, pauseWhy, resolveFeed, shortChangeReason, summarizeFeed } from "./feed";
 import { loadMarks, markKey, MARKS_KEY, saveMarks, withMarks } from "./marks";
-import type { FeedEntry } from "./types";
+import type { FeedEntry, FeedRow } from "./types";
 
 const entry = (over: Partial<FeedEntry> = {}): FeedEntry => ({
   hour: "2026-11-08T14:00:00.000Z",
@@ -104,5 +104,37 @@ describe("feed: short change reason", () => {
     expect(shortChangeReason("something else")).toBe("Something else");
     expect(shortChangeReason(undefined)).toBeNull();
     expect(shortChangeReason("  ")).toBeNull();
+  });
+});
+
+describe("feed: pauses read as one block", () => {
+  const paused = (hour: string, siteName: string): FeedRow => ({
+    hour, siteId: siteName.toLowerCase(), siteName, advice: null, keepAsIs: false, options: null, mw: 1, adviceGainUsd: 0, powerPrice: 0,
+    receiptCount: 0, pauseReason: "Paused · no fresh Telegraph receipt (Telegraph unavailable)", mark: null, status: "paused", missedUsd: 0,
+  });
+  const call = (hour: string): FeedRow => ({
+    hour, siteId: "s", siteName: "Silesia Farm", advice: "off", keepAsIs: false, options: { mine: 1, lease: 2, off: 0 }, mw: 1,
+    adviceGainUsd: 0, powerPrice: 0, receiptCount: 2, mark: null, status: "not-marked", missedUsd: 0,
+  });
+  it("strips the \"Paused ·\" prefix: the chip already says it", () => {
+    expect(pauseWhy("Paused · no fresh Telegraph receipt (Telegraph unavailable)")).toBe("No fresh Telegraph receipt (Telegraph unavailable)");
+    expect(pauseWhy(undefined)).toBe("No call this hour");
+  });
+  it("collapses 3 places × 2 hours into one run and says when decisions came back", () => {
+    const rows = [call("2026-11-17T20:00:00Z"), ...["19", "18"].flatMap((h) => ["A", "B", "C"].map((s) => paused(`2026-11-17T${h}:00:00Z`, s)))];
+    const items = groupPauses(rows);
+    expect(items).toHaveLength(2);
+    const run = items[1];
+    expect(run.kind).toBe("pause");
+    if (run.kind !== "pause") return;
+    expect(run).toMatchObject({ from: "2026-11-17T18:00:00Z", to: "2026-11-17T19:00:00Z", hours: 2, sites: ["A", "B", "C"] });
+    expect(run.rows).toHaveLength(6);
+    expect(run.resumedAt).toBe("2026-11-17T20:00:00.000Z");
+  });
+  it("a run at the top of a day without a newer call above it has no \"back\" line", () => {
+    const items = groupPauses([paused("2026-11-17T19:00:00Z", "A")]);
+    expect(items[0].kind === "pause" && items[0].resumedAt).toBeNull();
+    const withNewer = groupPauses([paused("2026-11-17T23:00:00Z", "A")], true);
+    expect(withNewer[0].kind === "pause" && withNewer[0].resumedAt).toBe("2026-11-18T00:00:00.000Z");
   });
 });

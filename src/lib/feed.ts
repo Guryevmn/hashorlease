@@ -117,3 +117,58 @@ export function shortChangeReason(reason: string | undefined): string | null {
   if (/^the site's numbers changed$/i.test(first)) return "Site numbers changed";
   return changeReasonText(first);
 }
+
+/** Pause reason for the UI: the agent writes "Paused · no fresh Telegraph receipt (…)"; the chip already says "Paused". */
+export function pauseWhy(reason: string | undefined): string {
+  const t = (reason ?? "").replace(/^Paused\s*[·—-]?\s*/i, "").trim();
+  return t ? t[0].toUpperCase() + t.slice(1) : "No call this hour";
+}
+
+/** A run of paused hours in one day's list (newest first), shown as one block instead of a row per place and hour. */
+export interface PauseRun {
+  kind: "pause";
+  /** Earliest and latest paused hour (ISO). */
+  from: string;
+  to: string;
+  hours: number;
+  sites: string[];
+  why: string;
+  rows: FeedRow[];
+  /** The hour decisions came back (the hour after `to`) when a newer decision row sits right above the run. */
+  resumedAt: string | null;
+}
+export type FeedItem = { kind: "row"; row: FeedRow } | PauseRun;
+
+const isPaused = (r: FeedRow) => r.status === "paused" || !r.advice;
+
+/**
+ * Collapses neighbouring paused rows with the same reason into one run. `newerAbove` says whether a decision row
+ * sits right above the first item (from the previous, newer day), so the run can say when decisions came back.
+ */
+export function groupPauses(rows: FeedRow[], newerAbove = false): FeedItem[] {
+  const out: FeedItem[] = [];
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    if (!isPaused(r)) {
+      out.push({ kind: "row", row: r });
+      continue;
+    }
+    const why = pauseWhy(r.pauseReason);
+    const run: FeedRow[] = [r];
+    while (i + 1 < rows.length && isPaused(rows[i + 1]) && pauseWhy(rows[i + 1].pauseReason) === why) run.push(rows[++i]);
+    const hours = [...new Set(run.map((x) => x.hour))].sort();
+    const above = out.length ? out[out.length - 1].kind === "row" : newerAbove;
+    const to = hours[hours.length - 1];
+    out.push({
+      kind: "pause",
+      from: hours[0],
+      to,
+      hours: hours.length,
+      sites: [...new Set(run.map((x) => x.siteName))],
+      why,
+      rows: run,
+      resumedAt: above ? new Date(new Date(to).getTime() + 3600_000).toISOString() : null,
+    });
+  }
+  return out;
+}

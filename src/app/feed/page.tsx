@@ -1,18 +1,20 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import { ChevronDown, ChevronRight, CircleHelp, ReceiptText } from "lucide-react";
+import { ArrowUp, ChevronDown, ChevronRight, CircleHelp, Pause, ReceiptText } from "lucide-react";
 import { AppLink, useAsync, useData } from "@/components/DataProvider";
 import { Banner, DecisionBadge, Skel } from "@/components/ui";
 import { DECISION_LABEL, type Decision } from "@/lib/decision";
 import { useMarks } from "@/components/useMarks";
+import { useVariant } from "@/components/useVariant";
 import { markKey } from "@/lib/marks";
-import { changeReasonText, groupByDay, onlyChanges, resolveFeed, shortChangeReason, summarizeFeed } from "@/lib/feed";
+import { changeReasonText, groupByDay, groupPauses, onlyChanges, pauseWhy, resolveFeed, shortChangeReason, summarizeFeed, type PauseRun } from "@/lib/feed";
 import { usd, utcDate, utcTime } from "@/lib/format";
 import type { FeedEntry, FeedPeriod, FeedRow, Mark } from "@/lib/types";
 
 const PERIODS: FeedPeriod[] = ["24h", "7d", "30d"];
 const PAGE = 48;
+const PAUSE_VARIANTS = ["a", "b"] as const;
 
 export default function FeedPage() {
   const [period, setPeriod] = useState<FeedPeriod>("24h");
@@ -107,6 +109,9 @@ function FeedBody({ entries, now, changesOnly, onChangesOnly, shown, onMore, sho
   const today = (now ?? entries[0].hour).slice(0, 10);
   const yesterday = new Date(new Date(today).getTime() - 86400_000).toISOString().slice(0, 10);
   const none = s.markedHours === 0;
+  // Pauses: A (default) folds a run of paused hours into one block; B (`?pause=b`) keeps a row per hour with a "Paused" chip.
+  const pauseVariant = useVariant("pause", "a", PAUSE_VARIANTS);
+  let newerAbove = false;
 
   return (
     <div className="group">
@@ -144,7 +149,7 @@ function FeedBody({ entries, now, changesOnly, onChangesOnly, shown, onMore, sho
         )}
       </section>
 
-      <div className="card hours">
+      <div className={`card hours${showSite ? " all-places" : ""}`}>
         <div className="list-head">
           <span className="muted num">{changesOnly ? `${changes.length} ${changes.length === 1 ? "change" : "changes"}` : `${rows.length} hours`}</span>
           <button className="switch" role="switch" aria-checked={changesOnly} onClick={() => onChangesOnly(!changesOnly)}>
@@ -174,9 +179,18 @@ function FeedBody({ entries, now, changesOnly, onChangesOnly, shown, onMore, sho
                   )}
                 </span>
               </div>
-              {d.entries.map((e) => (
-                <Row key={e.hour + e.siteId} e={e} showSite={showSite} change={change} />
-              ))}
+              {(() => {
+                const items = groupPauses(d.entries, newerAbove);
+                const last = items[items.length - 1];
+                newerAbove = last?.kind === "row";
+                return items.map((it) =>
+                  it.kind === "row" ? (
+                    <Row key={it.row.hour + it.row.siteId} e={it.row} showSite={showSite} change={change} />
+                  ) : (
+                    <PauseItems key={"p" + it.to + it.rows.length} run={it} variant={pauseVariant} showSite={showSite} />
+                  ),
+                );
+              })()}
             </section>
           );
         })}
@@ -194,7 +208,7 @@ function FeedBody({ entries, now, changesOnly, onChangesOnly, shown, onMore, sho
 function statusText(e: FeedRow): ReactNode {
   if (e.status === "not-marked") return null;
   if (e.status === "skipped") return <span className="muted">Skipped</span>;
-  if (e.status === "followed") return <span style={{ color: "var(--mine)" }}>Followed</span>;
+  if (e.status === "followed") return <span style={{ color: "var(--accent)" }}>Followed</span>;
   if (e.keepAsIs) return <span className="muted">Keep as is</span>;
   if (e.missedUsd < 0.5) return <span className="muted">Nothing missed</span>;
   return <>{e.advice === "off" ? `Lost ${usd(e.missedUsd, 0)}` : `Missed +${usd(e.missedUsd, 0)}`}</>;
@@ -203,16 +217,7 @@ function statusText(e: FeedRow): ReactNode {
 function Row({ e, showSite, change }: { e: FeedRow; showSite: boolean; change: ChangeMarks }) {
   const [open, setOpen] = useState(false);
   const [picking, setPicking] = useState(false);
-  if (e.status === "paused" || !e.advice) {
-    return (
-      <div className="hour paused">
-        <span className="hour-line">
-          <span className="hour-time num">{utcTime(e.hour)}</span>
-          <span className="hour-pause">{showSite ? `${e.siteName} · ` : ""}{e.pauseReason ?? "Paused · daily limit"}</span>
-        </span>
-      </div>
-    );
-  }
+  if (e.status === "paused" || !e.advice) return <PausedRow e={e} showSite={showSite} />;
   const key = markKey(e.siteId, e.hour);
   const kind = e.mark?.kind;
   const set = (m: Mark | null) => {
@@ -236,7 +241,7 @@ function Row({ e, showSite, change }: { e: FeedRow; showSite: boolean; change: C
           <span className="hour-time num">{utcTime(e.hour)}</span>
           {showSite && <span className="hour-site">{e.siteName}</span>}
           <DecisionBadge d={e.advice} />
-          {e.recorded && <span className="badge keep" title="Decided live by the hourly agent with the receipts it bought">Agent call</span>}
+          {e.recorded && <span className="badge keep hour-agent" title="Decided live by the hourly agent with the receipts it bought">Agent call</span>}
         </span>
         <ChevronDown className="hour-chev" size={18} aria-hidden />
         {(sub || status) && (
@@ -254,6 +259,7 @@ function Row({ e, showSite, change }: { e: FeedRow; showSite: boolean; change: C
             </p>
           )}
           {e.keepAsIs && <p className="hour-full">Keep as is: the gap to the next option is below the switch threshold.</p>}
+          {e.recorded && <p className="hour-full hour-agent-note">Agent call: decided live by the hourly agent with the receipts it bought.</p>}
           <div className="hour-actions">
             <div className="hour-marks">
               <div className="mark-row" role="group" aria-label={`Mark what you did, ${who}`}>
@@ -287,6 +293,75 @@ function Row({ e, showSite, change }: { e: FeedRow; showSite: boolean; change: C
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Above a pause, where decisions came back: the newer rows sit above it (newest first). */
+function ResumeLine({ at }: { at: string }) {
+  return (
+    <div className="resume-line">
+      <ArrowUp size={14} strokeWidth={2.5} aria-hidden />
+      Back to decisions from {utcTime(at)}
+    </div>
+  );
+}
+
+function PauseItems({ run, variant, showSite }: { run: PauseRun; variant: "a" | "b"; showSite: boolean }) {
+  return (
+    <>
+      {run.resumedAt && <ResumeLine at={run.resumedAt} />}
+      {variant === "a" ? <PauseBlock run={run} showSite={showSite} /> : run.rows.map((e) => <PausedRow key={e.hour + e.siteId} e={e} showSite={showSite} />)}
+    </>
+  );
+}
+
+/** Variant A: a run of paused hours is one block: when, why, which places; the hours open on tap. */
+function PauseBlock({ run, showSite }: { run: PauseRun; showSite: boolean }) {
+  const [open, setOpen] = useState(false);
+  const id = `pause-${run.from}`;
+  const range = run.hours === 1 ? utcTime(run.from) : `${utcTime(run.from)}–${utcTime(run.to)}`;
+  const byHour = [...new Set(run.rows.map((r) => r.hour))].map((h) => ({ h, sites: run.rows.filter((r) => r.hour === h).map((r) => r.siteName) }));
+  return (
+    <div className={`pause-block${open ? " open" : ""}`} data-paused>
+      <button className="pause-head" aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)}>
+        <span className="pause-line">
+          <span className="badge paused"><Pause size={12} aria-hidden />Paused</span>
+          <span className="pause-range num">{range} UTC</span>
+          <span className="pause-count num">· {run.hours} h</span>
+        </span>
+        <ChevronDown className="hour-chev" size={18} aria-hidden />
+        <span className="pause-why">{run.why}</span>
+        <span className="pause-what">
+          No calls{showSite || run.sites.length > 1 ? ` for ${run.sites.join(", ")}` : ""}: the agent never decides without a fresh receipt.
+        </span>
+      </button>
+      {open && (
+        <ul className="pause-hours" id={id}>
+          {byHour.map(({ h, sites }) => (
+            <li key={h}>
+              <span className="hour-time num">{utcTime(h)}</span>
+              <span>{sites.join(", ")}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/** Variant B (and a lone paused hour): the row keeps its place, a "Paused" chip and the reason on the second line. */
+function PausedRow({ e, showSite }: { e: FeedRow; showSite: boolean }) {
+  return (
+    <div className="hour paused" data-paused>
+      <span className="hour-line">
+        <span className="hour-time num">{utcTime(e.hour)}</span>
+        {showSite && <span className="hour-site">{e.siteName}</span>}
+        <span className="badge paused"><Pause size={12} aria-hidden />Paused</span>
+      </span>
+      <span className="hour-sub">
+        <span className="hour-why">{pauseWhy(e.pauseReason)}</span>
+      </span>
     </div>
   );
 }
