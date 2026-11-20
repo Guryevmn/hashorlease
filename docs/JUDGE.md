@@ -92,6 +92,8 @@ cast send $DIAMOND "depositUSDC(uint256)" 1000000 --rpc-url $RPC --private-key $
 curl -s -X POST https://ethereum-sepolia-rpc.publicnode.com -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"eth_getTransactionReceipt","params":["0xba1da5f10e2cda2c315e31c36e4c353092c340f85bbec91e57dd74ade3ab0e93"]}'
 ```
 
+   **Top-up on 20 Nov 2026** (14:2x UTC, same wallet and contract, +5 test USDC; the wallet first minted the missing test USDC from the open `mint`): approve [`0x64eac6f6be4b9918a089517b43b34e20a2fb69df50c06642051422d2c2186d90`](https://sepolia.etherscan.io/tx/0x64eac6f6be4b9918a089517b43b34e20a2fb69df50c06642051422d2c2186d90) (block 12175743) and deposit [`0xcab9d44261e8e0ad3bbc66fbeebf7f56405a731f66b2fcd8b4a61ba54383ab9b`](https://sepolia.etherscan.io/tx/0xcab9d44261e8e0ad3bbc66fbeebf7f56405a731f66b2fcd8b4a61ba54383ab9b) (block 12175744), both `status success`. At about 25 requests a day this covers the agent until roughly 10 Dec 2026.
+
    We could not read the balance back: the documented getters (`escrowBalance`, `effectiveBalance`) were not available on the new contract on 17 Nov, so an empty deposit shows up only as the refusal `insufficient escrow`, after which `auto` falls back to x402. *(We deposited from a wallet that was already set up; we have not repeated steps 1–3 from a brand-new wallet for this guide.)*
 4. In `.env`: `NEXT_PUBLIC_DATA_MODE=live`, `DAILY_SPEND_LIMIT_USD=0.50` (any value; default 0.50), `TELEGRAPH_PAY_RAIL=auto`.
 5. `npm run build && npm start`, and the agent: `npm run agent -- --once` (or without `--once` to keep it hourly).
