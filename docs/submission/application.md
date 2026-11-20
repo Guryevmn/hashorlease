@@ -93,7 +93,7 @@ What we would learn first from the 3–5 operator conversations planned in B8: w
 
 > **Hash or Lease** (Mission 12, Mining and Power) is an hourly allocation agent for Bitcoin miners. For every site it calls Mine, Lease to AI or Switch off, in dollars per hour, and shows where each input came from. The agent buys the BTC price through Telegraph on testnet (x402 or a prepaid deposit), stops at a daily spend limit, and refuses to make a call without a fresh receipt. Hashprice and power prices still come from public sources, because those Intents returned empty values on the devnode — the raw answers are in the repo. Try it in five minutes with no wallet: https://github.com/Guryevmn/hashorlease. Reviewer guide: `docs/JUDGE.md`. If you run a mining site, we would like to hear what the call gets wrong: `[contact]`.
 >
-> Updates: `[link 1, date]` · `[link 2, date]` · `[link 3, date]` · Tutorial: `[link]` · Demo video: `[link]` · Independent testing: `[links, if any]`
+> Updates: [X thread, 3 posts with a 12-second teaser, 20 Nov 2026](https://x.com/GuryevDesign/status/2123723421712343111) · [Discord #showcase update with the same teaser, 20 Nov 2026](https://discord.com/channels/1438396125609463881/1570480934908862504/1573282397812949094) · `[link 3, date]` · Tutorial: `[link]` · Demo video: `[link]` · Independent testing: `[links, if any]`
 
 ### A8. Showcase permission `[owner's decision]`
 
